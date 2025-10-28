@@ -1,0 +1,45 @@
+module github.com/fachebot/perp-dex-grid-bot
+
+go 1.24.0
+
+toolchain go1.24.9
+
+require (
+	entgo.io/ent v0.14.5
+	github.com/dustin/go-humanize v1.0.1
+	github.com/elliottech/lighter-go v0.0.0-20251013172959-bcc650fa7eaa
+	github.com/gorilla/websocket v1.5.0
+	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/samber/lo v1.52.0
+	github.com/shopspring/decimal v1.4.0
+	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/net v0.46.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	gopkg.in/telebot.v4 v4.0.0-beta.5
+	gopkg.in/yaml.v2 v2.4.0
+)
+
+require (
+	ariga.io/atlas v0.32.1-0.20250325101103-175b25e1c1b9 // indirect
+	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/bits-and-blooms/bitset v1.17.0 // indirect
+	github.com/bmatcuk/doublestar v1.3.4 // indirect
+	github.com/consensys/gnark-crypto v0.14.0 // indirect
+	github.com/elliottech/poseidon_crypto v0.0.11 // indirect
+	github.com/ethereum/go-ethereum v1.15.6 // indirect
+	github.com/go-openapi/inflect v0.19.0 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.18.1 // indirect
+	github.com/holiman/uint256 v1.3.2 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/zclconf/go-cty v1.14.4 // indirect
+	github.com/zclconf/go-cty-yaml v1.1.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
+)

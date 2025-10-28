@@ -1,0 +1,12 @@
+# 代理服务器配置
+Sock5Proxy:
+  Host: 127.0.0.1 # 代理服务器地址
+  Port: 10808 # 代理服务器端口
+  Enable: true # 是否启用代理
+
+# 电报机器人配置
+TelegramBot:
+  Debug: true
+  ApiToken: 7582486842:AAHAdkHgtOik5IzF9iyO1S28PRl2N1GTEYc
+  WhiteList: # 白名单列表，填写Telegram UserId(非白名单用户不允许使用机器人，如果白名单为空则所有人都可以使用)
+    - 993021715
