@@ -65,7 +65,7 @@ func ReplyMessage(bot *tele.Bot, update tele.Update, text string, replyMarkup *t
 		})
 	}
 
-	photo := &tele.Photo{File: tele.FromURL("https://gridbot.4everland.store/grid.png")}
+	photo := &tele.Photo{File: tele.FromURL("https://pub-7d8b66050cd845cfa208b34a0b2dd62a.r2.dev/lighter.jpg")}
 	photo.Caption = text
 	return bot.Send(message.Chat, photo, &tele.SendOptions{
 		ParseMode:             tele.ModeMarkdown,
