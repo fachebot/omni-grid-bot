@@ -3,7 +3,9 @@ package model
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
 )
 
@@ -18,6 +20,7 @@ func NewStrategyModel(client *ent.StrategyClient) *StrategyModel {
 func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strategy, error) {
 	return m.client.Create().
 		SetGUID(args.GUID).
+		SetOwner(args.Owner).
 		SetExchange(args.Exchange).
 		SetSymbol(args.Symbol).
 		SetAccount(args.Account).
@@ -31,8 +34,6 @@ func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strat
 		SetInitialOrderSize(args.InitialOrderSize).
 		SetStopLossRatio(args.StopLossRatio).
 		SetTakeProfitRatio(args.TakeProfitRatio).
-		SetEnableAutoBuy(args.EnableAutoBuy).
-		SetEnableAutoSell(args.EnableAutoSell).
 		SetEnableAutoExit(args.EnableAutoExit).
 		SetEnablePushNotification(args.EnablePushNotification).
 		SetNillableLastLowerThresholdAlertTime(args.LastLowerThresholdAlertTime).
@@ -48,6 +49,62 @@ func (m *StrategyModel) FindOneByGUID(ctx context.Context, guid string) (*ent.St
 	return m.client.Query().Where(strategy.GUIDEQ(guid)).First(ctx)
 }
 
+func (m *StrategyModel) FindAllByOwner(ctx context.Context, owner int64, offset, limit int) ([]*ent.Strategy, int, error) {
+	q := m.client.Query().Where(strategy.OwnerEQ(owner))
+	count, err := q.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data, err := q.Order(strategy.ByID(sql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return data, count, nil
+}
+
+func (m *StrategyModel) FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx context.Context, exchange, exchangeAPIKey, symbol string) ([]*ent.Strategy, error) {
+	ps := []predicate.Strategy{
+		strategy.ExchangeEQ(exchange),
+		strategy.ExchangeApiKeyEQ(exchangeAPIKey),
+		strategy.SymbolEQ(symbol),
+	}
+	return m.client.Query().Where(ps...).All(ctx)
+}
+
 func (m *StrategyModel) UpdateStatus(ctx context.Context, id int, newValue strategy.Status) error {
 	return m.client.UpdateOneID(id).SetStatus(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateExchange(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetExchange(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateExchangeAPIKey(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetExchangeApiKey(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateExchangeSecretKey(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetExchangeSecretKey(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateExchangePassphrase(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetExchangePassphrase(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateGridMode(ctx context.Context, id int, newValue strategy.Mode) error {
+	return m.client.UpdateOneID(id).SetMode(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateMarginMode(ctx context.Context, id int, newValue strategy.MarginMode) error {
+	return m.client.UpdateOneID(id).SetMarginMode(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateQuantityMode(ctx context.Context, id int, newValue strategy.QuantityMode) error {
+	return m.client.UpdateOneID(id).SetQuantityMode(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) Delete(ctx context.Context, id int) error {
+	return m.client.DeleteOneID(id).Exec(ctx)
 }

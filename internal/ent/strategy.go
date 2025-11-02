@@ -24,6 +24,8 @@ type Strategy struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// GUID holds the value of the "guid" field.
 	GUID string `json:"guid,omitempty"`
+	// Owner holds the value of the "owner" field.
+	Owner int64 `json:"owner,omitempty"`
 	// Exchange holds the value of the "exchange" field.
 	Exchange string `json:"exchange,omitempty"`
 	// Symbol holds the value of the "symbol" field.
@@ -50,10 +52,6 @@ type Strategy struct {
 	StopLossRatio decimal.Decimal `json:"stopLossRatio,omitempty"`
 	// TakeProfitRatio holds the value of the "takeProfitRatio" field.
 	TakeProfitRatio decimal.Decimal `json:"takeProfitRatio,omitempty"`
-	// EnableAutoBuy holds the value of the "enableAutoBuy" field.
-	EnableAutoBuy bool `json:"enableAutoBuy,omitempty"`
-	// EnableAutoSell holds the value of the "enableAutoSell" field.
-	EnableAutoSell bool `json:"enableAutoSell,omitempty"`
 	// EnableAutoExit holds the value of the "enableAutoExit" field.
 	EnableAutoExit bool `json:"enableAutoExit,omitempty"`
 	// EnablePushNotification holds the value of the "enablePushNotification" field.
@@ -80,9 +78,9 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize, strategy.FieldStopLossRatio, strategy.FieldTakeProfitRatio:
 			values[i] = new(decimal.Decimal)
-		case strategy.FieldEnableAutoBuy, strategy.FieldEnableAutoSell, strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification:
+		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification:
 			values[i] = new(sql.NullBool)
-		case strategy.FieldID, strategy.FieldGridNum, strategy.FieldLeverage:
+		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage:
 			values[i] = new(sql.NullInt64)
 		case strategy.FieldGUID, strategy.FieldExchange, strategy.FieldSymbol, strategy.FieldAccount, strategy.FieldMode, strategy.FieldMarginMode, strategy.FieldQuantityMode, strategy.FieldStatus, strategy.FieldExchangeApiKey, strategy.FieldExchangeSecretKey, strategy.FieldExchangePassphrase:
 			values[i] = new(sql.NullString)
@@ -126,6 +124,12 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field guid", values[i])
 			} else if value.Valid {
 				_m.GUID = value.String
+			}
+		case strategy.FieldOwner:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field owner", values[i])
+			} else if value.Valid {
+				_m.Owner = value.Int64
 			}
 		case strategy.FieldExchange:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -204,18 +208,6 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field takeProfitRatio", values[i])
 			} else if value != nil {
 				_m.TakeProfitRatio = *value
-			}
-		case strategy.FieldEnableAutoBuy:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field enableAutoBuy", values[i])
-			} else if value.Valid {
-				_m.EnableAutoBuy = value.Bool
-			}
-		case strategy.FieldEnableAutoSell:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field enableAutoSell", values[i])
-			} else if value.Valid {
-				_m.EnableAutoSell = value.Bool
 			}
 		case strategy.FieldEnableAutoExit:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -312,6 +304,9 @@ func (_m *Strategy) String() string {
 	builder.WriteString("guid=")
 	builder.WriteString(_m.GUID)
 	builder.WriteString(", ")
+	builder.WriteString("owner=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Owner))
+	builder.WriteString(", ")
 	builder.WriteString("exchange=")
 	builder.WriteString(_m.Exchange)
 	builder.WriteString(", ")
@@ -350,12 +345,6 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("takeProfitRatio=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TakeProfitRatio))
-	builder.WriteString(", ")
-	builder.WriteString("enableAutoBuy=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EnableAutoBuy))
-	builder.WriteString(", ")
-	builder.WriteString("enableAutoSell=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EnableAutoSell))
 	builder.WriteString(", ")
 	builder.WriteString("enableAutoExit=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnableAutoExit))

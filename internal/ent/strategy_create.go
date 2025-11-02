@@ -57,6 +57,12 @@ func (_c *StrategyCreate) SetGUID(v string) *StrategyCreate {
 	return _c
 }
 
+// SetOwner sets the "owner" field.
+func (_c *StrategyCreate) SetOwner(v int64) *StrategyCreate {
+	_c.mutation.SetOwner(v)
+	return _c
+}
+
 // SetExchange sets the "exchange" field.
 func (_c *StrategyCreate) SetExchange(v string) *StrategyCreate {
 	_c.mutation.SetExchange(v)
@@ -148,18 +154,6 @@ func (_c *StrategyCreate) SetStopLossRatio(v decimal.Decimal) *StrategyCreate {
 // SetTakeProfitRatio sets the "takeProfitRatio" field.
 func (_c *StrategyCreate) SetTakeProfitRatio(v decimal.Decimal) *StrategyCreate {
 	_c.mutation.SetTakeProfitRatio(v)
-	return _c
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (_c *StrategyCreate) SetEnableAutoBuy(v bool) *StrategyCreate {
-	_c.mutation.SetEnableAutoBuy(v)
-	return _c
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (_c *StrategyCreate) SetEnableAutoSell(v bool) *StrategyCreate {
-	_c.mutation.SetEnableAutoSell(v)
 	return _c
 }
 
@@ -296,6 +290,9 @@ func (_c *StrategyCreate) check() error {
 			return &ValidationError{Name: "guid", err: fmt.Errorf(`ent: validator failed for field "Strategy.guid": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Owner(); !ok {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Strategy.owner"`)}
+	}
 	if _, ok := _c.mutation.Exchange(); !ok {
 		return &ValidationError{Name: "exchange", err: errors.New(`ent: missing required field "Strategy.exchange"`)}
 	}
@@ -370,12 +367,6 @@ func (_c *StrategyCreate) check() error {
 	if _, ok := _c.mutation.TakeProfitRatio(); !ok {
 		return &ValidationError{Name: "takeProfitRatio", err: errors.New(`ent: missing required field "Strategy.takeProfitRatio"`)}
 	}
-	if _, ok := _c.mutation.EnableAutoBuy(); !ok {
-		return &ValidationError{Name: "enableAutoBuy", err: errors.New(`ent: missing required field "Strategy.enableAutoBuy"`)}
-	}
-	if _, ok := _c.mutation.EnableAutoSell(); !ok {
-		return &ValidationError{Name: "enableAutoSell", err: errors.New(`ent: missing required field "Strategy.enableAutoSell"`)}
-	}
 	if _, ok := _c.mutation.EnableAutoExit(); !ok {
 		return &ValidationError{Name: "enableAutoExit", err: errors.New(`ent: missing required field "Strategy.enableAutoExit"`)}
 	}
@@ -438,6 +429,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 		_spec.SetField(strategy.FieldGUID, field.TypeString, value)
 		_node.GUID = value
 	}
+	if value, ok := _c.mutation.Owner(); ok {
+		_spec.SetField(strategy.FieldOwner, field.TypeInt64, value)
+		_node.Owner = value
+	}
 	if value, ok := _c.mutation.Exchange(); ok {
 		_spec.SetField(strategy.FieldExchange, field.TypeString, value)
 		_node.Exchange = value
@@ -489,14 +484,6 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
 		_node.TakeProfitRatio = value
-	}
-	if value, ok := _c.mutation.EnableAutoBuy(); ok {
-		_spec.SetField(strategy.FieldEnableAutoBuy, field.TypeBool, value)
-		_node.EnableAutoBuy = value
-	}
-	if value, ok := _c.mutation.EnableAutoSell(); ok {
-		_spec.SetField(strategy.FieldEnableAutoSell, field.TypeBool, value)
-		_node.EnableAutoSell = value
 	}
 	if value, ok := _c.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
@@ -603,6 +590,24 @@ func (u *StrategyUpsert) SetGUID(v string) *StrategyUpsert {
 // UpdateGUID sets the "guid" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateGUID() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldGUID)
+	return u
+}
+
+// SetOwner sets the "owner" field.
+func (u *StrategyUpsert) SetOwner(v int64) *StrategyUpsert {
+	u.Set(strategy.FieldOwner, v)
+	return u
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateOwner() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldOwner)
+	return u
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *StrategyUpsert) AddOwner(v int64) *StrategyUpsert {
+	u.Add(strategy.FieldOwner, v)
 	return u
 }
 
@@ -771,30 +776,6 @@ func (u *StrategyUpsert) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpsert {
 // UpdateTakeProfitRatio sets the "takeProfitRatio" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateTakeProfitRatio() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldTakeProfitRatio)
-	return u
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (u *StrategyUpsert) SetEnableAutoBuy(v bool) *StrategyUpsert {
-	u.Set(strategy.FieldEnableAutoBuy, v)
-	return u
-}
-
-// UpdateEnableAutoBuy sets the "enableAutoBuy" field to the value that was provided on create.
-func (u *StrategyUpsert) UpdateEnableAutoBuy() *StrategyUpsert {
-	u.SetExcluded(strategy.FieldEnableAutoBuy)
-	return u
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (u *StrategyUpsert) SetEnableAutoSell(v bool) *StrategyUpsert {
-	u.Set(strategy.FieldEnableAutoSell, v)
-	return u
-}
-
-// UpdateEnableAutoSell sets the "enableAutoSell" field to the value that was provided on create.
-func (u *StrategyUpsert) UpdateEnableAutoSell() *StrategyUpsert {
-	u.SetExcluded(strategy.FieldEnableAutoSell)
 	return u
 }
 
@@ -976,6 +957,27 @@ func (u *StrategyUpsertOne) SetGUID(v string) *StrategyUpsertOne {
 func (u *StrategyUpsertOne) UpdateGUID() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateGUID()
+	})
+}
+
+// SetOwner sets the "owner" field.
+func (u *StrategyUpsertOne) SetOwner(v int64) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *StrategyUpsertOne) AddOwner(v int64) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.AddOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateOwner() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateOwner()
 	})
 }
 
@@ -1172,34 +1174,6 @@ func (u *StrategyUpsertOne) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpser
 func (u *StrategyUpsertOne) UpdateTakeProfitRatio() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateTakeProfitRatio()
-	})
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (u *StrategyUpsertOne) SetEnableAutoBuy(v bool) *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoBuy(v)
-	})
-}
-
-// UpdateEnableAutoBuy sets the "enableAutoBuy" field to the value that was provided on create.
-func (u *StrategyUpsertOne) UpdateEnableAutoBuy() *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoBuy()
-	})
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (u *StrategyUpsertOne) SetEnableAutoSell(v bool) *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoSell(v)
-	})
-}
-
-// UpdateEnableAutoSell sets the "enableAutoSell" field to the value that was provided on create.
-func (u *StrategyUpsertOne) UpdateEnableAutoSell() *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoSell()
 	})
 }
 
@@ -1568,6 +1542,27 @@ func (u *StrategyUpsertBulk) UpdateGUID() *StrategyUpsertBulk {
 	})
 }
 
+// SetOwner sets the "owner" field.
+func (u *StrategyUpsertBulk) SetOwner(v int64) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *StrategyUpsertBulk) AddOwner(v int64) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.AddOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateOwner() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateOwner()
+	})
+}
+
 // SetExchange sets the "exchange" field.
 func (u *StrategyUpsertBulk) SetExchange(v string) *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
@@ -1761,34 +1756,6 @@ func (u *StrategyUpsertBulk) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpse
 func (u *StrategyUpsertBulk) UpdateTakeProfitRatio() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateTakeProfitRatio()
-	})
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (u *StrategyUpsertBulk) SetEnableAutoBuy(v bool) *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoBuy(v)
-	})
-}
-
-// UpdateEnableAutoBuy sets the "enableAutoBuy" field to the value that was provided on create.
-func (u *StrategyUpsertBulk) UpdateEnableAutoBuy() *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoBuy()
-	})
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (u *StrategyUpsertBulk) SetEnableAutoSell(v bool) *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoSell(v)
-	})
-}
-
-// UpdateEnableAutoSell sets the "enableAutoSell" field to the value that was provided on create.
-func (u *StrategyUpsertBulk) UpdateEnableAutoSell() *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoSell()
 	})
 }
 

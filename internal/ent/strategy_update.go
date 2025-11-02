@@ -49,6 +49,27 @@ func (_u *StrategyUpdate) SetNillableGUID(v *string) *StrategyUpdate {
 	return _u
 }
 
+// SetOwner sets the "owner" field.
+func (_u *StrategyUpdate) SetOwner(v int64) *StrategyUpdate {
+	_u.mutation.ResetOwner()
+	_u.mutation.SetOwner(v)
+	return _u
+}
+
+// SetNillableOwner sets the "owner" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableOwner(v *int64) *StrategyUpdate {
+	if v != nil {
+		_u.SetOwner(*v)
+	}
+	return _u
+}
+
+// AddOwner adds value to the "owner" field.
+func (_u *StrategyUpdate) AddOwner(v int64) *StrategyUpdate {
+	_u.mutation.AddOwner(v)
+	return _u
+}
+
 // SetExchange sets the "exchange" field.
 func (_u *StrategyUpdate) SetExchange(v string) *StrategyUpdate {
 	_u.mutation.SetExchange(v)
@@ -241,34 +262,6 @@ func (_u *StrategyUpdate) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpdate 
 func (_u *StrategyUpdate) SetNillableTakeProfitRatio(v *decimal.Decimal) *StrategyUpdate {
 	if v != nil {
 		_u.SetTakeProfitRatio(*v)
-	}
-	return _u
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (_u *StrategyUpdate) SetEnableAutoBuy(v bool) *StrategyUpdate {
-	_u.mutation.SetEnableAutoBuy(v)
-	return _u
-}
-
-// SetNillableEnableAutoBuy sets the "enableAutoBuy" field if the given value is not nil.
-func (_u *StrategyUpdate) SetNillableEnableAutoBuy(v *bool) *StrategyUpdate {
-	if v != nil {
-		_u.SetEnableAutoBuy(*v)
-	}
-	return _u
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (_u *StrategyUpdate) SetEnableAutoSell(v bool) *StrategyUpdate {
-	_u.mutation.SetEnableAutoSell(v)
-	return _u
-}
-
-// SetNillableEnableAutoSell sets the "enableAutoSell" field if the given value is not nil.
-func (_u *StrategyUpdate) SetNillableEnableAutoSell(v *bool) *StrategyUpdate {
-	if v != nil {
-		_u.SetEnableAutoSell(*v)
 	}
 	return _u
 }
@@ -506,6 +499,12 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.GUID(); ok {
 		_spec.SetField(strategy.FieldGUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Owner(); ok {
+		_spec.SetField(strategy.FieldOwner, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedOwner(); ok {
+		_spec.AddField(strategy.FieldOwner, field.TypeInt64, value)
+	}
 	if value, ok := _u.mutation.Exchange(); ok {
 		_spec.SetField(strategy.FieldExchange, field.TypeString, value)
 	}
@@ -550,12 +549,6 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.EnableAutoBuy(); ok {
-		_spec.SetField(strategy.FieldEnableAutoBuy, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.EnableAutoSell(); ok {
-		_spec.SetField(strategy.FieldEnableAutoSell, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
@@ -624,6 +617,27 @@ func (_u *StrategyUpdateOne) SetNillableGUID(v *string) *StrategyUpdateOne {
 	if v != nil {
 		_u.SetGUID(*v)
 	}
+	return _u
+}
+
+// SetOwner sets the "owner" field.
+func (_u *StrategyUpdateOne) SetOwner(v int64) *StrategyUpdateOne {
+	_u.mutation.ResetOwner()
+	_u.mutation.SetOwner(v)
+	return _u
+}
+
+// SetNillableOwner sets the "owner" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableOwner(v *int64) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetOwner(*v)
+	}
+	return _u
+}
+
+// AddOwner adds value to the "owner" field.
+func (_u *StrategyUpdateOne) AddOwner(v int64) *StrategyUpdateOne {
+	_u.mutation.AddOwner(v)
 	return _u
 }
 
@@ -819,34 +833,6 @@ func (_u *StrategyUpdateOne) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpda
 func (_u *StrategyUpdateOne) SetNillableTakeProfitRatio(v *decimal.Decimal) *StrategyUpdateOne {
 	if v != nil {
 		_u.SetTakeProfitRatio(*v)
-	}
-	return _u
-}
-
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (_u *StrategyUpdateOne) SetEnableAutoBuy(v bool) *StrategyUpdateOne {
-	_u.mutation.SetEnableAutoBuy(v)
-	return _u
-}
-
-// SetNillableEnableAutoBuy sets the "enableAutoBuy" field if the given value is not nil.
-func (_u *StrategyUpdateOne) SetNillableEnableAutoBuy(v *bool) *StrategyUpdateOne {
-	if v != nil {
-		_u.SetEnableAutoBuy(*v)
-	}
-	return _u
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (_u *StrategyUpdateOne) SetEnableAutoSell(v bool) *StrategyUpdateOne {
-	_u.mutation.SetEnableAutoSell(v)
-	return _u
-}
-
-// SetNillableEnableAutoSell sets the "enableAutoSell" field if the given value is not nil.
-func (_u *StrategyUpdateOne) SetNillableEnableAutoSell(v *bool) *StrategyUpdateOne {
-	if v != nil {
-		_u.SetEnableAutoSell(*v)
 	}
 	return _u
 }
@@ -1114,6 +1100,12 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	if value, ok := _u.mutation.GUID(); ok {
 		_spec.SetField(strategy.FieldGUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Owner(); ok {
+		_spec.SetField(strategy.FieldOwner, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedOwner(); ok {
+		_spec.AddField(strategy.FieldOwner, field.TypeInt64, value)
+	}
 	if value, ok := _u.mutation.Exchange(); ok {
 		_spec.SetField(strategy.FieldExchange, field.TypeString, value)
 	}
@@ -1158,12 +1150,6 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if value, ok := _u.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.EnableAutoBuy(); ok {
-		_spec.SetField(strategy.FieldEnableAutoBuy, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.EnableAutoSell(); ok {
-		_spec.SetField(strategy.FieldEnableAutoSell, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)

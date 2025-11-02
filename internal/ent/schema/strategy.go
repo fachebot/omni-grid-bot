@@ -23,10 +23,11 @@ func (Strategy) Mixin() []ent.Mixin {
 func (Strategy) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("guid").MaxLen(50).Unique(),
+		field.Int64("owner"),
 		field.String("exchange").MaxLen(50),
 		field.String("symbol").MaxLen(32),
 		field.String("account"),
-		field.Enum("mode").Values("neutral", "long", "short"),
+		field.Enum("mode").Values("long", "short"),
 		field.Enum("marginMode").Values("cross", "isolated"),
 		field.Enum("quantityMode").Values("arithmetic", "geometric"),
 		field.String("priceUpper").GoType(decimal.Decimal{}),
@@ -36,8 +37,6 @@ func (Strategy) Fields() []ent.Field {
 		field.String("initialOrderSize").GoType(decimal.Decimal{}),
 		field.String("stopLossRatio").GoType(decimal.Decimal{}),
 		field.String("takeProfitRatio").GoType(decimal.Decimal{}),
-		field.Bool("enableAutoBuy"),
-		field.Bool("enableAutoSell"),
 		field.Bool("enableAutoExit"),
 		field.Bool("enablePushNotification"),
 		field.Time("lastLowerThresholdAlertTime").Nillable().Optional(),
@@ -57,7 +56,8 @@ func (Strategy) Edges() []ent.Edge {
 // Indexes of the Strategy.
 func (Strategy) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("owner"),
 		index.Fields("exchange", "account"),
-		index.Fields("exchange", "symbol", "account").Unique(),
+		index.Fields("exchange", "symbol", "account"),
 	}
 }

@@ -70,6 +70,11 @@ func GUID(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldGUID, v))
 }
 
+// Owner applies equality check predicate on the "owner" field. It's identical to OwnerEQ.
+func Owner(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldOwner, v))
+}
+
 // Exchange applies equality check predicate on the "exchange" field. It's identical to ExchangeEQ.
 func Exchange(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldExchange, v))
@@ -118,16 +123,6 @@ func StopLossRatio(v decimal.Decimal) predicate.Strategy {
 // TakeProfitRatio applies equality check predicate on the "takeProfitRatio" field. It's identical to TakeProfitRatioEQ.
 func TakeProfitRatio(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldTakeProfitRatio, v))
-}
-
-// EnableAutoBuy applies equality check predicate on the "enableAutoBuy" field. It's identical to EnableAutoBuyEQ.
-func EnableAutoBuy(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoBuy, v))
-}
-
-// EnableAutoSell applies equality check predicate on the "enableAutoSell" field. It's identical to EnableAutoSellEQ.
-func EnableAutoSell(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoSell, v))
 }
 
 // EnableAutoExit applies equality check predicate on the "enableAutoExit" field. It's identical to EnableAutoExitEQ.
@@ -308,6 +303,46 @@ func GUIDEqualFold(v string) predicate.Strategy {
 // GUIDContainsFold applies the ContainsFold predicate on the "guid" field.
 func GUIDContainsFold(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldContainsFold(FieldGUID, v))
+}
+
+// OwnerEQ applies the EQ predicate on the "owner" field.
+func OwnerEQ(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldOwner, v))
+}
+
+// OwnerNEQ applies the NEQ predicate on the "owner" field.
+func OwnerNEQ(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldOwner, v))
+}
+
+// OwnerIn applies the In predicate on the "owner" field.
+func OwnerIn(vs ...int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldOwner, vs...))
+}
+
+// OwnerNotIn applies the NotIn predicate on the "owner" field.
+func OwnerNotIn(vs ...int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldOwner, vs...))
+}
+
+// OwnerGT applies the GT predicate on the "owner" field.
+func OwnerGT(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldOwner, v))
+}
+
+// OwnerGTE applies the GTE predicate on the "owner" field.
+func OwnerGTE(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldOwner, v))
+}
+
+// OwnerLT applies the LT predicate on the "owner" field.
+func OwnerLT(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldOwner, v))
+}
+
+// OwnerLTE applies the LTE predicate on the "owner" field.
+func OwnerLTE(v int64) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldOwner, v))
 }
 
 // ExchangeEQ applies the EQ predicate on the "exchange" field.
@@ -993,26 +1028,6 @@ func TakeProfitRatioEqualFold(v decimal.Decimal) predicate.Strategy {
 func TakeProfitRatioContainsFold(v decimal.Decimal) predicate.Strategy {
 	vc := v.String()
 	return predicate.Strategy(sql.FieldContainsFold(FieldTakeProfitRatio, vc))
-}
-
-// EnableAutoBuyEQ applies the EQ predicate on the "enableAutoBuy" field.
-func EnableAutoBuyEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoBuy, v))
-}
-
-// EnableAutoBuyNEQ applies the NEQ predicate on the "enableAutoBuy" field.
-func EnableAutoBuyNEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNEQ(FieldEnableAutoBuy, v))
-}
-
-// EnableAutoSellEQ applies the EQ predicate on the "enableAutoSell" field.
-func EnableAutoSellEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoSell, v))
-}
-
-// EnableAutoSellNEQ applies the NEQ predicate on the "enableAutoSell" field.
-func EnableAutoSellNEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNEQ(FieldEnableAutoSell, v))
 }
 
 // EnableAutoExitEQ applies the EQ predicate on the "enableAutoExit" field.

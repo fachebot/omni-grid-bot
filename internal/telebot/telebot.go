@@ -2,7 +2,6 @@ package telebot
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
@@ -68,26 +67,11 @@ func (b *TeleBot) initRoutes() {
 }
 
 func (b *TeleBot) handleHome(update tele.Update) error {
-	replyMarkup := &tele.ReplyMarkup{
-		InlineKeyboard: [][]tele.InlineButton{
-			{
-				{Text: "🎯 我的跟单", Data: "/1"},
-				{Text: "📢 钱包监控", Data: "/2"},
-			},
-		},
+	chat, ok := util.GetChat(update)
+	if !ok {
+		return nil
 	}
-
-	chat, _ := util.GetChat(update)
-	text := "*HyperCopier* | 专注 Hyperliquid 聪明钱跟单"
-	text = text + "\n\n通过实时追踪 [Hyperliquid](https://hyperliquid.xyz/) 高胜率或高收益地址，将其开平仓行为转化为可参数化的复制策略：你可自定义仓位比例、最大杠杆、风控阈值、止盈止损与黑白名单，实现精细化自动交易体验。"
-	text = text + fmt.Sprintf("\n\n👤 UID: `%d`\n💳 身份: *普通会员*\n", chat.ID)
-	text = text + "\n\n发现聪明钱 👉[HyperX](https://hyper.faster100x.com/hyperliquid/wallet-discover?ref=HYPERCOPIER)"
-	_, err := util.ReplyMessage(b.svcCtx.Bot, update, text, replyMarkup)
-	if err != nil {
-		logger.Debugf("[TeleBot] 处理主页失败, %v", err)
-	}
-
-	return nil
+	return handler.DisplayStrategyList(b.ctx, b.svcCtx, chat.ID, update, 1)
 }
 
 func (b *TeleBot) handleUpdate(c tele.Context) error {

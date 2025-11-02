@@ -40,7 +40,7 @@ func GetChat(update tele.Update) (*tele.Chat, bool) {
 	return nil, false
 }
 
-func ReplyMessage(bot *tele.Bot, update tele.Update, text string, replyMarkup *tele.ReplyMarkup) (*tele.Message, error) {
+func ReplyMessage(bot *tele.Bot, update tele.Update, text string, replyMarkup *tele.ReplyMarkup, newMessage ...bool) (*tele.Message, error) {
 	var message *tele.Message
 	if update.Message != nil {
 		message = update.Message
@@ -50,7 +50,7 @@ func ReplyMessage(bot *tele.Bot, update tele.Update, text string, replyMarkup *t
 		return nil, errors.New("unsupported update type")
 	}
 
-	if message.Sender.ID == bot.Me.ID {
+	if message.Sender.ID == bot.Me.ID && !(len(newMessage) > 0 && newMessage[0]) {
 		if message.Caption != "" {
 			return bot.EditCaption(message, text, &tele.SendOptions{
 				ParseMode:             tele.ModeMarkdown,

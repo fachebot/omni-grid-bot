@@ -20,6 +20,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldGUID holds the string denoting the guid field in the database.
 	FieldGUID = "guid"
+	// FieldOwner holds the string denoting the owner field in the database.
+	FieldOwner = "owner"
 	// FieldExchange holds the string denoting the exchange field in the database.
 	FieldExchange = "exchange"
 	// FieldSymbol holds the string denoting the symbol field in the database.
@@ -46,10 +48,6 @@ const (
 	FieldStopLossRatio = "stop_loss_ratio"
 	// FieldTakeProfitRatio holds the string denoting the takeprofitratio field in the database.
 	FieldTakeProfitRatio = "take_profit_ratio"
-	// FieldEnableAutoBuy holds the string denoting the enableautobuy field in the database.
-	FieldEnableAutoBuy = "enable_auto_buy"
-	// FieldEnableAutoSell holds the string denoting the enableautosell field in the database.
-	FieldEnableAutoSell = "enable_auto_sell"
 	// FieldEnableAutoExit holds the string denoting the enableautoexit field in the database.
 	FieldEnableAutoExit = "enable_auto_exit"
 	// FieldEnablePushNotification holds the string denoting the enablepushnotification field in the database.
@@ -76,6 +74,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldGUID,
+	FieldOwner,
 	FieldExchange,
 	FieldSymbol,
 	FieldAccount,
@@ -89,8 +88,6 @@ var Columns = []string{
 	FieldInitialOrderSize,
 	FieldStopLossRatio,
 	FieldTakeProfitRatio,
-	FieldEnableAutoBuy,
-	FieldEnableAutoSell,
 	FieldEnableAutoExit,
 	FieldEnablePushNotification,
 	FieldLastLowerThresholdAlertTime,
@@ -139,9 +136,8 @@ type Mode string
 
 // Mode values.
 const (
-	ModeNeutral Mode = "neutral"
-	ModeLong    Mode = "long"
-	ModeShort   Mode = "short"
+	ModeLong  Mode = "long"
+	ModeShort Mode = "short"
 )
 
 func (m Mode) String() string {
@@ -151,7 +147,7 @@ func (m Mode) String() string {
 // ModeValidator is a validator for the "mode" field enum values. It is called by the builders before save.
 func ModeValidator(m Mode) error {
 	switch m {
-	case ModeNeutral, ModeLong, ModeShort:
+	case ModeLong, ModeShort:
 		return nil
 	default:
 		return fmt.Errorf("strategy: invalid enum value for mode field: %q", m)
@@ -250,6 +246,11 @@ func ByGUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGUID, opts...).ToFunc()
 }
 
+// ByOwner orders the results by the owner field.
+func ByOwner(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOwner, opts...).ToFunc()
+}
+
 // ByExchange orders the results by the exchange field.
 func ByExchange(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExchange, opts...).ToFunc()
@@ -313,16 +314,6 @@ func ByStopLossRatio(opts ...sql.OrderTermOption) OrderOption {
 // ByTakeProfitRatio orders the results by the takeProfitRatio field.
 func ByTakeProfitRatio(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTakeProfitRatio, opts...).ToFunc()
-}
-
-// ByEnableAutoBuy orders the results by the enableAutoBuy field.
-func ByEnableAutoBuy(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEnableAutoBuy, opts...).ToFunc()
-}
-
-// ByEnableAutoSell orders the results by the enableAutoSell field.
-func ByEnableAutoSell(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEnableAutoSell, opts...).ToFunc()
 }
 
 // ByEnableAutoExit orders the results by the enableAutoExit field.

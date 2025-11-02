@@ -78,21 +78,21 @@ func init() {
 	// strategy.GUIDValidator is a validator for the "guid" field. It is called by the builders before save.
 	strategy.GUIDValidator = strategyDescGUID.Validators[0].(func(string) error)
 	// strategyDescExchange is the schema descriptor for exchange field.
-	strategyDescExchange := strategyFields[1].Descriptor()
+	strategyDescExchange := strategyFields[2].Descriptor()
 	// strategy.ExchangeValidator is a validator for the "exchange" field. It is called by the builders before save.
 	strategy.ExchangeValidator = strategyDescExchange.Validators[0].(func(string) error)
 	// strategyDescSymbol is the schema descriptor for symbol field.
-	strategyDescSymbol := strategyFields[2].Descriptor()
+	strategyDescSymbol := strategyFields[3].Descriptor()
 	// strategy.SymbolValidator is a validator for the "symbol" field. It is called by the builders before save.
 	strategy.SymbolValidator = strategyDescSymbol.Validators[0].(func(string) error)
 	// strategyDescGridNum is the schema descriptor for gridNum field.
-	strategyDescGridNum := strategyFields[9].Descriptor()
+	strategyDescGridNum := strategyFields[10].Descriptor()
 	// strategy.DefaultGridNum holds the default value on creation for the gridNum field.
 	strategy.DefaultGridNum = strategyDescGridNum.Default.(int)
 	// strategy.GridNumValidator is a validator for the "gridNum" field. It is called by the builders before save.
 	strategy.GridNumValidator = strategyDescGridNum.Validators[0].(func(int) error)
 	// strategyDescLeverage is the schema descriptor for leverage field.
-	strategyDescLeverage := strategyFields[10].Descriptor()
+	strategyDescLeverage := strategyFields[11].Descriptor()
 	// strategy.DefaultLeverage holds the default value on creation for the leverage field.
 	strategy.DefaultLeverage = strategyDescLeverage.Default.(int)
 	// strategy.LeverageValidator is a validator for the "leverage" field. It is called by the builders before save.

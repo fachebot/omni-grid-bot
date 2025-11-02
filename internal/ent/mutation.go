@@ -2076,6 +2076,8 @@ type StrategyMutation struct {
 	create_time                 *time.Time
 	update_time                 *time.Time
 	guid                        *string
+	owner                       *int64
+	addowner                    *int64
 	exchange                    *string
 	symbol                      *string
 	account                     *string
@@ -2091,8 +2093,6 @@ type StrategyMutation struct {
 	initialOrderSize            *decimal.Decimal
 	stopLossRatio               *decimal.Decimal
 	takeProfitRatio             *decimal.Decimal
-	enableAutoBuy               *bool
-	enableAutoSell              *bool
 	enableAutoExit              *bool
 	enablePushNotification      *bool
 	lastLowerThresholdAlertTime *time.Time
@@ -2311,6 +2311,62 @@ func (m *StrategyMutation) OldGUID(ctx context.Context) (v string, err error) {
 // ResetGUID resets all changes to the "guid" field.
 func (m *StrategyMutation) ResetGUID() {
 	m.guid = nil
+}
+
+// SetOwner sets the "owner" field.
+func (m *StrategyMutation) SetOwner(i int64) {
+	m.owner = &i
+	m.addowner = nil
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *StrategyMutation) Owner() (r int64, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldOwner(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// AddOwner adds i to the "owner" field.
+func (m *StrategyMutation) AddOwner(i int64) {
+	if m.addowner != nil {
+		*m.addowner += i
+	} else {
+		m.addowner = &i
+	}
+}
+
+// AddedOwner returns the value that was added to the "owner" field in this mutation.
+func (m *StrategyMutation) AddedOwner() (r int64, exists bool) {
+	v := m.addowner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *StrategyMutation) ResetOwner() {
+	m.owner = nil
+	m.addowner = nil
 }
 
 // SetExchange sets the "exchange" field.
@@ -2821,78 +2877,6 @@ func (m *StrategyMutation) ResetTakeProfitRatio() {
 	m.takeProfitRatio = nil
 }
 
-// SetEnableAutoBuy sets the "enableAutoBuy" field.
-func (m *StrategyMutation) SetEnableAutoBuy(b bool) {
-	m.enableAutoBuy = &b
-}
-
-// EnableAutoBuy returns the value of the "enableAutoBuy" field in the mutation.
-func (m *StrategyMutation) EnableAutoBuy() (r bool, exists bool) {
-	v := m.enableAutoBuy
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnableAutoBuy returns the old "enableAutoBuy" field's value of the Strategy entity.
-// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StrategyMutation) OldEnableAutoBuy(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnableAutoBuy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnableAutoBuy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnableAutoBuy: %w", err)
-	}
-	return oldValue.EnableAutoBuy, nil
-}
-
-// ResetEnableAutoBuy resets all changes to the "enableAutoBuy" field.
-func (m *StrategyMutation) ResetEnableAutoBuy() {
-	m.enableAutoBuy = nil
-}
-
-// SetEnableAutoSell sets the "enableAutoSell" field.
-func (m *StrategyMutation) SetEnableAutoSell(b bool) {
-	m.enableAutoSell = &b
-}
-
-// EnableAutoSell returns the value of the "enableAutoSell" field in the mutation.
-func (m *StrategyMutation) EnableAutoSell() (r bool, exists bool) {
-	v := m.enableAutoSell
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnableAutoSell returns the old "enableAutoSell" field's value of the Strategy entity.
-// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StrategyMutation) OldEnableAutoSell(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnableAutoSell is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnableAutoSell requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnableAutoSell: %w", err)
-	}
-	return oldValue.EnableAutoSell, nil
-}
-
-// ResetEnableAutoSell resets all changes to the "enableAutoSell" field.
-func (m *StrategyMutation) ResetEnableAutoSell() {
-	m.enableAutoSell = nil
-}
-
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (m *StrategyMutation) SetEnableAutoExit(b bool) {
 	m.enableAutoExit = &b
@@ -3241,7 +3225,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 25)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -3250,6 +3234,9 @@ func (m *StrategyMutation) Fields() []string {
 	}
 	if m.guid != nil {
 		fields = append(fields, strategy.FieldGUID)
+	}
+	if m.owner != nil {
+		fields = append(fields, strategy.FieldOwner)
 	}
 	if m.exchange != nil {
 		fields = append(fields, strategy.FieldExchange)
@@ -3290,12 +3277,6 @@ func (m *StrategyMutation) Fields() []string {
 	if m.takeProfitRatio != nil {
 		fields = append(fields, strategy.FieldTakeProfitRatio)
 	}
-	if m.enableAutoBuy != nil {
-		fields = append(fields, strategy.FieldEnableAutoBuy)
-	}
-	if m.enableAutoSell != nil {
-		fields = append(fields, strategy.FieldEnableAutoSell)
-	}
 	if m.enableAutoExit != nil {
 		fields = append(fields, strategy.FieldEnableAutoExit)
 	}
@@ -3334,6 +3315,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case strategy.FieldGUID:
 		return m.GUID()
+	case strategy.FieldOwner:
+		return m.Owner()
 	case strategy.FieldExchange:
 		return m.Exchange()
 	case strategy.FieldSymbol:
@@ -3360,10 +3343,6 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.StopLossRatio()
 	case strategy.FieldTakeProfitRatio:
 		return m.TakeProfitRatio()
-	case strategy.FieldEnableAutoBuy:
-		return m.EnableAutoBuy()
-	case strategy.FieldEnableAutoSell:
-		return m.EnableAutoSell()
 	case strategy.FieldEnableAutoExit:
 		return m.EnableAutoExit()
 	case strategy.FieldEnablePushNotification:
@@ -3395,6 +3374,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldUpdateTime(ctx)
 	case strategy.FieldGUID:
 		return m.OldGUID(ctx)
+	case strategy.FieldOwner:
+		return m.OldOwner(ctx)
 	case strategy.FieldExchange:
 		return m.OldExchange(ctx)
 	case strategy.FieldSymbol:
@@ -3421,10 +3402,6 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStopLossRatio(ctx)
 	case strategy.FieldTakeProfitRatio:
 		return m.OldTakeProfitRatio(ctx)
-	case strategy.FieldEnableAutoBuy:
-		return m.OldEnableAutoBuy(ctx)
-	case strategy.FieldEnableAutoSell:
-		return m.OldEnableAutoSell(ctx)
 	case strategy.FieldEnableAutoExit:
 		return m.OldEnableAutoExit(ctx)
 	case strategy.FieldEnablePushNotification:
@@ -3470,6 +3447,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGUID(v)
+		return nil
+	case strategy.FieldOwner:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
 		return nil
 	case strategy.FieldExchange:
 		v, ok := value.(string)
@@ -3562,20 +3546,6 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTakeProfitRatio(v)
 		return nil
-	case strategy.FieldEnableAutoBuy:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnableAutoBuy(v)
-		return nil
-	case strategy.FieldEnableAutoSell:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnableAutoSell(v)
-		return nil
 	case strategy.FieldEnableAutoExit:
 		v, ok := value.(bool)
 		if !ok {
@@ -3640,6 +3610,9 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *StrategyMutation) AddedFields() []string {
 	var fields []string
+	if m.addowner != nil {
+		fields = append(fields, strategy.FieldOwner)
+	}
 	if m.addgridNum != nil {
 		fields = append(fields, strategy.FieldGridNum)
 	}
@@ -3654,6 +3627,8 @@ func (m *StrategyMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *StrategyMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case strategy.FieldOwner:
+		return m.AddedOwner()
 	case strategy.FieldGridNum:
 		return m.AddedGridNum()
 	case strategy.FieldLeverage:
@@ -3667,6 +3642,13 @@ func (m *StrategyMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *StrategyMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case strategy.FieldOwner:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOwner(v)
+		return nil
 	case strategy.FieldGridNum:
 		v, ok := value.(int)
 		if !ok {
@@ -3732,6 +3714,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 	case strategy.FieldGUID:
 		m.ResetGUID()
 		return nil
+	case strategy.FieldOwner:
+		m.ResetOwner()
+		return nil
 	case strategy.FieldExchange:
 		m.ResetExchange()
 		return nil
@@ -3770,12 +3755,6 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldTakeProfitRatio:
 		m.ResetTakeProfitRatio()
-		return nil
-	case strategy.FieldEnableAutoBuy:
-		m.ResetEnableAutoBuy()
-		return nil
-	case strategy.FieldEnableAutoSell:
-		m.ResetEnableAutoSell()
 		return nil
 	case strategy.FieldEnableAutoExit:
 		m.ResetEnableAutoExit()
