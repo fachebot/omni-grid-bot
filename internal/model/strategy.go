@@ -7,6 +7,7 @@ import (
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
+	"github.com/shopspring/decimal"
 )
 
 type StrategyModel struct {
@@ -64,6 +65,15 @@ func (m *StrategyModel) FindAllByOwner(ctx context.Context, owner int64, offset,
 	return data, count, nil
 }
 
+func (m *StrategyModel) FindAllByActiveStatus(ctx context.Context, offset, limit int) ([]*ent.Strategy, error) {
+	return m.client.Query().
+		Where(strategy.StatusEQ(strategy.StatusActive)).
+		Order(strategy.ByID()).
+		Offset(offset).
+		Limit(limit).
+		All(ctx)
+}
+
 func (m *StrategyModel) FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx context.Context, exchange, exchangeAPIKey, symbol string) ([]*ent.Strategy, error) {
 	ps := []predicate.Strategy{
 		strategy.ExchangeEQ(exchange),
@@ -79,6 +89,10 @@ func (m *StrategyModel) UpdateStatus(ctx context.Context, id int, newValue strat
 
 func (m *StrategyModel) UpdateExchange(ctx context.Context, id int, newValue string) error {
 	return m.client.UpdateOneID(id).SetExchange(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateAccount(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetAccount(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) UpdateExchangeAPIKey(ctx context.Context, id int, newValue string) error {
@@ -103,6 +117,30 @@ func (m *StrategyModel) UpdateMarginMode(ctx context.Context, id int, newValue s
 
 func (m *StrategyModel) UpdateQuantityMode(ctx context.Context, id int, newValue strategy.QuantityMode) error {
 	return m.client.UpdateOneID(id).SetQuantityMode(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateLeverage(ctx context.Context, id int, newValue int) error {
+	return m.client.UpdateOneID(id).SetLeverage(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateGridNum(ctx context.Context, id int, newValue int) error {
+	return m.client.UpdateOneID(id).SetGridNum(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateSymbol(ctx context.Context, id int, newValue string) error {
+	return m.client.UpdateOneID(id).SetSymbol(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateInitialOrderSize(ctx context.Context, id int, newValue decimal.Decimal) error {
+	return m.client.UpdateOneID(id).SetInitialOrderSize(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdatePriceLower(ctx context.Context, id int, newValue decimal.Decimal) error {
+	return m.client.UpdateOneID(id).SetPriceLower(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdatePriceUpper(ctx context.Context, id int, newValue decimal.Decimal) error {
+	return m.client.UpdateOneID(id).SetPriceUpper(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) Delete(ctx context.Context, id int) error {

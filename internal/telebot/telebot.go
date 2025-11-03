@@ -3,6 +3,7 @@ package telebot
 import (
 	"context"
 
+	"github.com/fachebot/perp-dex-grid-bot/internal/engine"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/handler"
@@ -13,19 +14,21 @@ import (
 )
 
 type TeleBot struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	router *pathrouter.Router
-	svcCtx *svc.ServiceContext
+	ctx            context.Context
+	cancel         context.CancelFunc
+	router         *pathrouter.Router
+	svcCtx         *svc.ServiceContext
+	strategyEngine *engine.StrategyEngine
 }
 
-func NewTeleBot(svcCtx *svc.ServiceContext) *TeleBot {
+func NewTeleBot(svcCtx *svc.ServiceContext, strategyEngine *engine.StrategyEngine) *TeleBot {
 	ctx, cancel := context.WithCancel(context.Background())
 	b := &TeleBot{
-		ctx:    ctx,
-		cancel: cancel,
-		svcCtx: svcCtx,
-		router: pathrouter.NewRouter(),
+		ctx:            ctx,
+		cancel:         cancel,
+		svcCtx:         svcCtx,
+		strategyEngine: strategyEngine,
+		router:         pathrouter.NewRouter(),
 	}
 	b.initRoutes()
 	return b
@@ -85,6 +88,8 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 	logger.Debugf("[TeleBot] 收到新消息, chat: %d, username: <%s>, title: %s, type: %s",
 		chat.ID, chat.Username, chat.Title, chat.Type)
 
+	ctx := context.WithValue(b.ctx, "engine", b.strategyEngine)
+
 	// 私聊消息
 	if chat.Type == tele.ChatPrivate {
 		// 处理文本消息
@@ -102,7 +107,7 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 				messageID := update.Message.ReplyTo.ID
 				route, ok := b.svcCtx.MessageCache.GetRoute(chatId, messageID)
 				if ok {
-					err := b.router.Execute(b.ctx, route.Path, chat.ID, update)
+					err := b.router.Execute(ctx, route.Path, chat.ID, update)
 					if err != nil {
 						logger.Debugf("[TeleBot] 处理路由失败, path: %s, %v", route.Path, err)
 					}
@@ -114,7 +119,7 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 
 		// 处理回调查询
 		if update.Callback != nil {
-			err := b.router.Execute(b.ctx, update.Callback.Data, chat.ID, update)
+			err := b.router.Execute(ctx, update.Callback.Data, chat.ID, update)
 			if err == nil {
 				if err = c.Respond(); err != nil {
 					logger.Debugf("[TeleBot] 应答 CallbackQuery 失败, id: %s, %v", update.Callback.ID, err)

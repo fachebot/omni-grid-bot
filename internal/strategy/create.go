@@ -22,13 +22,13 @@ const (
 
 func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
 	// 获取精度信息
-	sizeDecimals, priceDecimals, minBaseAmount, err := helper.GetSupportedDecimals(ctx, svcCtx, record)
+	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
 		return err
 	}
 
-	initialOrderSize := record.InitialOrderSize.Truncate(int32(sizeDecimals))
-	if initialOrderSize.LessThan(minBaseAmount) {
+	initialOrderSize := record.InitialOrderSize.Truncate(int32(mm.SupportedSizeDecimals))
+	if initialOrderSize.LessThan(mm.MinBaseAmount) {
 		return errors.New("order size too small")
 	}
 
@@ -36,9 +36,9 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 	var prices []decimal.Decimal
 	switch record.QuantityMode {
 	case strategy.QuantityModeGeometric:
-		prices, err = GenerateGeometricGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(priceDecimals))
+		prices, err = GenerateGeometricGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(mm.SupportedPriceDecimals))
 	case strategy.QuantityModeArithmetic:
-		prices, err = GenerateArithmeticGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(priceDecimals))
+		prices, err = GenerateArithmeticGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(mm.SupportedPriceDecimals))
 	default:
 		return errors.New("invalid quantity mode")
 	}

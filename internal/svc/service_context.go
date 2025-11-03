@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/cache"
@@ -20,21 +21,25 @@ import (
 )
 
 type ServiceContext struct {
-	Config         *config.Config
-	Bot            *tele.Bot
-	DbClient       *ent.Client
-	TransportProxy *http.Transport
-	MessageCache   *cache.MessageCache
-	LighterCache   *cache.LighterCache
-	LighterClient  *lighter.Client
+	Config            *config.Config
+	Bot               *tele.Bot
+	DbClient          *ent.Client
+	TransportProxy    *http.Transport
+	MessageCache      *cache.MessageCache
+	LighterCache      *cache.LighterCache
+	LighterClient     *lighter.Client
+	LighterSubscriber *lighter.LighterSubscriber
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
 	StrategyModel     *model.StrategyModel
 	SyncProgressModel *model.SyncProgressModel
+
+	userLocks  map[int64]*sync.Mutex
+	locksMutex sync.RWMutex
 }
 
-func NewServiceContext(c *config.Config) *ServiceContext {
+func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubscriber) *ServiceContext {
 	// 创建数据库连接
 	client, err := ent.Open("sqlite3", "file:data/sqlite.db?mode=rwc&_journal_mode=WAL&_fk=1")
 	if err != nil {
@@ -77,23 +82,46 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 	if err != nil {
 		logger.Fatalf("创建Telegram Bot失败, %v", err)
 	}
-	logger.Infof("[TeleBot], BotID: %d, Username: %s", bot.Me.ID, bot.Me.Username)
+	logger.Infof("[TeleBot] BotID: %d, Username: %s", bot.Me.ID, bot.Me.Username)
 
 	svcCtx := &ServiceContext{
-		Config:         c,
-		Bot:            bot,
-		DbClient:       client,
-		TransportProxy: transportProxy,
-		MessageCache:   cache.NewMessageCache(),
-		LighterCache:   cache.NewLighterCache(lighterClient),
-		LighterClient:  lighterClient,
+		Config:            c,
+		Bot:               bot,
+		DbClient:          client,
+		TransportProxy:    transportProxy,
+		MessageCache:      cache.NewMessageCache(),
+		LighterCache:      cache.NewLighterCache(lighterClient),
+		LighterClient:     lighterClient,
+		LighterSubscriber: lighterSubscriber,
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),
 		StrategyModel:     model.NewStrategyModel(client.Strategy),
 		SyncProgressModel: model.NewSyncProgressModel(client.SyncProgress),
+
+		userLocks: make(map[int64]*sync.Mutex),
 	}
 	return svcCtx
+}
+
+func (svcCtx *ServiceContext) GetUserLock(userId int64) *sync.Mutex {
+	svcCtx.locksMutex.RLock()
+	if lock, exists := svcCtx.userLocks[userId]; exists {
+		svcCtx.locksMutex.RUnlock()
+		return lock
+	}
+	svcCtx.locksMutex.RUnlock()
+
+	svcCtx.locksMutex.Lock()
+	defer svcCtx.locksMutex.Unlock()
+
+	if lock, exists := svcCtx.userLocks[userId]; exists {
+		return lock
+	}
+
+	lock := &sync.Mutex{}
+	svcCtx.userLocks[userId] = lock
+	return lock
 }
 
 func (svcCtx *ServiceContext) Close() {

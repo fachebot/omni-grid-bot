@@ -52,7 +52,7 @@ func (h *StrategyDetailsHandler) handle(ctx context.Context, vars map[string]str
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
-func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, userId int64, update tele.Update, record *ent.Strategy) string {
+func StrategyDetailsText(record *ent.Strategy) string {
 	name := StrategyName(record)
 	text := fmt.Sprintf("*Lighter网格策略* | 策略详情 `%s`\n\n", name)
 
@@ -76,12 +76,12 @@ func DisplayStrategyDetails(ctx context.Context, svcCtx *svc.ServiceContext, use
 		status = "🔴 策略已停止"
 	}
 
-	text := StrategyDetailsText(ctx, svcCtx, userId, update, record)
+	text := StrategyDetailsText(record)
 
 	replyMarkup := &tele.ReplyMarkup{
 		InlineKeyboard: [][]tele.InlineButton{
 			{
-				{Text: status, Data: CompletedTradesHandler{}.FormatPath(record.GUID)},
+				{Text: status, Data: StrategySwitchHandler{}.FormatPath(record.GUID)},
 			},
 			{
 				{Text: "🔄 刷新界面", Data: StrategyDetailsHandler{}.FormatPath(record.GUID)},

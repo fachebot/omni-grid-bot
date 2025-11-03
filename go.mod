@@ -31,7 +31,7 @@ require (
 	github.com/ethereum/go-ethereum v1.15.6 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/hcl/v2 v2.18.1 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect

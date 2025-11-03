@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/fachebot/perp-dex-grid-bot/internal/engine"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
@@ -14,6 +15,20 @@ import (
 
 func StrategyName(record *ent.Strategy) string {
 	return record.GUID[len(record.GUID)-4:]
+}
+
+func GetStrategyEngine(ctx context.Context) (*engine.StrategyEngine, bool) {
+	v := ctx.Value("engine")
+	if v == nil {
+		return nil, false
+	}
+
+	engine, ok := v.(*engine.StrategyEngine)
+	if !ok {
+		return nil, false
+	}
+
+	return engine, true
 }
 
 func defaultSendOptions() *tele.SendOptions {

@@ -4,8 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fachebot/perp-dex-grid-bot/internal/engine"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
+	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
+	gridstrategy "github.com/fachebot/perp-dex-grid-bot/internal/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
+	"github.com/fachebot/perp-dex-grid-bot/internal/util"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -28,11 +35,174 @@ func (h StrategySwitchHandler) FormatPath(guid string) string {
 	return fmt.Sprintf("/strategy/switch/%s", guid)
 }
 
+func (h StrategySwitchHandler) FormatStopPath(guid string, stopType StopType) string {
+	return fmt.Sprintf("/strategy/switch/%s/%s", guid, stopType)
+}
+
 func (h *StrategySwitchHandler) AddRouter(router *pathrouter.Router) {
 	router.HandleFunc("/strategy/switch/{uuid}", h.handle)
 	router.HandleFunc("/strategy/switch/{uuid}/{stop}", h.handle)
 }
 
 func (h *StrategySwitchHandler) handle(ctx context.Context, vars map[string]string, userId int64, update tele.Update) error {
+	guid, ok := vars["uuid"]
+	if !ok {
+		return nil
+	}
+
+	record, err := h.svcCtx.StrategyModel.FindOneByGUID(ctx, guid)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)
+		}
+		logger.Errorf("[StrategySwitchHandler] 查询策略失败, id: %s, %v", guid, err)
+		return nil
+	}
+
+	if record.Owner != userId {
+		return nil
+	}
+
+	chat, ok := util.GetChat(update)
+	if !ok {
+		return nil
+	}
+
+	strategyEngine, ok := GetStrategyEngine(ctx)
+	if !ok {
+		return nil
+	}
+
+	// 用户全局锁
+	userLock := h.svcCtx.GetUserLock(userId)
+	defer userLock.Unlock()
+	if !userLock.TryLock() {
+		text := "❌ 您有其他操作正在处理中，请稍后再试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 选择开关操作
+	stopType, ok := vars["stop"]
+	if !ok {
+		if record.Status == strategy.StatusActive {
+			text := StrategyDetailsText(record)
+			inlineKeyboard := [][]tele.InlineButton{
+				{
+					{Text: "❌ 取消关闭", Data: StrategyDetailsHandler{}.FormatPath(guid)},
+				},
+				{
+					{Text: "1️⃣ 仅关闭策略", Data: h.FormatStopPath(guid, StopTypeStop)},
+				},
+				{
+					{Text: "2️⃣ 关闭并清仓", Data: h.FormatStopPath(guid, StopTypeClose)},
+				},
+			}
+
+			replyMarkup := &tele.ReplyMarkup{
+				InlineKeyboard: inlineKeyboard,
+			}
+			_, err := util.ReplyMessage(h.svcCtx.Bot, update, text, replyMarkup)
+			return err
+		}
+
+		if record.Status == strategy.StatusInactive {
+			return h.handleStartStrategy(ctx, userId, update, record, strategyEngine)
+		}
+		return nil
+	}
+
+	// 处理关闭策略
+	switch StopType(stopType) {
+	case StopTypeStop:
+		return h.handleStopStrategy(ctx, userId, update, record, strategyEngine)
+	case StopTypeClose:
+		return h.handleStopStrategyAndClose(ctx, userId, update, record, strategyEngine)
+	}
+
 	return nil
+}
+
+func (h *StrategySwitchHandler) handleStartStrategy(
+	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
+
+	chat, ok := util.GetChat(update)
+	if !ok {
+		return nil
+	}
+
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在开启策略, 请稍后...", 1)
+
+	// 检查策略状态
+	if record.Status != strategy.StatusInactive {
+		text := "❌ 策略正在运行中"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 测试交易所连接
+	err := testExchangeConnectivity(ctx, h.svcCtx, record)
+	if err != nil {
+		text := "❌ 连接交易平台失败，请检查交易平台配置"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 查询币种信息
+	if record.Symbol == "" {
+		text := "❌ 此策略没有配置交易币种，请检查配置后重试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+	mm, err := helper.GetMarketMetadata(ctx, h.svcCtx, record.Exchange, record.Symbol)
+	if err != nil {
+		text := "❌ 交易平台不支持此币种，请检查配置后重试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 检查单笔数量
+	if record.InitialOrderSize.LessThan(mm.MinBaseAmount) {
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 代币数量不能小于%s", mm.MinBaseAmount), 3)
+		return nil
+	}
+
+	if uint8(-record.InitialOrderSize.Exponent()) > mm.SupportedSizeDecimals {
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 代币数量小数位长度不能大于%d", mm.SupportedSizeDecimals), 3)
+		return nil
+	}
+
+	// 初始化网格策略
+	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record)
+	if err != nil {
+		text := "❌ 初始化网格策略失败，请检查配置后重试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		logger.Warnf("[StrategySwitchHandler] 初始化网格策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
+		return nil
+	}
+	record.Status = strategy.StatusActive
+
+	// 开始运行策略
+	err = strategyEngine.StartStrategy(gridstrategy.NewGridStrategy(h.svcCtx, record))
+	if err != nil {
+		logger.Warnf("[StrategySwitchHandler] 运行策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "❌ 运行策略失败，请联系管理员", 3)
+		return nil
+	}
+
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已开启", 1)
+
+	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
+}
+
+func (h *StrategySwitchHandler) handleStopStrategy(
+	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
+
+	// 展示挂单数据
+	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
+}
+
+func (h *StrategySwitchHandler) handleStopStrategyAndClose(
+	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
+	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
+	"github.com/fachebot/perp-dex-grid-bot/internal/model"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
 	"github.com/fachebot/perp-dex-grid-bot/internal/util"
@@ -193,7 +194,7 @@ func (h *ExchangeSettingsLighterHandler) handleAccountIndex(ctx context.Context,
 		chatId := update.Message.Chat.ID
 		d, err := strconv.Atoi(update.Message.Text)
 		if err != nil || d <= 0 {
-			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "⚠️ 请输入有效Lighter AccountIndex，值为大于0的整数", 3)
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效Lighter AccountIndex，值为大于0的整数", 3)
 			return nil
 		}
 
@@ -211,7 +212,13 @@ func (h *ExchangeSettingsLighterHandler) handleAccountIndex(ctx context.Context,
 
 		// 发送成功提示
 		text := "✅ 配置修改成功"
-		err = h.svcCtx.StrategyModel.UpdateExchangeAPIKey(ctx, record.ID, apiKey)
+		err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {
+			m := model.NewStrategyModel(tx.Strategy)
+			if err = m.UpdateAccount(ctx, record.ID, apiKey); err != nil {
+				return err
+			}
+			return m.UpdateExchangeAPIKey(ctx, record.ID, apiKey)
+		})
 		if err == nil {
 			record.ExchangeApiKey = apiKey
 		} else {
@@ -252,7 +259,7 @@ func (h *ExchangeSettingsLighterHandler) handleApiKeyIndex(ctx context.Context, 
 		chatId := update.Message.Chat.ID
 		d, err := strconv.Atoi(update.Message.Text)
 		if err != nil || d < 0 {
-			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "⚠️ 请输入有效Lighter ApiKeyIndex，值为大于等于0的整数", 3)
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效Lighter ApiKeyIndex，值为大于等于0的整数", 3)
 			return nil
 		}
 
@@ -298,7 +305,7 @@ func (h *ExchangeSettingsLighterHandler) handleApiKeyPrivateKey(ctx context.Cont
 		// 检查输入
 		chatId := update.Message.Chat.ID
 		if len(update.Message.Text) != 80 {
-			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "⚠️ 请输入有效Lighter ApiKeyPrivateKey，值为长度80的字符串", 3)
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效Lighter ApiKeyPrivateKey，值为长度80的字符串", 3)
 			return nil
 		}
 

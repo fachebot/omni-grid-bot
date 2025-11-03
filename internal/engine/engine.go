@@ -221,7 +221,6 @@ func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, new
 	userStrategyList := engine.userStrategyList(userOrders.Account)
 	if len(userStrategyList) == 0 {
 		logger.Debugf("[StrategyEngine] 账户没有正在运行的策略, account: %s", userOrders.Account)
-		engine.mutex.Unlock()
 		return nil
 	}
 
