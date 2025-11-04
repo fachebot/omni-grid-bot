@@ -14,6 +14,7 @@ import (
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
 	"github.com/fachebot/perp-dex-grid-bot/internal/util"
+	"github.com/samber/lo"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -203,6 +204,16 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
+func (h *StrategySwitchHandler) closePosition(ctx context.Context, record *ent.Strategy) error {
+	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	side := lo.If(record.Mode == strategy.ModeLong, helper.LONG).Else(helper.SHORT)
+	return adapter.ClosePosition(ctx, record.Symbol, side, 50)
+}
+
 func (h *StrategySwitchHandler) cancelAllOrders(ctx context.Context, record *ent.Strategy) error {
 	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
 	if err != nil {
@@ -230,8 +241,11 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	}
 
 	// 取消用户订单
+	name := StrategyName(record)
 	err := h.cancelAllOrders(ctx, record)
 	if err != nil {
+		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
+		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
 		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
 	}
@@ -255,10 +269,66 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	}
 	record.Status = strategy.StatusInactive
 
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已停止", 1)
+
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
 func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
+	chat, ok := util.GetChat(update)
+	if !ok {
+		return nil
+	}
+
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在关闭策略, 请稍后...", 1)
+
+	// 检查策略状态
+	if record.Status != strategy.StatusActive {
+		text := "❌ 策略未运行"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 取消用户订单
+	name := StrategyName(record)
+	err := h.cancelAllOrders(ctx, record)
+	if err != nil {
+		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
+		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
+		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
+			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+	}
+
+	// 关闭用户仓位
+	err = h.closePosition(ctx, record)
+	if err != nil {
+		text := fmt.Sprintf("⚠️ [%s]关闭网格 *%s* %s 仓位失败", name, record.Symbol, record.Mode)
+		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
+		logger.Errorf("[StrategySwitchHandler] 关闭网格仓位失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
+			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+	}
+
+	// 停止网格策略
+	strategyEngine.StopStrategy(record.GUID)
+
+	// 更新策略状态
+	err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {
+		err = model.NewGridModel(tx.Grid).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
+		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusInactive)
+	})
+	if err != nil {
+		text := "❌ 关闭策略失败，请稍后再试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+	record.Status = strategy.StatusInactive
+
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已停止", 1)
+
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }

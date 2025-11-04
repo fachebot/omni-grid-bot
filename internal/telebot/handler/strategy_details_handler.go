@@ -140,6 +140,7 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 
 	text += fmt.Sprintf("📊 交易平台: *%s*\n", lo.If(record.Exchange != "", record.Exchange).Else("未设置"))
 	text += fmt.Sprintf("📈 交易标的: %s\n", lo.If(record.Symbol != "", record.Symbol).Else("未设置"))
+	text += fmt.Sprintf("💹 网格模式: %s\n", lo.If(record.Mode == strategy.ModeLong, "做多").Else("做空"))
 	text += fmt.Sprintf("🔢 杠杆倍数: %dX\n", record.Leverage)
 	text += fmt.Sprintf("🔒 保证金模式: %s\n", lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓"))
 	text += fmt.Sprintf("📈 价格区间: %s\n", lo.If(record.PriceLower.IsZero() || record.PriceUpper.IsZero(), "未设置").

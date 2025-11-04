@@ -260,7 +260,7 @@ func (h *LighterOrderHelper) signCreateMarketOrder(ctx context.Context, symbol s
 		Type:             lighter.ORDER_TYPE_MARKET,
 		TimeInForce:      lighter.ORDER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL,
 		ReduceOnly:       uint8(lo.If(reduceOnly, 1).Else(0)),
-		OrderExpiry:      time.Now().Add(time.Hour * 24 * 28).UnixMilli(),
+		OrderExpiry:      0,
 	}
 	return h.signer.SignCreateOrder(ctx, req, nonce)
 }

@@ -256,7 +256,7 @@ func (h *StrategySettingsHandler) handleGridNum(ctx context.Context, userId int6
 	// 步骤1
 	if update.Callback != nil {
 		chatId := update.Callback.Message.Chat.ID
-		text := "🌳 填写网格数量，最高不得大于100。"
+		text := "🌳 填写网格数量，最高不得大于50。"
 		msg, err := h.svcCtx.Bot.Send(util.ChatId(chatId), text, defaultSendOptions())
 		if err != nil {
 			logger.Debugf("[StrategySettingsHandler] 发送消息失败, %v", err)
@@ -276,8 +276,8 @@ func (h *StrategySettingsHandler) handleGridNum(ctx context.Context, userId int6
 		// 检查输入金额
 		chatId := update.Message.Chat.ID
 		d, err := strconv.Atoi(update.Message.Text)
-		if err != nil || d < 1 || d > 100 {
-			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效网格数量(1~100)", 3)
+		if err != nil || d < 1 || d > 50 {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效网格数量(1~50)", 3)
 			return nil
 		}
 

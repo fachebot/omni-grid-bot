@@ -105,3 +105,11 @@ func (adapter *ExchangeAdapter) SyncInactiveOrders(ctx context.Context) error {
 
 	return errors.New("route not found")
 }
+
+func (adapter *ExchangeAdapter) ClosePosition(ctx context.Context, symbol string, side Side, slippageBps int) error {
+	if adapter.Account.Signer != nil {
+		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).ClosePosition(ctx, symbol, side, slippageBps)
+	}
+
+	return errors.New("route not found")
+}
