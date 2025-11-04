@@ -83,7 +83,7 @@ func (h *DeleteStrategyHandler) handle(ctx context.Context, vars map[string]stri
 		replyMarkup := &tele.ReplyMarkup{
 			InlineKeyboard: inlineKeyboard,
 		}
-		text := StrategyDetailsText(record)
+		text := StrategyDetailsText(ctx, h.svcCtx, record)
 		_, err := util.ReplyMessage(h.svcCtx.Bot, update, text, replyMarkup)
 		return err
 	}

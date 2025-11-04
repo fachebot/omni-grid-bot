@@ -74,6 +74,9 @@ func (c *Signer) GetAccountTxs(ctx context.Context, accountIndex int64, limit in
 	if err != nil {
 		return Transactions{}, err
 	}
+	if result.Code != 200 {
+		return Transactions{}, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
 	return result, nil
 }
 
@@ -95,6 +98,9 @@ func (c *Signer) GetAccountActiveOrders(ctx context.Context, marketId uint) (Ord
 	if err != nil {
 		return Orders{}, err
 	}
+	if result.Code != 200 {
+		return Orders{}, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
 	return result, nil
 }
 
@@ -115,6 +121,9 @@ func (c *Signer) GetAccountInactiveOrders(ctx context.Context, cursor string, li
 	)
 	if err != nil {
 		return Orders{}, err
+	}
+	if result.Code != 200 {
+		return Orders{}, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
 	}
 	return result, nil
 }

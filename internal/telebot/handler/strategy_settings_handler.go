@@ -37,6 +37,10 @@ var (
 	SettingsOptionMarketSymbol     SettingsOption = 10
 )
 
+const (
+	MaxShowGridNum = 10
+)
+
 type StrategySettingsHandler struct {
 	svcCtx *svc.ServiceContext
 }
@@ -318,11 +322,20 @@ func (h *StrategySettingsHandler) handleMarketSymbol(ctx context.Context, userId
 		// 检查输入
 		symbol := update.Message.Text
 		chatId := update.Message.Chat.ID
-		_, err := helper.GetMarketMetadata(ctx, h.svcCtx, record.Exchange, record.Symbol)
+		_, err := helper.GetMarketMetadata(ctx, h.svcCtx, record.Exchange, symbol)
 		if err != nil {
 			text := "❌ 交易平台不支持此币种，请检查后重试"
 			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
 			return nil
+		}
+
+		if record.ExchangeApiKey != "" {
+			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, record.Exchange, record.ExchangeApiKey, symbol)
+			if err != nil || len(result) > 0 {
+				text := "❌ 同一交易账户不能创建多个相同币种的网格策略"
+				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
+				return nil
+			}
 		}
 
 		// 发送成功提示
@@ -630,9 +643,8 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 		}
 
 		// 截断网格列表
-		const maxItems = 10
-		if len(gridLabels) > maxItems {
-			n := maxItems / 2
+		if len(gridLabels) > MaxShowGridNum {
+			n := MaxShowGridNum / 2
 			part1 := lo.Slice(gridLabels, 0, n)
 			part2 := lo.Slice(gridLabels, len(gridLabels)-n, len(gridLabels))
 			gridLabels = make([]string, 0, len(gridLabels)+1)

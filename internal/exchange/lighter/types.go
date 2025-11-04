@@ -301,6 +301,17 @@ type CreateOrderTxReq struct {
 	OrderExpiry      int64               // 订单过期时间戳
 }
 
+// OrderBookDetail 订单簿详情
+type OrderBookDetail struct {
+	LastTradePrice decimal.Decimal `json:"last_trade_price"` // 最后交易价格
+}
+
+// OrderBookDetails 订单簿详情响应
+type OrderBookDetails struct {
+	lighterclient.ResultCode
+	OrderBookDetails []OrderBookDetail `json:"order_book_details"`
+}
+
 // UpdateLeverageTxReq 更新杠杆交易请求
 type UpdateLeverageTxReq struct {
 	MarketIndex uint8               // 市场索引，标识交易对

@@ -9,6 +9,7 @@ import (
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
+	"github.com/fachebot/perp-dex-grid-bot/internal/model"
 	gridstrategy "github.com/fachebot/perp-dex-grid-bot/internal/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
@@ -86,7 +87,7 @@ func (h *StrategySwitchHandler) handle(ctx context.Context, vars map[string]stri
 	stopType, ok := vars["stop"]
 	if !ok {
 		if record.Status == strategy.StatusActive {
-			text := StrategyDetailsText(record)
+			text := StrategyDetailsText(ctx, h.svcCtx, record)
 			inlineKeyboard := [][]tele.InlineButton{
 				{
 					{Text: "❌ 取消关闭", Data: StrategyDetailsHandler{}.FormatPath(guid)},
@@ -172,6 +173,13 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
+	// 检查网格策略
+	result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, record.Exchange, record.ExchangeApiKey, record.Symbol)
+	if err != nil || len(result) > 1 {
+		text := "❌ 同一交易账户不能创建多个相同币种的网格策略"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
 	// 初始化网格策略
 	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record)
 	if err != nil {
@@ -195,10 +203,58 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
+func (h *StrategySwitchHandler) cancelAllOrders(ctx context.Context, record *ent.Strategy) error {
+	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	return adapter.CancalAllOrders(ctx, record.Symbol)
+}
+
 func (h *StrategySwitchHandler) handleStopStrategy(
 	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
 
-	// 展示挂单数据
+	chat, ok := util.GetChat(update)
+	if !ok {
+		return nil
+	}
+
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在关闭策略, 请稍后...", 1)
+
+	// 检查策略状态
+	if record.Status != strategy.StatusActive {
+		text := "❌ 策略未运行"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 取消用户订单
+	err := h.cancelAllOrders(ctx, record)
+	if err != nil {
+		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
+			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+	}
+
+	// 停止网格策略
+	strategyEngine.StopStrategy(record.GUID)
+
+	// 更新策略状态
+	err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {
+		err = model.NewGridModel(tx.Grid).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
+		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusInactive)
+	})
+	if err != nil {
+		text := "❌ 关闭策略失败，请稍后再试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+	record.Status = strategy.StatusInactive
+
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
@@ -77,6 +78,32 @@ func (h *LighterOrderHelper) CancelOrderBatch(ctx context.Context, orders []Canc
 
 	_, err = h.signer.Client().SendRawTxBatch(ctx, txTypes, txInfos)
 	return err
+}
+
+func (h *LighterOrderHelper) CancalAllOrders(ctx context.Context, symbol string) error {
+	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
+	if err != nil {
+		return fmt.Errorf("failed to get order book metadata: %w", err)
+	}
+
+	orders, err := h.signer.GetAccountActiveOrders(ctx, uint(metadata.MarketID))
+	if err != nil {
+		return nil
+	}
+
+	if len(orders.Orders) == 0 {
+		return nil
+	}
+
+	var cancelOrders []CancelOrderParams
+	for _, ord := range orders.Orders {
+		orderId, err := strconv.ParseInt(ord.OrderID, 10, 64)
+		if err != nil {
+			continue
+		}
+		cancelOrders = append(cancelOrders, CancelOrderParams{Symbol: symbol, OrderID: orderId})
+	}
+	return h.CancelOrderBatch(ctx, cancelOrders)
 }
 
 func (h *LighterOrderHelper) CancelOrder(ctx context.Context, symbol string, orderIndex int64) error {

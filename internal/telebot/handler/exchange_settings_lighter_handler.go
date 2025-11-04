@@ -200,14 +200,13 @@ func (h *ExchangeSettingsLighterHandler) handleAccountIndex(ctx context.Context,
 
 		apiKey := update.Message.Text
 		if record.Symbol != "" {
-			tasks, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, exchange.Lighter, apiKey, record.Symbol)
-			if err != nil || len(tasks) > 0 {
+			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, exchange.Lighter, apiKey, record.Symbol)
+			if err != nil || len(result) > 0 {
 				text := "❌ 此Lighter AccountIndex已被其他网格策略使用"
 				chatId := util.ChatId(update.Callback.Message.Chat.ID)
 				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chatId, text, 1)
 				return nil
 			}
-
 		}
 
 		// 发送成功提示

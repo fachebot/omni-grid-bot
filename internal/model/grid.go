@@ -54,5 +54,6 @@ func (m *GridModel) UpdateSellClientOrderId(ctx context.Context, id int, newValu
 }
 
 func (m *GridModel) DeleteByStrategyId(ctx context.Context, strategyId string) error {
-	return nil
+	_, err := m.client.Delete().Where(grid.StrategyIdEQ(strategyId)).Exec(ctx)
+	return err
 }

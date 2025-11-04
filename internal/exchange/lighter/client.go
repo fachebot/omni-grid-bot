@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	lighterclient "github.com/elliottech/lighter-go/client"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -47,6 +49,9 @@ func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyInd
 	if err != nil {
 		return -1, err
 	}
+	if result.Code != 200 {
+		return 0, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
 	return result.Nonce, nil
 }
 
@@ -62,6 +67,9 @@ func (c *Client) GetApiKey(ctx context.Context, accountIndex int64, apiKeyIndex 
 	)
 	if err != nil {
 		return nil, err
+	}
+	if result.Code != 200 {
+		return nil, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
 	}
 	return result, nil
 }
@@ -95,7 +103,33 @@ func (c *Client) GetAccountByIndex(ctx context.Context, accountIndex int64) (Acc
 	if err != nil {
 		return Accounts{}, err
 	}
+	if result.Code != 200 {
+		return Accounts{}, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
 	return result, nil
+}
+
+func (c *Client) GetLastTradePrice(ctx context.Context, marketId uint) (decimal.Decimal, error) {
+	var result OrderBookDetails
+	err := getAndParseL2HTTPResponse(
+		ctx,
+		c.httpClient,
+		c.endpoint,
+		"api/v1/orderBookDetails",
+		map[string]any{"market_id": marketId},
+		&result,
+	)
+	if err != nil {
+		return decimal.Zero, err
+	}
+	if result.Code != 200 {
+		return decimal.Zero, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
+
+	if len(result.OrderBookDetails) == 0 {
+		return decimal.Zero, nil
+	}
+	return result.OrderBookDetails[0].LastTradePrice, nil
 }
 
 func (c *Client) GetOrderBooksMetadata(ctx context.Context, marketId ...uint) (OrderBooksMetadata, error) {
@@ -116,6 +150,10 @@ func (c *Client) GetOrderBooksMetadata(ctx context.Context, marketId ...uint) (O
 	if err != nil {
 		return OrderBooksMetadata{}, err
 	}
+	if result.Code != 200 {
+		return OrderBooksMetadata{}, fmt.Errorf("code: %d, message: %s", result.Code, result.Message)
+	}
+
 	return result, nil
 }
 
