@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/syncprogress"
@@ -76,10 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			grid.Table:         grid.ValidColumn,
-			order.Table:        order.ValidColumn,
-			strategy.Table:     strategy.ValidColumn,
-			syncprogress.Table: syncprogress.ValidColumn,
+			grid.Table:          grid.ValidColumn,
+			matchedtrades.Table: matchedtrades.ValidColumn,
+			order.Table:         order.ValidColumn,
+			strategy.Table:      strategy.ValidColumn,
+			syncprogress.Table:  syncprogress.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

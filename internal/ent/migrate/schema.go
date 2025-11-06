@@ -46,6 +46,26 @@ var (
 			},
 		},
 	}
+	// MatchedTradesColumns holds the columns for the "matched_trades" table.
+	MatchedTradesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "strategy_id", Type: field.TypeString, Size: 50},
+		{Name: "price", Type: field.TypeString},
+		{Name: "buy_client_order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "buy_base_amount", Type: field.TypeString, Nullable: true},
+		{Name: "buy_quote_amount", Type: field.TypeString, Nullable: true},
+		{Name: "buy_order_timestamp", Type: field.TypeInt64, Nullable: true},
+		{Name: "sell_client_order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "sell_base_amount", Type: field.TypeString, Nullable: true},
+		{Name: "sell_quote_amount", Type: field.TypeString, Nullable: true},
+		{Name: "sell_order_timestamp", Type: field.TypeInt64, Nullable: true},
+	}
+	// MatchedTradesTable holds the schema information for the "matched_trades" table.
+	MatchedTradesTable = &schema.Table{
+		Name:       "matched_trades",
+		Columns:    MatchedTradesColumns,
+		PrimaryKey: []*schema.Column{MatchedTradesColumns[0]},
+	}
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -58,7 +78,9 @@ var (
 		{Name: "client_order_id", Type: field.TypeInt64},
 		{Name: "side", Type: field.TypeString},
 		{Name: "price", Type: field.TypeString},
-		{Name: "quantity", Type: field.TypeString},
+		{Name: "base_amount", Type: field.TypeString},
+		{Name: "filled_base_amount", Type: field.TypeString},
+		{Name: "filled_quote_amount", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"in-progress", "pending", "open", "filled", "canceled"}},
 		{Name: "timestamp", Type: field.TypeInt64},
 	}
@@ -162,6 +184,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		GridsTable,
+		MatchedTradesTable,
 		OrdersTable,
 		StrategiesTable,
 		SyncProgressesTable,

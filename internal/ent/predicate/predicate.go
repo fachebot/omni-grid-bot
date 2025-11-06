@@ -9,6 +9,9 @@ import (
 // Grid is the predicate function for grid builders.
 type Grid func(*sql.Selector)
 
+// MatchedTrades is the predicate function for matchedtrades builders.
+type MatchedTrades func(*sql.Selector)
+
 // Order is the predicate function for order builders.
 type Order func(*sql.Selector)
 

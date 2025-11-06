@@ -28,7 +28,9 @@ func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 			SetClientOrderID(args.ClientOrderID).
 			SetSide(args.Side).
 			SetPrice(args.Price).
-			SetQuantity(args.Quantity).
+			SetBaseAmount(args.BaseAmount).
+			SetFilledBaseAmount(args.FilledBaseAmount).
+			SetFilledQuoteAmount(args.FilledQuoteAmount).
 			SetStatus(args.Status).
 			SetTimestamp(args.Timestamp).
 			Exec(ctx)
@@ -43,7 +45,9 @@ func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 		return m.client.Update().
 			SetSide(args.Side).
 			SetPrice(args.Price).
-			SetQuantity(args.Quantity).
+			SetBaseAmount(args.BaseAmount).
+			SetFilledBaseAmount(args.FilledBaseAmount).
+			SetFilledQuoteAmount(args.FilledQuoteAmount).
 			SetStatus(args.Status).
 			SetTimestamp(args.Timestamp).
 			Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIDEQ(args.OrderID)).

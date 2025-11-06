@@ -32,8 +32,12 @@ const (
 	FieldSide = "side"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
-	// FieldQuantity holds the string denoting the quantity field in the database.
-	FieldQuantity = "quantity"
+	// FieldBaseAmount holds the string denoting the baseamount field in the database.
+	FieldBaseAmount = "base_amount"
+	// FieldFilledBaseAmount holds the string denoting the filledbaseamount field in the database.
+	FieldFilledBaseAmount = "filled_base_amount"
+	// FieldFilledQuoteAmount holds the string denoting the filledquoteamount field in the database.
+	FieldFilledQuoteAmount = "filled_quote_amount"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldTimestamp holds the string denoting the timestamp field in the database.
@@ -54,7 +58,9 @@ var Columns = []string{
 	FieldClientOrderID,
 	FieldSide,
 	FieldPrice,
-	FieldQuantity,
+	FieldBaseAmount,
+	FieldFilledBaseAmount,
+	FieldFilledQuoteAmount,
 	FieldStatus,
 	FieldTimestamp,
 }
@@ -157,9 +163,19 @@ func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
 }
 
-// ByQuantity orders the results by the quantity field.
-func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+// ByBaseAmount orders the results by the baseAmount field.
+func ByBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseAmount, opts...).ToFunc()
+}
+
+// ByFilledBaseAmount orders the results by the filledBaseAmount field.
+func ByFilledBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFilledBaseAmount, opts...).ToFunc()
+}
+
+// ByFilledQuoteAmount orders the results by the filledQuoteAmount field.
+func ByFilledQuoteAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFilledQuoteAmount, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

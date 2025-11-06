@@ -307,14 +307,16 @@ func (engine *StrategyEngine) parseLightOrders(account string, orders []*exchang
 		}
 
 		args := ent.Order{
-			Exchange:      exchange.Lighter,
-			Account:       account,
-			Symbol:        symbol,
-			OrderID:       ord.OrderID,
-			ClientOrderID: ord.ClientOrderID,
-			Quantity:      ord.Quantity,
-			Status:        ord.Status,
-			Timestamp:     ord.Timestamp,
+			Exchange:          exchange.Lighter,
+			Account:           account,
+			Symbol:            symbol,
+			OrderID:           ord.OrderID,
+			ClientOrderID:     ord.ClientOrderID,
+			BaseAmount:        ord.BaseAmount,
+			FilledBaseAmount:  ord.FilledBaseAmount,
+			FilledQuoteAmount: ord.FilledQuoteAmount,
+			Status:            ord.Status,
+			Timestamp:         ord.Timestamp,
 		}
 		newOrders = append(newOrders, args)
 	}

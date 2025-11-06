@@ -21,6 +21,18 @@ func (f GridFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GridMutation", m)
 }
 
+// The MatchedTradesFunc type is an adapter to allow the use of ordinary
+// function as MatchedTrades mutator.
+type MatchedTradesFunc func(context.Context, *ent.MatchedTradesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MatchedTradesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MatchedTradesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MatchedTradesMutation", m)
+}
+
 // The OrderFunc type is an adapter to allow the use of ordinary
 // function as Order mutator.
 type OrderFunc func(context.Context, *ent.OrderMutation) (ent.Value, error)

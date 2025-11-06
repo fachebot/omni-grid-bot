@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Grid is the client for interacting with the Grid builders.
 	Grid *GridClient
+	// MatchedTrades is the client for interacting with the MatchedTrades builders.
+	MatchedTrades *MatchedTradesClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
 	// Strategy is the client for interacting with the Strategy builders.
@@ -152,6 +154,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Grid = NewGridClient(tx.config)
+	tx.MatchedTrades = NewMatchedTradesClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
 	tx.Strategy = NewStrategyClient(tx.config)
 	tx.SyncProgress = NewSyncProgressClient(tx.config)

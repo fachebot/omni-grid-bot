@@ -147,16 +147,44 @@ func (_u *OrderUpdate) SetNillablePrice(v *decimal.Decimal) *OrderUpdate {
 	return _u
 }
 
-// SetQuantity sets the "quantity" field.
-func (_u *OrderUpdate) SetQuantity(v decimal.Decimal) *OrderUpdate {
-	_u.mutation.SetQuantity(v)
+// SetBaseAmount sets the "baseAmount" field.
+func (_u *OrderUpdate) SetBaseAmount(v decimal.Decimal) *OrderUpdate {
+	_u.mutation.SetBaseAmount(v)
 	return _u
 }
 
-// SetNillableQuantity sets the "quantity" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableQuantity(v *decimal.Decimal) *OrderUpdate {
+// SetNillableBaseAmount sets the "baseAmount" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableBaseAmount(v *decimal.Decimal) *OrderUpdate {
 	if v != nil {
-		_u.SetQuantity(*v)
+		_u.SetBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (_u *OrderUpdate) SetFilledBaseAmount(v decimal.Decimal) *OrderUpdate {
+	_u.mutation.SetFilledBaseAmount(v)
+	return _u
+}
+
+// SetNillableFilledBaseAmount sets the "filledBaseAmount" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFilledBaseAmount(v *decimal.Decimal) *OrderUpdate {
+	if v != nil {
+		_u.SetFilledBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (_u *OrderUpdate) SetFilledQuoteAmount(v decimal.Decimal) *OrderUpdate {
+	_u.mutation.SetFilledQuoteAmount(v)
+	return _u
+}
+
+// SetNillableFilledQuoteAmount sets the "filledQuoteAmount" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFilledQuoteAmount(v *decimal.Decimal) *OrderUpdate {
+	if v != nil {
+		_u.SetFilledQuoteAmount(*v)
 	}
 	return _u
 }
@@ -289,8 +317,14 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Price(); ok {
 		_spec.SetField(order.FieldPrice, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Quantity(); ok {
-		_spec.SetField(order.FieldQuantity, field.TypeString, value)
+	if value, ok := _u.mutation.BaseAmount(); ok {
+		_spec.SetField(order.FieldBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FilledBaseAmount(); ok {
+		_spec.SetField(order.FieldFilledBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FilledQuoteAmount(); ok {
+		_spec.SetField(order.FieldFilledQuoteAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(order.FieldStatus, field.TypeEnum, value)
@@ -439,16 +473,44 @@ func (_u *OrderUpdateOne) SetNillablePrice(v *decimal.Decimal) *OrderUpdateOne {
 	return _u
 }
 
-// SetQuantity sets the "quantity" field.
-func (_u *OrderUpdateOne) SetQuantity(v decimal.Decimal) *OrderUpdateOne {
-	_u.mutation.SetQuantity(v)
+// SetBaseAmount sets the "baseAmount" field.
+func (_u *OrderUpdateOne) SetBaseAmount(v decimal.Decimal) *OrderUpdateOne {
+	_u.mutation.SetBaseAmount(v)
 	return _u
 }
 
-// SetNillableQuantity sets the "quantity" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableQuantity(v *decimal.Decimal) *OrderUpdateOne {
+// SetNillableBaseAmount sets the "baseAmount" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableBaseAmount(v *decimal.Decimal) *OrderUpdateOne {
 	if v != nil {
-		_u.SetQuantity(*v)
+		_u.SetBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (_u *OrderUpdateOne) SetFilledBaseAmount(v decimal.Decimal) *OrderUpdateOne {
+	_u.mutation.SetFilledBaseAmount(v)
+	return _u
+}
+
+// SetNillableFilledBaseAmount sets the "filledBaseAmount" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFilledBaseAmount(v *decimal.Decimal) *OrderUpdateOne {
+	if v != nil {
+		_u.SetFilledBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (_u *OrderUpdateOne) SetFilledQuoteAmount(v decimal.Decimal) *OrderUpdateOne {
+	_u.mutation.SetFilledQuoteAmount(v)
+	return _u
+}
+
+// SetNillableFilledQuoteAmount sets the "filledQuoteAmount" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFilledQuoteAmount(v *decimal.Decimal) *OrderUpdateOne {
+	if v != nil {
+		_u.SetFilledQuoteAmount(*v)
 	}
 	return _u
 }
@@ -611,8 +673,14 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if value, ok := _u.mutation.Price(); ok {
 		_spec.SetField(order.FieldPrice, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Quantity(); ok {
-		_spec.SetField(order.FieldQuantity, field.TypeString, value)
+	if value, ok := _u.mutation.BaseAmount(); ok {
+		_spec.SetField(order.FieldBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FilledBaseAmount(); ok {
+		_spec.SetField(order.FieldFilledBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FilledQuoteAmount(); ok {
+		_spec.SetField(order.FieldFilledQuoteAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(order.FieldStatus, field.TypeEnum, value)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/schema"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
@@ -43,6 +44,12 @@ func init() {
 	gridDescSymbol := gridFields[2].Descriptor()
 	// grid.SymbolValidator is a validator for the "symbol" field. It is called by the builders before save.
 	grid.SymbolValidator = gridDescSymbol.Validators[0].(func(string) error)
+	matchedtradesFields := schema.MatchedTrades{}.Fields()
+	_ = matchedtradesFields
+	// matchedtradesDescStrategyId is the schema descriptor for strategyId field.
+	matchedtradesDescStrategyId := matchedtradesFields[0].Descriptor()
+	// matchedtrades.StrategyIdValidator is a validator for the "strategyId" field. It is called by the builders before save.
+	matchedtrades.StrategyIdValidator = matchedtradesDescStrategyId.Validators[0].(func(string) error)
 	orderMixin := schema.Order{}.Mixin()
 	orderMixinFields0 := orderMixin[0].Fields()
 	_ = orderMixinFields0

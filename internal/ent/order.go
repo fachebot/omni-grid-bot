@@ -36,8 +36,12 @@ type Order struct {
 	Side string `json:"side,omitempty"`
 	// Price holds the value of the "price" field.
 	Price decimal.Decimal `json:"price,omitempty"`
-	// Quantity holds the value of the "quantity" field.
-	Quantity decimal.Decimal `json:"quantity,omitempty"`
+	// BaseAmount holds the value of the "baseAmount" field.
+	BaseAmount decimal.Decimal `json:"baseAmount,omitempty"`
+	// FilledBaseAmount holds the value of the "filledBaseAmount" field.
+	FilledBaseAmount decimal.Decimal `json:"filledBaseAmount,omitempty"`
+	// FilledQuoteAmount holds the value of the "filledQuoteAmount" field.
+	FilledQuoteAmount decimal.Decimal `json:"filledQuoteAmount,omitempty"`
 	// Status holds the value of the "status" field.
 	Status order.Status `json:"status,omitempty"`
 	// Timestamp holds the value of the "timestamp" field.
@@ -50,7 +54,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldPrice, order.FieldQuantity:
+		case order.FieldPrice, order.FieldBaseAmount, order.FieldFilledBaseAmount, order.FieldFilledQuoteAmount:
 			values[i] = new(decimal.Decimal)
 		case order.FieldID, order.FieldOrderID, order.FieldClientOrderID, order.FieldTimestamp:
 			values[i] = new(sql.NullInt64)
@@ -133,11 +137,23 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.Price = *value
 			}
-		case order.FieldQuantity:
+		case order.FieldBaseAmount:
 			if value, ok := values[i].(*decimal.Decimal); !ok {
-				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+				return fmt.Errorf("unexpected type %T for field baseAmount", values[i])
 			} else if value != nil {
-				_m.Quantity = *value
+				_m.BaseAmount = *value
+			}
+		case order.FieldFilledBaseAmount:
+			if value, ok := values[i].(*decimal.Decimal); !ok {
+				return fmt.Errorf("unexpected type %T for field filledBaseAmount", values[i])
+			} else if value != nil {
+				_m.FilledBaseAmount = *value
+			}
+		case order.FieldFilledQuoteAmount:
+			if value, ok := values[i].(*decimal.Decimal); !ok {
+				return fmt.Errorf("unexpected type %T for field filledQuoteAmount", values[i])
+			} else if value != nil {
+				_m.FilledQuoteAmount = *value
 			}
 		case order.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -214,8 +230,14 @@ func (_m *Order) String() string {
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Price))
 	builder.WriteString(", ")
-	builder.WriteString("quantity=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Quantity))
+	builder.WriteString("baseAmount=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BaseAmount))
+	builder.WriteString(", ")
+	builder.WriteString("filledBaseAmount=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FilledBaseAmount))
+	builder.WriteString(", ")
+	builder.WriteString("filledQuoteAmount=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FilledQuoteAmount))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

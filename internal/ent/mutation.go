@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
@@ -28,10 +29,11 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeGrid         = "Grid"
-	TypeOrder        = "Order"
-	TypeStrategy     = "Strategy"
-	TypeSyncProgress = "SyncProgress"
+	TypeGrid          = "Grid"
+	TypeMatchedTrades = "MatchedTrades"
+	TypeOrder         = "Order"
+	TypeStrategy      = "Strategy"
+	TypeSyncProgress  = "SyncProgress"
 )
 
 // GridMutation represents an operation that mutates the Grid nodes in the graph.
@@ -1045,6 +1047,1112 @@ func (m *GridMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Grid edge %s", name)
 }
 
+// MatchedTradesMutation represents an operation that mutates the MatchedTrades nodes in the graph.
+type MatchedTradesMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	strategyId            *string
+	price                 *decimal.Decimal
+	buyClientOrderId      *int64
+	addbuyClientOrderId   *int64
+	buyBaseAmount         *decimal.Decimal
+	buyQuoteAmount        *decimal.Decimal
+	buyOrderTimestamp     *int64
+	addbuyOrderTimestamp  *int64
+	sellClientOrderId     *int64
+	addsellClientOrderId  *int64
+	sellBaseAmount        *decimal.Decimal
+	sellQuoteAmount       *decimal.Decimal
+	sellOrderTimestamp    *int64
+	addsellOrderTimestamp *int64
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*MatchedTrades, error)
+	predicates            []predicate.MatchedTrades
+}
+
+var _ ent.Mutation = (*MatchedTradesMutation)(nil)
+
+// matchedtradesOption allows management of the mutation configuration using functional options.
+type matchedtradesOption func(*MatchedTradesMutation)
+
+// newMatchedTradesMutation creates new mutation for the MatchedTrades entity.
+func newMatchedTradesMutation(c config, op Op, opts ...matchedtradesOption) *MatchedTradesMutation {
+	m := &MatchedTradesMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMatchedTrades,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMatchedTradesID sets the ID field of the mutation.
+func withMatchedTradesID(id int) matchedtradesOption {
+	return func(m *MatchedTradesMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MatchedTrades
+		)
+		m.oldValue = func(ctx context.Context) (*MatchedTrades, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MatchedTrades.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMatchedTrades sets the old MatchedTrades of the mutation.
+func withMatchedTrades(node *MatchedTrades) matchedtradesOption {
+	return func(m *MatchedTradesMutation) {
+		m.oldValue = func(context.Context) (*MatchedTrades, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MatchedTradesMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MatchedTradesMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MatchedTradesMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MatchedTradesMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MatchedTrades.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetStrategyId sets the "strategyId" field.
+func (m *MatchedTradesMutation) SetStrategyId(s string) {
+	m.strategyId = &s
+}
+
+// StrategyId returns the value of the "strategyId" field in the mutation.
+func (m *MatchedTradesMutation) StrategyId() (r string, exists bool) {
+	v := m.strategyId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrategyId returns the old "strategyId" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldStrategyId(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStrategyId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStrategyId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrategyId: %w", err)
+	}
+	return oldValue.StrategyId, nil
+}
+
+// ResetStrategyId resets all changes to the "strategyId" field.
+func (m *MatchedTradesMutation) ResetStrategyId() {
+	m.strategyId = nil
+}
+
+// SetPrice sets the "price" field.
+func (m *MatchedTradesMutation) SetPrice(d decimal.Decimal) {
+	m.price = &d
+}
+
+// Price returns the value of the "price" field in the mutation.
+func (m *MatchedTradesMutation) Price() (r decimal.Decimal, exists bool) {
+	v := m.price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrice returns the old "price" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldPrice(ctx context.Context) (v decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrice: %w", err)
+	}
+	return oldValue.Price, nil
+}
+
+// ResetPrice resets all changes to the "price" field.
+func (m *MatchedTradesMutation) ResetPrice() {
+	m.price = nil
+}
+
+// SetBuyClientOrderId sets the "buyClientOrderId" field.
+func (m *MatchedTradesMutation) SetBuyClientOrderId(i int64) {
+	m.buyClientOrderId = &i
+	m.addbuyClientOrderId = nil
+}
+
+// BuyClientOrderId returns the value of the "buyClientOrderId" field in the mutation.
+func (m *MatchedTradesMutation) BuyClientOrderId() (r int64, exists bool) {
+	v := m.buyClientOrderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyClientOrderId returns the old "buyClientOrderId" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldBuyClientOrderId(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyClientOrderId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyClientOrderId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyClientOrderId: %w", err)
+	}
+	return oldValue.BuyClientOrderId, nil
+}
+
+// AddBuyClientOrderId adds i to the "buyClientOrderId" field.
+func (m *MatchedTradesMutation) AddBuyClientOrderId(i int64) {
+	if m.addbuyClientOrderId != nil {
+		*m.addbuyClientOrderId += i
+	} else {
+		m.addbuyClientOrderId = &i
+	}
+}
+
+// AddedBuyClientOrderId returns the value that was added to the "buyClientOrderId" field in this mutation.
+func (m *MatchedTradesMutation) AddedBuyClientOrderId() (r int64, exists bool) {
+	v := m.addbuyClientOrderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBuyClientOrderId clears the value of the "buyClientOrderId" field.
+func (m *MatchedTradesMutation) ClearBuyClientOrderId() {
+	m.buyClientOrderId = nil
+	m.addbuyClientOrderId = nil
+	m.clearedFields[matchedtrades.FieldBuyClientOrderId] = struct{}{}
+}
+
+// BuyClientOrderIdCleared returns if the "buyClientOrderId" field was cleared in this mutation.
+func (m *MatchedTradesMutation) BuyClientOrderIdCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldBuyClientOrderId]
+	return ok
+}
+
+// ResetBuyClientOrderId resets all changes to the "buyClientOrderId" field.
+func (m *MatchedTradesMutation) ResetBuyClientOrderId() {
+	m.buyClientOrderId = nil
+	m.addbuyClientOrderId = nil
+	delete(m.clearedFields, matchedtrades.FieldBuyClientOrderId)
+}
+
+// SetBuyBaseAmount sets the "buyBaseAmount" field.
+func (m *MatchedTradesMutation) SetBuyBaseAmount(d decimal.Decimal) {
+	m.buyBaseAmount = &d
+}
+
+// BuyBaseAmount returns the value of the "buyBaseAmount" field in the mutation.
+func (m *MatchedTradesMutation) BuyBaseAmount() (r decimal.Decimal, exists bool) {
+	v := m.buyBaseAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyBaseAmount returns the old "buyBaseAmount" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldBuyBaseAmount(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyBaseAmount: %w", err)
+	}
+	return oldValue.BuyBaseAmount, nil
+}
+
+// ClearBuyBaseAmount clears the value of the "buyBaseAmount" field.
+func (m *MatchedTradesMutation) ClearBuyBaseAmount() {
+	m.buyBaseAmount = nil
+	m.clearedFields[matchedtrades.FieldBuyBaseAmount] = struct{}{}
+}
+
+// BuyBaseAmountCleared returns if the "buyBaseAmount" field was cleared in this mutation.
+func (m *MatchedTradesMutation) BuyBaseAmountCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldBuyBaseAmount]
+	return ok
+}
+
+// ResetBuyBaseAmount resets all changes to the "buyBaseAmount" field.
+func (m *MatchedTradesMutation) ResetBuyBaseAmount() {
+	m.buyBaseAmount = nil
+	delete(m.clearedFields, matchedtrades.FieldBuyBaseAmount)
+}
+
+// SetBuyQuoteAmount sets the "buyQuoteAmount" field.
+func (m *MatchedTradesMutation) SetBuyQuoteAmount(d decimal.Decimal) {
+	m.buyQuoteAmount = &d
+}
+
+// BuyQuoteAmount returns the value of the "buyQuoteAmount" field in the mutation.
+func (m *MatchedTradesMutation) BuyQuoteAmount() (r decimal.Decimal, exists bool) {
+	v := m.buyQuoteAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyQuoteAmount returns the old "buyQuoteAmount" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldBuyQuoteAmount(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyQuoteAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyQuoteAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyQuoteAmount: %w", err)
+	}
+	return oldValue.BuyQuoteAmount, nil
+}
+
+// ClearBuyQuoteAmount clears the value of the "buyQuoteAmount" field.
+func (m *MatchedTradesMutation) ClearBuyQuoteAmount() {
+	m.buyQuoteAmount = nil
+	m.clearedFields[matchedtrades.FieldBuyQuoteAmount] = struct{}{}
+}
+
+// BuyQuoteAmountCleared returns if the "buyQuoteAmount" field was cleared in this mutation.
+func (m *MatchedTradesMutation) BuyQuoteAmountCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldBuyQuoteAmount]
+	return ok
+}
+
+// ResetBuyQuoteAmount resets all changes to the "buyQuoteAmount" field.
+func (m *MatchedTradesMutation) ResetBuyQuoteAmount() {
+	m.buyQuoteAmount = nil
+	delete(m.clearedFields, matchedtrades.FieldBuyQuoteAmount)
+}
+
+// SetBuyOrderTimestamp sets the "buyOrderTimestamp" field.
+func (m *MatchedTradesMutation) SetBuyOrderTimestamp(i int64) {
+	m.buyOrderTimestamp = &i
+	m.addbuyOrderTimestamp = nil
+}
+
+// BuyOrderTimestamp returns the value of the "buyOrderTimestamp" field in the mutation.
+func (m *MatchedTradesMutation) BuyOrderTimestamp() (r int64, exists bool) {
+	v := m.buyOrderTimestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyOrderTimestamp returns the old "buyOrderTimestamp" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldBuyOrderTimestamp(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyOrderTimestamp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyOrderTimestamp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyOrderTimestamp: %w", err)
+	}
+	return oldValue.BuyOrderTimestamp, nil
+}
+
+// AddBuyOrderTimestamp adds i to the "buyOrderTimestamp" field.
+func (m *MatchedTradesMutation) AddBuyOrderTimestamp(i int64) {
+	if m.addbuyOrderTimestamp != nil {
+		*m.addbuyOrderTimestamp += i
+	} else {
+		m.addbuyOrderTimestamp = &i
+	}
+}
+
+// AddedBuyOrderTimestamp returns the value that was added to the "buyOrderTimestamp" field in this mutation.
+func (m *MatchedTradesMutation) AddedBuyOrderTimestamp() (r int64, exists bool) {
+	v := m.addbuyOrderTimestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBuyOrderTimestamp clears the value of the "buyOrderTimestamp" field.
+func (m *MatchedTradesMutation) ClearBuyOrderTimestamp() {
+	m.buyOrderTimestamp = nil
+	m.addbuyOrderTimestamp = nil
+	m.clearedFields[matchedtrades.FieldBuyOrderTimestamp] = struct{}{}
+}
+
+// BuyOrderTimestampCleared returns if the "buyOrderTimestamp" field was cleared in this mutation.
+func (m *MatchedTradesMutation) BuyOrderTimestampCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldBuyOrderTimestamp]
+	return ok
+}
+
+// ResetBuyOrderTimestamp resets all changes to the "buyOrderTimestamp" field.
+func (m *MatchedTradesMutation) ResetBuyOrderTimestamp() {
+	m.buyOrderTimestamp = nil
+	m.addbuyOrderTimestamp = nil
+	delete(m.clearedFields, matchedtrades.FieldBuyOrderTimestamp)
+}
+
+// SetSellClientOrderId sets the "sellClientOrderId" field.
+func (m *MatchedTradesMutation) SetSellClientOrderId(i int64) {
+	m.sellClientOrderId = &i
+	m.addsellClientOrderId = nil
+}
+
+// SellClientOrderId returns the value of the "sellClientOrderId" field in the mutation.
+func (m *MatchedTradesMutation) SellClientOrderId() (r int64, exists bool) {
+	v := m.sellClientOrderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSellClientOrderId returns the old "sellClientOrderId" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldSellClientOrderId(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSellClientOrderId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSellClientOrderId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSellClientOrderId: %w", err)
+	}
+	return oldValue.SellClientOrderId, nil
+}
+
+// AddSellClientOrderId adds i to the "sellClientOrderId" field.
+func (m *MatchedTradesMutation) AddSellClientOrderId(i int64) {
+	if m.addsellClientOrderId != nil {
+		*m.addsellClientOrderId += i
+	} else {
+		m.addsellClientOrderId = &i
+	}
+}
+
+// AddedSellClientOrderId returns the value that was added to the "sellClientOrderId" field in this mutation.
+func (m *MatchedTradesMutation) AddedSellClientOrderId() (r int64, exists bool) {
+	v := m.addsellClientOrderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSellClientOrderId clears the value of the "sellClientOrderId" field.
+func (m *MatchedTradesMutation) ClearSellClientOrderId() {
+	m.sellClientOrderId = nil
+	m.addsellClientOrderId = nil
+	m.clearedFields[matchedtrades.FieldSellClientOrderId] = struct{}{}
+}
+
+// SellClientOrderIdCleared returns if the "sellClientOrderId" field was cleared in this mutation.
+func (m *MatchedTradesMutation) SellClientOrderIdCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldSellClientOrderId]
+	return ok
+}
+
+// ResetSellClientOrderId resets all changes to the "sellClientOrderId" field.
+func (m *MatchedTradesMutation) ResetSellClientOrderId() {
+	m.sellClientOrderId = nil
+	m.addsellClientOrderId = nil
+	delete(m.clearedFields, matchedtrades.FieldSellClientOrderId)
+}
+
+// SetSellBaseAmount sets the "sellBaseAmount" field.
+func (m *MatchedTradesMutation) SetSellBaseAmount(d decimal.Decimal) {
+	m.sellBaseAmount = &d
+}
+
+// SellBaseAmount returns the value of the "sellBaseAmount" field in the mutation.
+func (m *MatchedTradesMutation) SellBaseAmount() (r decimal.Decimal, exists bool) {
+	v := m.sellBaseAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSellBaseAmount returns the old "sellBaseAmount" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldSellBaseAmount(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSellBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSellBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSellBaseAmount: %w", err)
+	}
+	return oldValue.SellBaseAmount, nil
+}
+
+// ClearSellBaseAmount clears the value of the "sellBaseAmount" field.
+func (m *MatchedTradesMutation) ClearSellBaseAmount() {
+	m.sellBaseAmount = nil
+	m.clearedFields[matchedtrades.FieldSellBaseAmount] = struct{}{}
+}
+
+// SellBaseAmountCleared returns if the "sellBaseAmount" field was cleared in this mutation.
+func (m *MatchedTradesMutation) SellBaseAmountCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldSellBaseAmount]
+	return ok
+}
+
+// ResetSellBaseAmount resets all changes to the "sellBaseAmount" field.
+func (m *MatchedTradesMutation) ResetSellBaseAmount() {
+	m.sellBaseAmount = nil
+	delete(m.clearedFields, matchedtrades.FieldSellBaseAmount)
+}
+
+// SetSellQuoteAmount sets the "sellQuoteAmount" field.
+func (m *MatchedTradesMutation) SetSellQuoteAmount(d decimal.Decimal) {
+	m.sellQuoteAmount = &d
+}
+
+// SellQuoteAmount returns the value of the "sellQuoteAmount" field in the mutation.
+func (m *MatchedTradesMutation) SellQuoteAmount() (r decimal.Decimal, exists bool) {
+	v := m.sellQuoteAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSellQuoteAmount returns the old "sellQuoteAmount" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldSellQuoteAmount(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSellQuoteAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSellQuoteAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSellQuoteAmount: %w", err)
+	}
+	return oldValue.SellQuoteAmount, nil
+}
+
+// ClearSellQuoteAmount clears the value of the "sellQuoteAmount" field.
+func (m *MatchedTradesMutation) ClearSellQuoteAmount() {
+	m.sellQuoteAmount = nil
+	m.clearedFields[matchedtrades.FieldSellQuoteAmount] = struct{}{}
+}
+
+// SellQuoteAmountCleared returns if the "sellQuoteAmount" field was cleared in this mutation.
+func (m *MatchedTradesMutation) SellQuoteAmountCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldSellQuoteAmount]
+	return ok
+}
+
+// ResetSellQuoteAmount resets all changes to the "sellQuoteAmount" field.
+func (m *MatchedTradesMutation) ResetSellQuoteAmount() {
+	m.sellQuoteAmount = nil
+	delete(m.clearedFields, matchedtrades.FieldSellQuoteAmount)
+}
+
+// SetSellOrderTimestamp sets the "sellOrderTimestamp" field.
+func (m *MatchedTradesMutation) SetSellOrderTimestamp(i int64) {
+	m.sellOrderTimestamp = &i
+	m.addsellOrderTimestamp = nil
+}
+
+// SellOrderTimestamp returns the value of the "sellOrderTimestamp" field in the mutation.
+func (m *MatchedTradesMutation) SellOrderTimestamp() (r int64, exists bool) {
+	v := m.sellOrderTimestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSellOrderTimestamp returns the old "sellOrderTimestamp" field's value of the MatchedTrades entity.
+// If the MatchedTrades object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradesMutation) OldSellOrderTimestamp(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSellOrderTimestamp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSellOrderTimestamp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSellOrderTimestamp: %w", err)
+	}
+	return oldValue.SellOrderTimestamp, nil
+}
+
+// AddSellOrderTimestamp adds i to the "sellOrderTimestamp" field.
+func (m *MatchedTradesMutation) AddSellOrderTimestamp(i int64) {
+	if m.addsellOrderTimestamp != nil {
+		*m.addsellOrderTimestamp += i
+	} else {
+		m.addsellOrderTimestamp = &i
+	}
+}
+
+// AddedSellOrderTimestamp returns the value that was added to the "sellOrderTimestamp" field in this mutation.
+func (m *MatchedTradesMutation) AddedSellOrderTimestamp() (r int64, exists bool) {
+	v := m.addsellOrderTimestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSellOrderTimestamp clears the value of the "sellOrderTimestamp" field.
+func (m *MatchedTradesMutation) ClearSellOrderTimestamp() {
+	m.sellOrderTimestamp = nil
+	m.addsellOrderTimestamp = nil
+	m.clearedFields[matchedtrades.FieldSellOrderTimestamp] = struct{}{}
+}
+
+// SellOrderTimestampCleared returns if the "sellOrderTimestamp" field was cleared in this mutation.
+func (m *MatchedTradesMutation) SellOrderTimestampCleared() bool {
+	_, ok := m.clearedFields[matchedtrades.FieldSellOrderTimestamp]
+	return ok
+}
+
+// ResetSellOrderTimestamp resets all changes to the "sellOrderTimestamp" field.
+func (m *MatchedTradesMutation) ResetSellOrderTimestamp() {
+	m.sellOrderTimestamp = nil
+	m.addsellOrderTimestamp = nil
+	delete(m.clearedFields, matchedtrades.FieldSellOrderTimestamp)
+}
+
+// Where appends a list predicates to the MatchedTradesMutation builder.
+func (m *MatchedTradesMutation) Where(ps ...predicate.MatchedTrades) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MatchedTradesMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MatchedTradesMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MatchedTrades, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MatchedTradesMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MatchedTradesMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MatchedTrades).
+func (m *MatchedTradesMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MatchedTradesMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.strategyId != nil {
+		fields = append(fields, matchedtrades.FieldStrategyId)
+	}
+	if m.price != nil {
+		fields = append(fields, matchedtrades.FieldPrice)
+	}
+	if m.buyClientOrderId != nil {
+		fields = append(fields, matchedtrades.FieldBuyClientOrderId)
+	}
+	if m.buyBaseAmount != nil {
+		fields = append(fields, matchedtrades.FieldBuyBaseAmount)
+	}
+	if m.buyQuoteAmount != nil {
+		fields = append(fields, matchedtrades.FieldBuyQuoteAmount)
+	}
+	if m.buyOrderTimestamp != nil {
+		fields = append(fields, matchedtrades.FieldBuyOrderTimestamp)
+	}
+	if m.sellClientOrderId != nil {
+		fields = append(fields, matchedtrades.FieldSellClientOrderId)
+	}
+	if m.sellBaseAmount != nil {
+		fields = append(fields, matchedtrades.FieldSellBaseAmount)
+	}
+	if m.sellQuoteAmount != nil {
+		fields = append(fields, matchedtrades.FieldSellQuoteAmount)
+	}
+	if m.sellOrderTimestamp != nil {
+		fields = append(fields, matchedtrades.FieldSellOrderTimestamp)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MatchedTradesMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case matchedtrades.FieldStrategyId:
+		return m.StrategyId()
+	case matchedtrades.FieldPrice:
+		return m.Price()
+	case matchedtrades.FieldBuyClientOrderId:
+		return m.BuyClientOrderId()
+	case matchedtrades.FieldBuyBaseAmount:
+		return m.BuyBaseAmount()
+	case matchedtrades.FieldBuyQuoteAmount:
+		return m.BuyQuoteAmount()
+	case matchedtrades.FieldBuyOrderTimestamp:
+		return m.BuyOrderTimestamp()
+	case matchedtrades.FieldSellClientOrderId:
+		return m.SellClientOrderId()
+	case matchedtrades.FieldSellBaseAmount:
+		return m.SellBaseAmount()
+	case matchedtrades.FieldSellQuoteAmount:
+		return m.SellQuoteAmount()
+	case matchedtrades.FieldSellOrderTimestamp:
+		return m.SellOrderTimestamp()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MatchedTradesMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case matchedtrades.FieldStrategyId:
+		return m.OldStrategyId(ctx)
+	case matchedtrades.FieldPrice:
+		return m.OldPrice(ctx)
+	case matchedtrades.FieldBuyClientOrderId:
+		return m.OldBuyClientOrderId(ctx)
+	case matchedtrades.FieldBuyBaseAmount:
+		return m.OldBuyBaseAmount(ctx)
+	case matchedtrades.FieldBuyQuoteAmount:
+		return m.OldBuyQuoteAmount(ctx)
+	case matchedtrades.FieldBuyOrderTimestamp:
+		return m.OldBuyOrderTimestamp(ctx)
+	case matchedtrades.FieldSellClientOrderId:
+		return m.OldSellClientOrderId(ctx)
+	case matchedtrades.FieldSellBaseAmount:
+		return m.OldSellBaseAmount(ctx)
+	case matchedtrades.FieldSellQuoteAmount:
+		return m.OldSellQuoteAmount(ctx)
+	case matchedtrades.FieldSellOrderTimestamp:
+		return m.OldSellOrderTimestamp(ctx)
+	}
+	return nil, fmt.Errorf("unknown MatchedTrades field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MatchedTradesMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case matchedtrades.FieldStrategyId:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrategyId(v)
+		return nil
+	case matchedtrades.FieldPrice:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrice(v)
+		return nil
+	case matchedtrades.FieldBuyClientOrderId:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyClientOrderId(v)
+		return nil
+	case matchedtrades.FieldBuyBaseAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyBaseAmount(v)
+		return nil
+	case matchedtrades.FieldBuyQuoteAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyQuoteAmount(v)
+		return nil
+	case matchedtrades.FieldBuyOrderTimestamp:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyOrderTimestamp(v)
+		return nil
+	case matchedtrades.FieldSellClientOrderId:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSellClientOrderId(v)
+		return nil
+	case matchedtrades.FieldSellBaseAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSellBaseAmount(v)
+		return nil
+	case matchedtrades.FieldSellQuoteAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSellQuoteAmount(v)
+		return nil
+	case matchedtrades.FieldSellOrderTimestamp:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSellOrderTimestamp(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MatchedTrades field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MatchedTradesMutation) AddedFields() []string {
+	var fields []string
+	if m.addbuyClientOrderId != nil {
+		fields = append(fields, matchedtrades.FieldBuyClientOrderId)
+	}
+	if m.addbuyOrderTimestamp != nil {
+		fields = append(fields, matchedtrades.FieldBuyOrderTimestamp)
+	}
+	if m.addsellClientOrderId != nil {
+		fields = append(fields, matchedtrades.FieldSellClientOrderId)
+	}
+	if m.addsellOrderTimestamp != nil {
+		fields = append(fields, matchedtrades.FieldSellOrderTimestamp)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MatchedTradesMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case matchedtrades.FieldBuyClientOrderId:
+		return m.AddedBuyClientOrderId()
+	case matchedtrades.FieldBuyOrderTimestamp:
+		return m.AddedBuyOrderTimestamp()
+	case matchedtrades.FieldSellClientOrderId:
+		return m.AddedSellClientOrderId()
+	case matchedtrades.FieldSellOrderTimestamp:
+		return m.AddedSellOrderTimestamp()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MatchedTradesMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case matchedtrades.FieldBuyClientOrderId:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBuyClientOrderId(v)
+		return nil
+	case matchedtrades.FieldBuyOrderTimestamp:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBuyOrderTimestamp(v)
+		return nil
+	case matchedtrades.FieldSellClientOrderId:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSellClientOrderId(v)
+		return nil
+	case matchedtrades.FieldSellOrderTimestamp:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSellOrderTimestamp(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MatchedTrades numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MatchedTradesMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(matchedtrades.FieldBuyClientOrderId) {
+		fields = append(fields, matchedtrades.FieldBuyClientOrderId)
+	}
+	if m.FieldCleared(matchedtrades.FieldBuyBaseAmount) {
+		fields = append(fields, matchedtrades.FieldBuyBaseAmount)
+	}
+	if m.FieldCleared(matchedtrades.FieldBuyQuoteAmount) {
+		fields = append(fields, matchedtrades.FieldBuyQuoteAmount)
+	}
+	if m.FieldCleared(matchedtrades.FieldBuyOrderTimestamp) {
+		fields = append(fields, matchedtrades.FieldBuyOrderTimestamp)
+	}
+	if m.FieldCleared(matchedtrades.FieldSellClientOrderId) {
+		fields = append(fields, matchedtrades.FieldSellClientOrderId)
+	}
+	if m.FieldCleared(matchedtrades.FieldSellBaseAmount) {
+		fields = append(fields, matchedtrades.FieldSellBaseAmount)
+	}
+	if m.FieldCleared(matchedtrades.FieldSellQuoteAmount) {
+		fields = append(fields, matchedtrades.FieldSellQuoteAmount)
+	}
+	if m.FieldCleared(matchedtrades.FieldSellOrderTimestamp) {
+		fields = append(fields, matchedtrades.FieldSellOrderTimestamp)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MatchedTradesMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MatchedTradesMutation) ClearField(name string) error {
+	switch name {
+	case matchedtrades.FieldBuyClientOrderId:
+		m.ClearBuyClientOrderId()
+		return nil
+	case matchedtrades.FieldBuyBaseAmount:
+		m.ClearBuyBaseAmount()
+		return nil
+	case matchedtrades.FieldBuyQuoteAmount:
+		m.ClearBuyQuoteAmount()
+		return nil
+	case matchedtrades.FieldBuyOrderTimestamp:
+		m.ClearBuyOrderTimestamp()
+		return nil
+	case matchedtrades.FieldSellClientOrderId:
+		m.ClearSellClientOrderId()
+		return nil
+	case matchedtrades.FieldSellBaseAmount:
+		m.ClearSellBaseAmount()
+		return nil
+	case matchedtrades.FieldSellQuoteAmount:
+		m.ClearSellQuoteAmount()
+		return nil
+	case matchedtrades.FieldSellOrderTimestamp:
+		m.ClearSellOrderTimestamp()
+		return nil
+	}
+	return fmt.Errorf("unknown MatchedTrades nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MatchedTradesMutation) ResetField(name string) error {
+	switch name {
+	case matchedtrades.FieldStrategyId:
+		m.ResetStrategyId()
+		return nil
+	case matchedtrades.FieldPrice:
+		m.ResetPrice()
+		return nil
+	case matchedtrades.FieldBuyClientOrderId:
+		m.ResetBuyClientOrderId()
+		return nil
+	case matchedtrades.FieldBuyBaseAmount:
+		m.ResetBuyBaseAmount()
+		return nil
+	case matchedtrades.FieldBuyQuoteAmount:
+		m.ResetBuyQuoteAmount()
+		return nil
+	case matchedtrades.FieldBuyOrderTimestamp:
+		m.ResetBuyOrderTimestamp()
+		return nil
+	case matchedtrades.FieldSellClientOrderId:
+		m.ResetSellClientOrderId()
+		return nil
+	case matchedtrades.FieldSellBaseAmount:
+		m.ResetSellBaseAmount()
+		return nil
+	case matchedtrades.FieldSellQuoteAmount:
+		m.ResetSellQuoteAmount()
+		return nil
+	case matchedtrades.FieldSellOrderTimestamp:
+		m.ResetSellOrderTimestamp()
+		return nil
+	}
+	return fmt.Errorf("unknown MatchedTrades field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MatchedTradesMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MatchedTradesMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MatchedTradesMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MatchedTradesMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MatchedTradesMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MatchedTradesMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MatchedTradesMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MatchedTrades unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MatchedTradesMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MatchedTrades edge %s", name)
+}
+
 // OrderMutation represents an operation that mutates the Order nodes in the graph.
 type OrderMutation struct {
 	config
@@ -1062,7 +2170,9 @@ type OrderMutation struct {
 	addclient_order_id *int64
 	side               *string
 	price              *decimal.Decimal
-	quantity           *decimal.Decimal
+	baseAmount         *decimal.Decimal
+	filledBaseAmount   *decimal.Decimal
+	filledQuoteAmount  *decimal.Decimal
 	status             *order.Status
 	timestamp          *int64
 	addtimestamp       *int64
@@ -1534,40 +2644,112 @@ func (m *OrderMutation) ResetPrice() {
 	m.price = nil
 }
 
-// SetQuantity sets the "quantity" field.
-func (m *OrderMutation) SetQuantity(d decimal.Decimal) {
-	m.quantity = &d
+// SetBaseAmount sets the "baseAmount" field.
+func (m *OrderMutation) SetBaseAmount(d decimal.Decimal) {
+	m.baseAmount = &d
 }
 
-// Quantity returns the value of the "quantity" field in the mutation.
-func (m *OrderMutation) Quantity() (r decimal.Decimal, exists bool) {
-	v := m.quantity
+// BaseAmount returns the value of the "baseAmount" field in the mutation.
+func (m *OrderMutation) BaseAmount() (r decimal.Decimal, exists bool) {
+	v := m.baseAmount
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldQuantity returns the old "quantity" field's value of the Order entity.
+// OldBaseAmount returns the old "baseAmount" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldQuantity(ctx context.Context) (v decimal.Decimal, err error) {
+func (m *OrderMutation) OldBaseAmount(ctx context.Context) (v decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+		return v, errors.New("OldBaseAmount is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldQuantity requires an ID field in the mutation")
+		return v, errors.New("OldBaseAmount requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+		return v, fmt.Errorf("querying old value for OldBaseAmount: %w", err)
 	}
-	return oldValue.Quantity, nil
+	return oldValue.BaseAmount, nil
 }
 
-// ResetQuantity resets all changes to the "quantity" field.
-func (m *OrderMutation) ResetQuantity() {
-	m.quantity = nil
+// ResetBaseAmount resets all changes to the "baseAmount" field.
+func (m *OrderMutation) ResetBaseAmount() {
+	m.baseAmount = nil
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (m *OrderMutation) SetFilledBaseAmount(d decimal.Decimal) {
+	m.filledBaseAmount = &d
+}
+
+// FilledBaseAmount returns the value of the "filledBaseAmount" field in the mutation.
+func (m *OrderMutation) FilledBaseAmount() (r decimal.Decimal, exists bool) {
+	v := m.filledBaseAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilledBaseAmount returns the old "filledBaseAmount" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldFilledBaseAmount(ctx context.Context) (v decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilledBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilledBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilledBaseAmount: %w", err)
+	}
+	return oldValue.FilledBaseAmount, nil
+}
+
+// ResetFilledBaseAmount resets all changes to the "filledBaseAmount" field.
+func (m *OrderMutation) ResetFilledBaseAmount() {
+	m.filledBaseAmount = nil
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (m *OrderMutation) SetFilledQuoteAmount(d decimal.Decimal) {
+	m.filledQuoteAmount = &d
+}
+
+// FilledQuoteAmount returns the value of the "filledQuoteAmount" field in the mutation.
+func (m *OrderMutation) FilledQuoteAmount() (r decimal.Decimal, exists bool) {
+	v := m.filledQuoteAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilledQuoteAmount returns the old "filledQuoteAmount" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldFilledQuoteAmount(ctx context.Context) (v decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilledQuoteAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilledQuoteAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilledQuoteAmount: %w", err)
+	}
+	return oldValue.FilledQuoteAmount, nil
+}
+
+// ResetFilledQuoteAmount resets all changes to the "filledQuoteAmount" field.
+func (m *OrderMutation) ResetFilledQuoteAmount() {
+	m.filledQuoteAmount = nil
 }
 
 // SetStatus sets the "status" field.
@@ -1696,7 +2878,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, order.FieldCreateTime)
 	}
@@ -1724,8 +2906,14 @@ func (m *OrderMutation) Fields() []string {
 	if m.price != nil {
 		fields = append(fields, order.FieldPrice)
 	}
-	if m.quantity != nil {
-		fields = append(fields, order.FieldQuantity)
+	if m.baseAmount != nil {
+		fields = append(fields, order.FieldBaseAmount)
+	}
+	if m.filledBaseAmount != nil {
+		fields = append(fields, order.FieldFilledBaseAmount)
+	}
+	if m.filledQuoteAmount != nil {
+		fields = append(fields, order.FieldFilledQuoteAmount)
 	}
 	if m.status != nil {
 		fields = append(fields, order.FieldStatus)
@@ -1759,8 +2947,12 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.Side()
 	case order.FieldPrice:
 		return m.Price()
-	case order.FieldQuantity:
-		return m.Quantity()
+	case order.FieldBaseAmount:
+		return m.BaseAmount()
+	case order.FieldFilledBaseAmount:
+		return m.FilledBaseAmount()
+	case order.FieldFilledQuoteAmount:
+		return m.FilledQuoteAmount()
 	case order.FieldStatus:
 		return m.Status()
 	case order.FieldTimestamp:
@@ -1792,8 +2984,12 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldSide(ctx)
 	case order.FieldPrice:
 		return m.OldPrice(ctx)
-	case order.FieldQuantity:
-		return m.OldQuantity(ctx)
+	case order.FieldBaseAmount:
+		return m.OldBaseAmount(ctx)
+	case order.FieldFilledBaseAmount:
+		return m.OldFilledBaseAmount(ctx)
+	case order.FieldFilledQuoteAmount:
+		return m.OldFilledQuoteAmount(ctx)
 	case order.FieldStatus:
 		return m.OldStatus(ctx)
 	case order.FieldTimestamp:
@@ -1870,12 +3066,26 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPrice(v)
 		return nil
-	case order.FieldQuantity:
+	case order.FieldBaseAmount:
 		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetQuantity(v)
+		m.SetBaseAmount(v)
+		return nil
+	case order.FieldFilledBaseAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilledBaseAmount(v)
+		return nil
+	case order.FieldFilledQuoteAmount:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilledQuoteAmount(v)
 		return nil
 	case order.FieldStatus:
 		v, ok := value.(order.Status)
@@ -2006,8 +3216,14 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldPrice:
 		m.ResetPrice()
 		return nil
-	case order.FieldQuantity:
-		m.ResetQuantity()
+	case order.FieldBaseAmount:
+		m.ResetBaseAmount()
+		return nil
+	case order.FieldFilledBaseAmount:
+		m.ResetFilledBaseAmount()
+		return nil
+	case order.FieldFilledQuoteAmount:
+		m.ResetFilledQuoteAmount()
 		return nil
 	case order.FieldStatus:
 		m.ResetStatus()

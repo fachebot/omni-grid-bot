@@ -14,14 +14,16 @@ const (
 )
 
 type Order struct {
-	Symbol        string
-	OrderID       int64
-	ClientOrderID int64
-	Side          string
-	Price         decimal.Decimal
-	Quantity      decimal.Decimal
-	Timestamp     int64
-	Status        order.Status
+	Symbol            string
+	OrderID           int64
+	ClientOrderID     int64
+	Side              string
+	Price             decimal.Decimal
+	BaseAmount        decimal.Decimal
+	FilledBaseAmount  decimal.Decimal
+	FilledQuoteAmount decimal.Decimal
+	Timestamp         int64
+	Status            order.Status
 }
 
 type UserOrders struct {

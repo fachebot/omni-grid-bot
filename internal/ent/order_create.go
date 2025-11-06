@@ -93,9 +93,21 @@ func (_c *OrderCreate) SetPrice(v decimal.Decimal) *OrderCreate {
 	return _c
 }
 
-// SetQuantity sets the "quantity" field.
-func (_c *OrderCreate) SetQuantity(v decimal.Decimal) *OrderCreate {
-	_c.mutation.SetQuantity(v)
+// SetBaseAmount sets the "baseAmount" field.
+func (_c *OrderCreate) SetBaseAmount(v decimal.Decimal) *OrderCreate {
+	_c.mutation.SetBaseAmount(v)
+	return _c
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (_c *OrderCreate) SetFilledBaseAmount(v decimal.Decimal) *OrderCreate {
+	_c.mutation.SetFilledBaseAmount(v)
+	return _c
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (_c *OrderCreate) SetFilledQuoteAmount(v decimal.Decimal) *OrderCreate {
+	_c.mutation.SetFilledQuoteAmount(v)
 	return _c
 }
 
@@ -185,8 +197,14 @@ func (_c *OrderCreate) check() error {
 	if _, ok := _c.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Order.price"`)}
 	}
-	if _, ok := _c.mutation.Quantity(); !ok {
-		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "Order.quantity"`)}
+	if _, ok := _c.mutation.BaseAmount(); !ok {
+		return &ValidationError{Name: "baseAmount", err: errors.New(`ent: missing required field "Order.baseAmount"`)}
+	}
+	if _, ok := _c.mutation.FilledBaseAmount(); !ok {
+		return &ValidationError{Name: "filledBaseAmount", err: errors.New(`ent: missing required field "Order.filledBaseAmount"`)}
+	}
+	if _, ok := _c.mutation.FilledQuoteAmount(); !ok {
+		return &ValidationError{Name: "filledQuoteAmount", err: errors.New(`ent: missing required field "Order.filledQuoteAmount"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Order.status"`)}
@@ -262,9 +280,17 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldPrice, field.TypeString, value)
 		_node.Price = value
 	}
-	if value, ok := _c.mutation.Quantity(); ok {
-		_spec.SetField(order.FieldQuantity, field.TypeString, value)
-		_node.Quantity = value
+	if value, ok := _c.mutation.BaseAmount(); ok {
+		_spec.SetField(order.FieldBaseAmount, field.TypeString, value)
+		_node.BaseAmount = value
+	}
+	if value, ok := _c.mutation.FilledBaseAmount(); ok {
+		_spec.SetField(order.FieldFilledBaseAmount, field.TypeString, value)
+		_node.FilledBaseAmount = value
+	}
+	if value, ok := _c.mutation.FilledQuoteAmount(); ok {
+		_spec.SetField(order.FieldFilledQuoteAmount, field.TypeString, value)
+		_node.FilledQuoteAmount = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(order.FieldStatus, field.TypeEnum, value)
@@ -434,15 +460,39 @@ func (u *OrderUpsert) UpdatePrice() *OrderUpsert {
 	return u
 }
 
-// SetQuantity sets the "quantity" field.
-func (u *OrderUpsert) SetQuantity(v decimal.Decimal) *OrderUpsert {
-	u.Set(order.FieldQuantity, v)
+// SetBaseAmount sets the "baseAmount" field.
+func (u *OrderUpsert) SetBaseAmount(v decimal.Decimal) *OrderUpsert {
+	u.Set(order.FieldBaseAmount, v)
 	return u
 }
 
-// UpdateQuantity sets the "quantity" field to the value that was provided on create.
-func (u *OrderUpsert) UpdateQuantity() *OrderUpsert {
-	u.SetExcluded(order.FieldQuantity)
+// UpdateBaseAmount sets the "baseAmount" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateBaseAmount() *OrderUpsert {
+	u.SetExcluded(order.FieldBaseAmount)
+	return u
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (u *OrderUpsert) SetFilledBaseAmount(v decimal.Decimal) *OrderUpsert {
+	u.Set(order.FieldFilledBaseAmount, v)
+	return u
+}
+
+// UpdateFilledBaseAmount sets the "filledBaseAmount" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFilledBaseAmount() *OrderUpsert {
+	u.SetExcluded(order.FieldFilledBaseAmount)
+	return u
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (u *OrderUpsert) SetFilledQuoteAmount(v decimal.Decimal) *OrderUpsert {
+	u.Set(order.FieldFilledQuoteAmount, v)
+	return u
+}
+
+// UpdateFilledQuoteAmount sets the "filledQuoteAmount" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFilledQuoteAmount() *OrderUpsert {
+	u.SetExcluded(order.FieldFilledQuoteAmount)
 	return u
 }
 
@@ -647,17 +697,45 @@ func (u *OrderUpsertOne) UpdatePrice() *OrderUpsertOne {
 	})
 }
 
-// SetQuantity sets the "quantity" field.
-func (u *OrderUpsertOne) SetQuantity(v decimal.Decimal) *OrderUpsertOne {
+// SetBaseAmount sets the "baseAmount" field.
+func (u *OrderUpsertOne) SetBaseAmount(v decimal.Decimal) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetQuantity(v)
+		s.SetBaseAmount(v)
 	})
 }
 
-// UpdateQuantity sets the "quantity" field to the value that was provided on create.
-func (u *OrderUpsertOne) UpdateQuantity() *OrderUpsertOne {
+// UpdateBaseAmount sets the "baseAmount" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateBaseAmount() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateQuantity()
+		s.UpdateBaseAmount()
+	})
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (u *OrderUpsertOne) SetFilledBaseAmount(v decimal.Decimal) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFilledBaseAmount(v)
+	})
+}
+
+// UpdateFilledBaseAmount sets the "filledBaseAmount" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFilledBaseAmount() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFilledBaseAmount()
+	})
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (u *OrderUpsertOne) SetFilledQuoteAmount(v decimal.Decimal) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFilledQuoteAmount(v)
+	})
+}
+
+// UpdateFilledQuoteAmount sets the "filledQuoteAmount" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFilledQuoteAmount() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFilledQuoteAmount()
 	})
 }
 
@@ -1033,17 +1111,45 @@ func (u *OrderUpsertBulk) UpdatePrice() *OrderUpsertBulk {
 	})
 }
 
-// SetQuantity sets the "quantity" field.
-func (u *OrderUpsertBulk) SetQuantity(v decimal.Decimal) *OrderUpsertBulk {
+// SetBaseAmount sets the "baseAmount" field.
+func (u *OrderUpsertBulk) SetBaseAmount(v decimal.Decimal) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetQuantity(v)
+		s.SetBaseAmount(v)
 	})
 }
 
-// UpdateQuantity sets the "quantity" field to the value that was provided on create.
-func (u *OrderUpsertBulk) UpdateQuantity() *OrderUpsertBulk {
+// UpdateBaseAmount sets the "baseAmount" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateBaseAmount() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateQuantity()
+		s.UpdateBaseAmount()
+	})
+}
+
+// SetFilledBaseAmount sets the "filledBaseAmount" field.
+func (u *OrderUpsertBulk) SetFilledBaseAmount(v decimal.Decimal) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFilledBaseAmount(v)
+	})
+}
+
+// UpdateFilledBaseAmount sets the "filledBaseAmount" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFilledBaseAmount() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFilledBaseAmount()
+	})
+}
+
+// SetFilledQuoteAmount sets the "filledQuoteAmount" field.
+func (u *OrderUpsertBulk) SetFilledQuoteAmount(v decimal.Decimal) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFilledQuoteAmount(v)
+	})
+}
+
+// UpdateFilledQuoteAmount sets the "filledQuoteAmount" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFilledQuoteAmount() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFilledQuoteAmount()
 	})
 }
 

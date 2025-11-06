@@ -100,9 +100,19 @@ func Price(v decimal.Decimal) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldPrice, v))
 }
 
-// Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
-func Quantity(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldQuantity, v))
+// BaseAmount applies equality check predicate on the "baseAmount" field. It's identical to BaseAmountEQ.
+func BaseAmount(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBaseAmount, v))
+}
+
+// FilledBaseAmount applies equality check predicate on the "filledBaseAmount" field. It's identical to FilledBaseAmountEQ.
+func FilledBaseAmount(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFilledBaseAmount, v))
+}
+
+// FilledQuoteAmount applies equality check predicate on the "filledQuoteAmount" field. It's identical to FilledQuoteAmountEQ.
+func FilledQuoteAmount(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFilledQuoteAmount, v))
 }
 
 // Timestamp applies equality check predicate on the "timestamp" field. It's identical to TimestampEQ.
@@ -600,74 +610,214 @@ func PriceContainsFold(v decimal.Decimal) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldPrice, vc))
 }
 
-// QuantityEQ applies the EQ predicate on the "quantity" field.
-func QuantityEQ(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldQuantity, v))
+// BaseAmountEQ applies the EQ predicate on the "baseAmount" field.
+func BaseAmountEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBaseAmount, v))
 }
 
-// QuantityNEQ applies the NEQ predicate on the "quantity" field.
-func QuantityNEQ(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldQuantity, v))
+// BaseAmountNEQ applies the NEQ predicate on the "baseAmount" field.
+func BaseAmountNEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldBaseAmount, v))
 }
 
-// QuantityIn applies the In predicate on the "quantity" field.
-func QuantityIn(vs ...decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldQuantity, vs...))
+// BaseAmountIn applies the In predicate on the "baseAmount" field.
+func BaseAmountIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldBaseAmount, vs...))
 }
 
-// QuantityNotIn applies the NotIn predicate on the "quantity" field.
-func QuantityNotIn(vs ...decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldQuantity, vs...))
+// BaseAmountNotIn applies the NotIn predicate on the "baseAmount" field.
+func BaseAmountNotIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldBaseAmount, vs...))
 }
 
-// QuantityGT applies the GT predicate on the "quantity" field.
-func QuantityGT(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldQuantity, v))
+// BaseAmountGT applies the GT predicate on the "baseAmount" field.
+func BaseAmountGT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldBaseAmount, v))
 }
 
-// QuantityGTE applies the GTE predicate on the "quantity" field.
-func QuantityGTE(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldQuantity, v))
+// BaseAmountGTE applies the GTE predicate on the "baseAmount" field.
+func BaseAmountGTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldBaseAmount, v))
 }
 
-// QuantityLT applies the LT predicate on the "quantity" field.
-func QuantityLT(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldQuantity, v))
+// BaseAmountLT applies the LT predicate on the "baseAmount" field.
+func BaseAmountLT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldBaseAmount, v))
 }
 
-// QuantityLTE applies the LTE predicate on the "quantity" field.
-func QuantityLTE(v decimal.Decimal) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldQuantity, v))
+// BaseAmountLTE applies the LTE predicate on the "baseAmount" field.
+func BaseAmountLTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldBaseAmount, v))
 }
 
-// QuantityContains applies the Contains predicate on the "quantity" field.
-func QuantityContains(v decimal.Decimal) predicate.Order {
+// BaseAmountContains applies the Contains predicate on the "baseAmount" field.
+func BaseAmountContains(v decimal.Decimal) predicate.Order {
 	vc := v.String()
-	return predicate.Order(sql.FieldContains(FieldQuantity, vc))
+	return predicate.Order(sql.FieldContains(FieldBaseAmount, vc))
 }
 
-// QuantityHasPrefix applies the HasPrefix predicate on the "quantity" field.
-func QuantityHasPrefix(v decimal.Decimal) predicate.Order {
+// BaseAmountHasPrefix applies the HasPrefix predicate on the "baseAmount" field.
+func BaseAmountHasPrefix(v decimal.Decimal) predicate.Order {
 	vc := v.String()
-	return predicate.Order(sql.FieldHasPrefix(FieldQuantity, vc))
+	return predicate.Order(sql.FieldHasPrefix(FieldBaseAmount, vc))
 }
 
-// QuantityHasSuffix applies the HasSuffix predicate on the "quantity" field.
-func QuantityHasSuffix(v decimal.Decimal) predicate.Order {
+// BaseAmountHasSuffix applies the HasSuffix predicate on the "baseAmount" field.
+func BaseAmountHasSuffix(v decimal.Decimal) predicate.Order {
 	vc := v.String()
-	return predicate.Order(sql.FieldHasSuffix(FieldQuantity, vc))
+	return predicate.Order(sql.FieldHasSuffix(FieldBaseAmount, vc))
 }
 
-// QuantityEqualFold applies the EqualFold predicate on the "quantity" field.
-func QuantityEqualFold(v decimal.Decimal) predicate.Order {
+// BaseAmountEqualFold applies the EqualFold predicate on the "baseAmount" field.
+func BaseAmountEqualFold(v decimal.Decimal) predicate.Order {
 	vc := v.String()
-	return predicate.Order(sql.FieldEqualFold(FieldQuantity, vc))
+	return predicate.Order(sql.FieldEqualFold(FieldBaseAmount, vc))
 }
 
-// QuantityContainsFold applies the ContainsFold predicate on the "quantity" field.
-func QuantityContainsFold(v decimal.Decimal) predicate.Order {
+// BaseAmountContainsFold applies the ContainsFold predicate on the "baseAmount" field.
+func BaseAmountContainsFold(v decimal.Decimal) predicate.Order {
 	vc := v.String()
-	return predicate.Order(sql.FieldContainsFold(FieldQuantity, vc))
+	return predicate.Order(sql.FieldContainsFold(FieldBaseAmount, vc))
+}
+
+// FilledBaseAmountEQ applies the EQ predicate on the "filledBaseAmount" field.
+func FilledBaseAmountEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountNEQ applies the NEQ predicate on the "filledBaseAmount" field.
+func FilledBaseAmountNEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountIn applies the In predicate on the "filledBaseAmount" field.
+func FilledBaseAmountIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFilledBaseAmount, vs...))
+}
+
+// FilledBaseAmountNotIn applies the NotIn predicate on the "filledBaseAmount" field.
+func FilledBaseAmountNotIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFilledBaseAmount, vs...))
+}
+
+// FilledBaseAmountGT applies the GT predicate on the "filledBaseAmount" field.
+func FilledBaseAmountGT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountGTE applies the GTE predicate on the "filledBaseAmount" field.
+func FilledBaseAmountGTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountLT applies the LT predicate on the "filledBaseAmount" field.
+func FilledBaseAmountLT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountLTE applies the LTE predicate on the "filledBaseAmount" field.
+func FilledBaseAmountLTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldFilledBaseAmount, v))
+}
+
+// FilledBaseAmountContains applies the Contains predicate on the "filledBaseAmount" field.
+func FilledBaseAmountContains(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldContains(FieldFilledBaseAmount, vc))
+}
+
+// FilledBaseAmountHasPrefix applies the HasPrefix predicate on the "filledBaseAmount" field.
+func FilledBaseAmountHasPrefix(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldHasPrefix(FieldFilledBaseAmount, vc))
+}
+
+// FilledBaseAmountHasSuffix applies the HasSuffix predicate on the "filledBaseAmount" field.
+func FilledBaseAmountHasSuffix(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldHasSuffix(FieldFilledBaseAmount, vc))
+}
+
+// FilledBaseAmountEqualFold applies the EqualFold predicate on the "filledBaseAmount" field.
+func FilledBaseAmountEqualFold(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldEqualFold(FieldFilledBaseAmount, vc))
+}
+
+// FilledBaseAmountContainsFold applies the ContainsFold predicate on the "filledBaseAmount" field.
+func FilledBaseAmountContainsFold(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldContainsFold(FieldFilledBaseAmount, vc))
+}
+
+// FilledQuoteAmountEQ applies the EQ predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountNEQ applies the NEQ predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountNEQ(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountIn applies the In predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFilledQuoteAmount, vs...))
+}
+
+// FilledQuoteAmountNotIn applies the NotIn predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountNotIn(vs ...decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFilledQuoteAmount, vs...))
+}
+
+// FilledQuoteAmountGT applies the GT predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountGT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountGTE applies the GTE predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountGTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountLT applies the LT predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountLT(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountLTE applies the LTE predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountLTE(v decimal.Decimal) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldFilledQuoteAmount, v))
+}
+
+// FilledQuoteAmountContains applies the Contains predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountContains(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldContains(FieldFilledQuoteAmount, vc))
+}
+
+// FilledQuoteAmountHasPrefix applies the HasPrefix predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountHasPrefix(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldHasPrefix(FieldFilledQuoteAmount, vc))
+}
+
+// FilledQuoteAmountHasSuffix applies the HasSuffix predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountHasSuffix(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldHasSuffix(FieldFilledQuoteAmount, vc))
+}
+
+// FilledQuoteAmountEqualFold applies the EqualFold predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountEqualFold(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldEqualFold(FieldFilledQuoteAmount, vc))
+}
+
+// FilledQuoteAmountContainsFold applies the ContainsFold predicate on the "filledQuoteAmount" field.
+func FilledQuoteAmountContainsFold(v decimal.Decimal) predicate.Order {
+	vc := v.String()
+	return predicate.Order(sql.FieldContainsFold(FieldFilledQuoteAmount, vc))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

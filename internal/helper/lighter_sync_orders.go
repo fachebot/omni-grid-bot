@@ -66,16 +66,18 @@ exit:
 		for _, item := range inactiveOrders {
 			symbol := markets[item.MarketIndex]
 			args := ent.Order{
-				Exchange:      exchange.Lighter,
-				Account:       account,
-				Symbol:        symbol,
-				OrderID:       item.OrderIndex,
-				ClientOrderID: item.ClientOrderIndex,
-				Side:          lo.If(item.IsAsk, "sell").Else("buy"),
-				Price:         item.Price,
-				Quantity:      item.FilledBaseAmount,
-				Status:        lighter.ConvertOrderStatus(item.Status),
-				Timestamp:     item.Timestamp,
+				Exchange:          exchange.Lighter,
+				Account:           account,
+				Symbol:            symbol,
+				OrderID:           item.OrderIndex,
+				ClientOrderID:     item.ClientOrderIndex,
+				Side:              lo.If(item.IsAsk, "sell").Else("buy"),
+				Price:             item.Price,
+				BaseAmount:        item.InitialBaseAmount,
+				FilledBaseAmount:  item.FilledBaseAmount,
+				FilledQuoteAmount: item.FilledQuoteAmount,
+				Status:            lighter.ConvertOrderStatus(item.Status),
+				Timestamp:         item.Timestamp,
 			}
 			err = h.svcCtx.OrderModel.Upsert(ctx, args)
 			if err != nil {

@@ -29,7 +29,9 @@ func (Order) Fields() []ent.Field {
 		field.Int64("client_order_id"),
 		field.String("side"),
 		field.String("price").GoType(decimal.Decimal{}),
-		field.String("quantity").GoType(decimal.Decimal{}),
+		field.String("baseAmount").GoType(decimal.Decimal{}),
+		field.String("filledBaseAmount").GoType(decimal.Decimal{}),
+		field.String("filledQuoteAmount").GoType(decimal.Decimal{}),
 		field.Enum("status").Values("in-progress", "pending", "open", "filled", "canceled"),
 		field.Int64("timestamp"),
 	}
