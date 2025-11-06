@@ -50,7 +50,7 @@ var (
 	MatchedTradesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "strategy_id", Type: field.TypeString, Size: 50},
-		{Name: "price", Type: field.TypeString},
+		{Name: "symbol", Type: field.TypeString},
 		{Name: "buy_client_order_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "buy_base_amount", Type: field.TypeString, Nullable: true},
 		{Name: "buy_quote_amount", Type: field.TypeString, Nullable: true},
@@ -65,6 +65,23 @@ var (
 		Name:       "matched_trades",
 		Columns:    MatchedTradesColumns,
 		PrimaryKey: []*schema.Column{MatchedTradesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "matchedtrade_strategy_id_buy_client_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[3]},
+			},
+			{
+				Name:    "matchedtrade_strategy_id_sell_client_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[7]},
+			},
+			{
+				Name:    "matchedtrade_strategy_id_buy_client_order_id_sell_client_order_id",
+				Unique:  true,
+				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[3], MatchedTradesColumns[7]},
+			},
+		},
 	}
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{

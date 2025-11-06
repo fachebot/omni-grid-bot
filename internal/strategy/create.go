@@ -138,6 +138,7 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 		if err = m.CreateBulk(ctx, gridLevels); err != nil {
 			return err
 		}
+
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusActive)
 	})
 }

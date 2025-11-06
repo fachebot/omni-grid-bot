@@ -34,6 +34,7 @@ type ServiceContext struct {
 	OrderModel        *model.OrderModel
 	StrategyModel     *model.StrategyModel
 	SyncProgressModel *model.SyncProgressModel
+	MatchedTradeModel *model.MatchedTradeModel
 
 	userLocks  map[int64]*sync.Mutex
 	locksMutex sync.RWMutex
@@ -98,6 +99,7 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 		OrderModel:        model.NewOrderModel(client.Order),
 		StrategyModel:     model.NewStrategyModel(client.Strategy),
 		SyncProgressModel: model.NewSyncProgressModel(client.SyncProgress),
+		MatchedTradeModel: model.NewMatchedTradeModel(client.MatchedTrade),
 
 		userLocks: make(map[int64]*sync.Mutex),
 	}

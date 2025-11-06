@@ -217,6 +217,8 @@ func (engine *StrategyEngine) resubscribe(account string) {
 }
 
 func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, newOrders []ent.Order) error {
+	logger.Debugf("[StrategyEngine] 同步用户订单开始, account: %s", userOrders.Account)
+
 	// 查询账户策略
 	userStrategyList := engine.userStrategyList(userOrders.Account)
 	if len(userStrategyList) == 0 {
@@ -251,7 +253,7 @@ func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, new
 		}
 	}
 
-	// 更新活跃订单
+	// 更新非活跃订单
 	err := util.Tx(engine.ctx, engine.svcCtx.DbClient, func(tx *ent.Tx) error {
 		for _, item := range newOrders {
 			err := engine.svcCtx.OrderModel.Upsert(engine.ctx, item)
@@ -264,7 +266,10 @@ func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, new
 	})
 	if err != nil {
 		logger.Errorf("[StrategyEngine] 保存用户活跃订单失败, %v", err)
+	} else {
+		logger.Debugf("[StrategyEngine] 同步用户订单结束, account: %s", userOrders.Account)
 	}
+
 	return err
 }
 
@@ -310,6 +315,7 @@ func (engine *StrategyEngine) parseLightOrders(account string, orders []*exchang
 			Exchange:          exchange.Lighter,
 			Account:           account,
 			Symbol:            symbol,
+			Price:             ord.Price,
 			OrderID:           ord.OrderID,
 			ClientOrderID:     ord.ClientOrderID,
 			BaseAmount:        ord.BaseAmount,
@@ -325,13 +331,11 @@ func (engine *StrategyEngine) parseLightOrders(account string, orders []*exchang
 }
 
 func (engine *StrategyEngine) handleUserOrders(userOrders exchange.UserOrders, newOrders []ent.Order) error {
-	logger.Debugf("[StrategyEngine] 同步用户订单开始, account: %s", userOrders.Account)
 	err := engine.syncUserOrders(userOrders, newOrders)
 	if err != nil {
 		logger.Errorf("[StrategyEngine] 同步用户订单失败, account: %s, %v", userOrders.Account, err)
 		return err
 	}
-	logger.Debugf("[StrategyEngine] 同步用户订单结束, account: %s", userOrders.Account)
 
 	userStrategyList := engine.userStrategyList(userOrders.Account)
 	for _, item := range userStrategyList {

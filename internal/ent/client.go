@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrade"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/syncprogress"
@@ -28,8 +28,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Grid is the client for interacting with the Grid builders.
 	Grid *GridClient
-	// MatchedTrades is the client for interacting with the MatchedTrades builders.
-	MatchedTrades *MatchedTradesClient
+	// MatchedTrade is the client for interacting with the MatchedTrade builders.
+	MatchedTrade *MatchedTradeClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
 	// Strategy is the client for interacting with the Strategy builders.
@@ -48,7 +48,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Grid = NewGridClient(c.config)
-	c.MatchedTrades = NewMatchedTradesClient(c.config)
+	c.MatchedTrade = NewMatchedTradeClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.Strategy = NewStrategyClient(c.config)
 	c.SyncProgress = NewSyncProgressClient(c.config)
@@ -142,13 +142,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Grid:          NewGridClient(cfg),
-		MatchedTrades: NewMatchedTradesClient(cfg),
-		Order:         NewOrderClient(cfg),
-		Strategy:      NewStrategyClient(cfg),
-		SyncProgress:  NewSyncProgressClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Grid:         NewGridClient(cfg),
+		MatchedTrade: NewMatchedTradeClient(cfg),
+		Order:        NewOrderClient(cfg),
+		Strategy:     NewStrategyClient(cfg),
+		SyncProgress: NewSyncProgressClient(cfg),
 	}, nil
 }
 
@@ -166,13 +166,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Grid:          NewGridClient(cfg),
-		MatchedTrades: NewMatchedTradesClient(cfg),
-		Order:         NewOrderClient(cfg),
-		Strategy:      NewStrategyClient(cfg),
-		SyncProgress:  NewSyncProgressClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Grid:         NewGridClient(cfg),
+		MatchedTrade: NewMatchedTradeClient(cfg),
+		Order:        NewOrderClient(cfg),
+		Strategy:     NewStrategyClient(cfg),
+		SyncProgress: NewSyncProgressClient(cfg),
 	}, nil
 }
 
@@ -202,7 +202,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Grid.Use(hooks...)
-	c.MatchedTrades.Use(hooks...)
+	c.MatchedTrade.Use(hooks...)
 	c.Order.Use(hooks...)
 	c.Strategy.Use(hooks...)
 	c.SyncProgress.Use(hooks...)
@@ -212,7 +212,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Grid.Intercept(interceptors...)
-	c.MatchedTrades.Intercept(interceptors...)
+	c.MatchedTrade.Intercept(interceptors...)
 	c.Order.Intercept(interceptors...)
 	c.Strategy.Intercept(interceptors...)
 	c.SyncProgress.Intercept(interceptors...)
@@ -223,8 +223,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *GridMutation:
 		return c.Grid.mutate(ctx, m)
-	case *MatchedTradesMutation:
-		return c.MatchedTrades.mutate(ctx, m)
+	case *MatchedTradeMutation:
+		return c.MatchedTrade.mutate(ctx, m)
 	case *OrderMutation:
 		return c.Order.mutate(ctx, m)
 	case *StrategyMutation:
@@ -369,107 +369,107 @@ func (c *GridClient) mutate(ctx context.Context, m *GridMutation) (Value, error)
 	}
 }
 
-// MatchedTradesClient is a client for the MatchedTrades schema.
-type MatchedTradesClient struct {
+// MatchedTradeClient is a client for the MatchedTrade schema.
+type MatchedTradeClient struct {
 	config
 }
 
-// NewMatchedTradesClient returns a client for the MatchedTrades from the given config.
-func NewMatchedTradesClient(c config) *MatchedTradesClient {
-	return &MatchedTradesClient{config: c}
+// NewMatchedTradeClient returns a client for the MatchedTrade from the given config.
+func NewMatchedTradeClient(c config) *MatchedTradeClient {
+	return &MatchedTradeClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `matchedtrades.Hooks(f(g(h())))`.
-func (c *MatchedTradesClient) Use(hooks ...Hook) {
-	c.hooks.MatchedTrades = append(c.hooks.MatchedTrades, hooks...)
+// A call to `Use(f, g, h)` equals to `matchedtrade.Hooks(f(g(h())))`.
+func (c *MatchedTradeClient) Use(hooks ...Hook) {
+	c.hooks.MatchedTrade = append(c.hooks.MatchedTrade, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `matchedtrades.Intercept(f(g(h())))`.
-func (c *MatchedTradesClient) Intercept(interceptors ...Interceptor) {
-	c.inters.MatchedTrades = append(c.inters.MatchedTrades, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `matchedtrade.Intercept(f(g(h())))`.
+func (c *MatchedTradeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MatchedTrade = append(c.inters.MatchedTrade, interceptors...)
 }
 
-// Create returns a builder for creating a MatchedTrades entity.
-func (c *MatchedTradesClient) Create() *MatchedTradesCreate {
-	mutation := newMatchedTradesMutation(c.config, OpCreate)
-	return &MatchedTradesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a MatchedTrade entity.
+func (c *MatchedTradeClient) Create() *MatchedTradeCreate {
+	mutation := newMatchedTradeMutation(c.config, OpCreate)
+	return &MatchedTradeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of MatchedTrades entities.
-func (c *MatchedTradesClient) CreateBulk(builders ...*MatchedTradesCreate) *MatchedTradesCreateBulk {
-	return &MatchedTradesCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of MatchedTrade entities.
+func (c *MatchedTradeClient) CreateBulk(builders ...*MatchedTradeCreate) *MatchedTradeCreateBulk {
+	return &MatchedTradeCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *MatchedTradesClient) MapCreateBulk(slice any, setFunc func(*MatchedTradesCreate, int)) *MatchedTradesCreateBulk {
+func (c *MatchedTradeClient) MapCreateBulk(slice any, setFunc func(*MatchedTradeCreate, int)) *MatchedTradeCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &MatchedTradesCreateBulk{err: fmt.Errorf("calling to MatchedTradesClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &MatchedTradeCreateBulk{err: fmt.Errorf("calling to MatchedTradeClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*MatchedTradesCreate, rv.Len())
+	builders := make([]*MatchedTradeCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &MatchedTradesCreateBulk{config: c.config, builders: builders}
+	return &MatchedTradeCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for MatchedTrades.
-func (c *MatchedTradesClient) Update() *MatchedTradesUpdate {
-	mutation := newMatchedTradesMutation(c.config, OpUpdate)
-	return &MatchedTradesUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for MatchedTrade.
+func (c *MatchedTradeClient) Update() *MatchedTradeUpdate {
+	mutation := newMatchedTradeMutation(c.config, OpUpdate)
+	return &MatchedTradeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *MatchedTradesClient) UpdateOne(_m *MatchedTrades) *MatchedTradesUpdateOne {
-	mutation := newMatchedTradesMutation(c.config, OpUpdateOne, withMatchedTrades(_m))
-	return &MatchedTradesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *MatchedTradeClient) UpdateOne(_m *MatchedTrade) *MatchedTradeUpdateOne {
+	mutation := newMatchedTradeMutation(c.config, OpUpdateOne, withMatchedTrade(_m))
+	return &MatchedTradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MatchedTradesClient) UpdateOneID(id int) *MatchedTradesUpdateOne {
-	mutation := newMatchedTradesMutation(c.config, OpUpdateOne, withMatchedTradesID(id))
-	return &MatchedTradesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *MatchedTradeClient) UpdateOneID(id int) *MatchedTradeUpdateOne {
+	mutation := newMatchedTradeMutation(c.config, OpUpdateOne, withMatchedTradeID(id))
+	return &MatchedTradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for MatchedTrades.
-func (c *MatchedTradesClient) Delete() *MatchedTradesDelete {
-	mutation := newMatchedTradesMutation(c.config, OpDelete)
-	return &MatchedTradesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for MatchedTrade.
+func (c *MatchedTradeClient) Delete() *MatchedTradeDelete {
+	mutation := newMatchedTradeMutation(c.config, OpDelete)
+	return &MatchedTradeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *MatchedTradesClient) DeleteOne(_m *MatchedTrades) *MatchedTradesDeleteOne {
+func (c *MatchedTradeClient) DeleteOne(_m *MatchedTrade) *MatchedTradeDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MatchedTradesClient) DeleteOneID(id int) *MatchedTradesDeleteOne {
-	builder := c.Delete().Where(matchedtrades.ID(id))
+func (c *MatchedTradeClient) DeleteOneID(id int) *MatchedTradeDeleteOne {
+	builder := c.Delete().Where(matchedtrade.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &MatchedTradesDeleteOne{builder}
+	return &MatchedTradeDeleteOne{builder}
 }
 
-// Query returns a query builder for MatchedTrades.
-func (c *MatchedTradesClient) Query() *MatchedTradesQuery {
-	return &MatchedTradesQuery{
+// Query returns a query builder for MatchedTrade.
+func (c *MatchedTradeClient) Query() *MatchedTradeQuery {
+	return &MatchedTradeQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeMatchedTrades},
+		ctx:    &QueryContext{Type: TypeMatchedTrade},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a MatchedTrades entity by its id.
-func (c *MatchedTradesClient) Get(ctx context.Context, id int) (*MatchedTrades, error) {
-	return c.Query().Where(matchedtrades.ID(id)).Only(ctx)
+// Get returns a MatchedTrade entity by its id.
+func (c *MatchedTradeClient) Get(ctx context.Context, id int) (*MatchedTrade, error) {
+	return c.Query().Where(matchedtrade.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MatchedTradesClient) GetX(ctx context.Context, id int) *MatchedTrades {
+func (c *MatchedTradeClient) GetX(ctx context.Context, id int) *MatchedTrade {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -478,27 +478,27 @@ func (c *MatchedTradesClient) GetX(ctx context.Context, id int) *MatchedTrades {
 }
 
 // Hooks returns the client hooks.
-func (c *MatchedTradesClient) Hooks() []Hook {
-	return c.hooks.MatchedTrades
+func (c *MatchedTradeClient) Hooks() []Hook {
+	return c.hooks.MatchedTrade
 }
 
 // Interceptors returns the client interceptors.
-func (c *MatchedTradesClient) Interceptors() []Interceptor {
-	return c.inters.MatchedTrades
+func (c *MatchedTradeClient) Interceptors() []Interceptor {
+	return c.inters.MatchedTrade
 }
 
-func (c *MatchedTradesClient) mutate(ctx context.Context, m *MatchedTradesMutation) (Value, error) {
+func (c *MatchedTradeClient) mutate(ctx context.Context, m *MatchedTradeMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&MatchedTradesCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&MatchedTradeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&MatchedTradesUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&MatchedTradeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&MatchedTradesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&MatchedTradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&MatchedTradesDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&MatchedTradeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown MatchedTrades mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown MatchedTrade mutation op: %q", m.Op())
 	}
 }
 
@@ -904,9 +904,9 @@ func (c *SyncProgressClient) mutate(ctx context.Context, m *SyncProgressMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Grid, MatchedTrades, Order, Strategy, SyncProgress []ent.Hook
+		Grid, MatchedTrade, Order, Strategy, SyncProgress []ent.Hook
 	}
 	inters struct {
-		Grid, MatchedTrades, Order, Strategy, SyncProgress []ent.Interceptor
+		Grid, MatchedTrade, Order, Strategy, SyncProgress []ent.Interceptor
 	}
 )

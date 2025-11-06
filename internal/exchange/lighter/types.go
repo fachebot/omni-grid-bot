@@ -236,7 +236,7 @@ type Order struct {
 	RemainingBaseAmount decimal.Decimal `json:"remaining_base_amount"` // 剩余基础资产数量
 	IsAsk               bool            `json:"is_ask"`                // 是否为卖单
 	BaseSize            int64           `json:"base_size"`             // 基础资产规模
-	BasePrice           int32           `json:"base_price"`            // 基础价格（整数形式）
+	BasePrice           int64           `json:"base_price"`            // 基础价格（整数形式）
 	FilledBaseAmount    decimal.Decimal `json:"filled_base_amount"`    // 已成交的基础资产数量
 	FilledQuoteAmount   decimal.Decimal `json:"filled_quote_amount"`   // 已成交的计价资产数量
 	Type                OrderType       `json:"type"`                  // 订单类型

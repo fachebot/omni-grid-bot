@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrade"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
 )
 
-// MatchedTradesDelete is the builder for deleting a MatchedTrades entity.
-type MatchedTradesDelete struct {
+// MatchedTradeDelete is the builder for deleting a MatchedTrade entity.
+type MatchedTradeDelete struct {
 	config
 	hooks    []Hook
-	mutation *MatchedTradesMutation
+	mutation *MatchedTradeMutation
 }
 
-// Where appends a list predicates to the MatchedTradesDelete builder.
-func (_d *MatchedTradesDelete) Where(ps ...predicate.MatchedTrades) *MatchedTradesDelete {
+// Where appends a list predicates to the MatchedTradeDelete builder.
+func (_d *MatchedTradeDelete) Where(ps ...predicate.MatchedTrade) *MatchedTradeDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *MatchedTradesDelete) Exec(ctx context.Context) (int, error) {
+func (_d *MatchedTradeDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *MatchedTradesDelete) ExecX(ctx context.Context) int {
+func (_d *MatchedTradeDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *MatchedTradesDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *MatchedTradesDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(matchedtrades.Table, sqlgraph.NewFieldSpec(matchedtrades.FieldID, field.TypeInt))
+func (_d *MatchedTradeDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(matchedtrade.Table, sqlgraph.NewFieldSpec(matchedtrade.FieldID, field.TypeInt))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *MatchedTradesDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// MatchedTradesDeleteOne is the builder for deleting a single MatchedTrades entity.
-type MatchedTradesDeleteOne struct {
-	_d *MatchedTradesDelete
+// MatchedTradeDeleteOne is the builder for deleting a single MatchedTrade entity.
+type MatchedTradeDeleteOne struct {
+	_d *MatchedTradeDelete
 }
 
-// Where appends a list predicates to the MatchedTradesDelete builder.
-func (_d *MatchedTradesDeleteOne) Where(ps ...predicate.MatchedTrades) *MatchedTradesDeleteOne {
+// Where appends a list predicates to the MatchedTradeDelete builder.
+func (_d *MatchedTradeDeleteOne) Where(ps ...predicate.MatchedTrade) *MatchedTradeDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *MatchedTradesDeleteOne) Exec(ctx context.Context) error {
+func (_d *MatchedTradeDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{matchedtrades.Label}
+		return &NotFoundError{matchedtrade.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *MatchedTradesDeleteOne) ExecX(ctx context.Context) {
+func (_d *MatchedTradeDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

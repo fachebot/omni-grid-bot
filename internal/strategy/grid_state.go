@@ -6,6 +6,7 @@ import (
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
@@ -137,19 +138,31 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 	// 处理买入订单
 	adapter := helper.NewExchangeAdapter(state.svcCtx, state.account)
 	if buyOrder != nil && buyOrder.Status == order.StatusFilled {
-		logger.Infof("[%s %s] #%d 买单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, level.Price, level.Quantity)
+		logger.Infof("[%s %s] #%d 买单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.Price, buyOrder.FilledBaseAmount)
+
+		err := state.svcCtx.MatchedTradeModel.EnsureBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
+		if err != nil {
+			logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %d, %v", state.strategy.GUID, buyOrder.ClientOrderID, err)
+			return err
+		}
 
 		upperLevel := getUpperLevel(state.sortedGrids, level.Level)
 		if upperLevel != nil {
 			if upperLevel.SellClientOrderId == nil {
-				sellOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, true, false, upperLevel.Price, level.Quantity)
+				quantity := buyOrder.FilledBaseAmount
+				if state.strategy.Mode == strategy.ModeShort {
+					quantity = upperLevel.Quantity
+				}
+
+				sellOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, true, false, upperLevel.Price, quantity)
 				if err != nil {
 					logger.Errorf("[%s %s] #%d 下单卖单错误, 价格: %s, 数量: %s, %v",
-						state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, level.Quantity, err)
+						state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, quantity, err)
 					return err
 				}
 
-				logger.Infof("[%s %s] #%d 下单卖单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, level.Quantity)
+				logger.Infof("[%s %s] #%d 下单卖单, sellOrderId: %d, 价格: %s, 数量: %s",
+					state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, sellOrderId, upperLevel.Price, quantity)
 
 				// 更新数据状态
 				err = util.Tx(state.ctx, state.svcCtx.DbClient, func(tx *ent.Tx) error {
@@ -159,7 +172,13 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 						return err
 					}
 
-					return m.UpdateSellClientOrderId(state.ctx, upperLevel.ID, &sellOrderId)
+					err = m.UpdateSellClientOrderId(state.ctx, upperLevel.ID, &sellOrderId)
+					if err != nil {
+						return err
+					}
+
+					return model.NewMatchedTradeModel(tx.MatchedTrade).UpdateByBuyOrder(
+						state.ctx, state.strategy.GUID, buyOrder, sellOrderId, &quantity, nil, nil)
 				})
 				if err != nil {
 					logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, buyClientOrderId: nil, upperLevel: %d, sellClientOrderId: %d, %v",
@@ -170,26 +189,38 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 				}
 			} else {
 				logger.Warnf("[%s %s] #%d 取消下单卖单, 价格: %s, 数量: %s, sellClientOrderId: %d",
-					state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, level.Quantity, *upperLevel.SellClientOrderId)
+					state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, upperLevel.Quantity, *upperLevel.SellClientOrderId)
 			}
 		}
 	}
 
 	// 处理卖出订单
 	if sellOrder != nil && sellOrder.Status == order.StatusFilled {
-		logger.Infof("[%s %s] #%d 卖单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, level.Price, level.Quantity)
+		logger.Infof("[%s %s] #%d 卖单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.Price, sellOrder.FilledBaseAmount)
+
+		err := state.svcCtx.MatchedTradeModel.EnsureSellOrder(state.ctx, state.strategy.GUID, sellOrder)
+		if err != nil {
+			logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %d, %v", state.strategy.GUID, sellOrder.ClientOrderID, err)
+			return err
+		}
 
 		lowerLevel := getLowerLevel(state.sortedGrids, level.Level)
 		if lowerLevel != nil {
 			if lowerLevel.BuyClientOrderId == nil {
-				buyOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, false, false, lowerLevel.Price, level.Quantity)
+				quantity := sellOrder.FilledBaseAmount
+				if state.strategy.Mode == strategy.ModeLong {
+					quantity = lowerLevel.Quantity
+				}
+
+				buyOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, false, false, lowerLevel.Price, quantity)
 				if err != nil {
 					logger.Errorf("[%s %s] #%d 下单买单错误, 价格: %s, 数量: %s, %v",
-						state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, level.Quantity, err)
+						state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, quantity, err)
 					return err
 				}
 
-				logger.Infof("[%s %s] #%d 下单买单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, level.Quantity)
+				logger.Infof("[%s %s] #%d 下单买单, buyOrderId: %d, 价格: %s, 数量: %s",
+					state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, buyOrderId, lowerLevel.Price, quantity)
 
 				// 更新数据状态
 				err = util.Tx(state.ctx, state.svcCtx.DbClient, func(tx *ent.Tx) error {
@@ -199,7 +230,13 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 						return err
 					}
 
-					return m.UpdateBuyClientOrderId(state.ctx, lowerLevel.ID, &buyOrderId)
+					err = m.UpdateBuyClientOrderId(state.ctx, lowerLevel.ID, &buyOrderId)
+					if err != nil {
+						return err
+					}
+
+					return model.NewMatchedTradeModel(tx.MatchedTrade).UpdateBySellOrder(
+						state.ctx, state.strategy.GUID, sellOrder, buyOrderId, &quantity, nil, nil)
 				})
 				if err != nil {
 					logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, sellClientOrderId: nil, lowerLevel: %d, buyClientOrderId: %d, %v",
@@ -210,7 +247,7 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 				}
 			} else {
 				logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s, buyClientOrderId: %d",
-					state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, level.Quantity, *lowerLevel.BuyClientOrderId)
+					state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, lowerLevel.Quantity, *lowerLevel.BuyClientOrderId)
 			}
 		}
 	}

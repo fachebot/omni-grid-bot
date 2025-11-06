@@ -3,19 +3,20 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/shopspring/decimal"
 )
 
-// MatchedTrades holds the schema definition for the MatchedTrades entity.
-type MatchedTrades struct {
+// MatchedTrade holds the schema definition for the MatchedTrade entity.
+type MatchedTrade struct {
 	ent.Schema
 }
 
-// Fields of the MatchedTrades.
-func (MatchedTrades) Fields() []ent.Field {
+// Fields of the MatchedTrade.
+func (MatchedTrade) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("strategyId").MaxLen(50),
-		field.String("price").GoType(decimal.Decimal{}),
+		field.String("symbol"),
 		field.Int64("buyClientOrderId").Nillable().Optional(),
 		field.String("buyBaseAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.String("buyQuoteAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
@@ -27,7 +28,16 @@ func (MatchedTrades) Fields() []ent.Field {
 	}
 }
 
-// Edges of the MatchedTrades.
-func (MatchedTrades) Edges() []ent.Edge {
+// Edges of the MatchedTrade.
+func (MatchedTrade) Edges() []ent.Edge {
 	return nil
+}
+
+// Indexes of the MatchedTrade.
+func (MatchedTrade) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("strategyId", "buyClientOrderId"),
+		index.Fields("strategyId", "sellClientOrderId"),
+		index.Fields("strategyId", "buyClientOrderId", "sellClientOrderId").Unique(),
+	}
 }

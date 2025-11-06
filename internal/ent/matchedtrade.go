@@ -8,19 +8,19 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrades"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrade"
 	"github.com/shopspring/decimal"
 )
 
-// MatchedTrades is the model entity for the MatchedTrades schema.
-type MatchedTrades struct {
+// MatchedTrade is the model entity for the MatchedTrade schema.
+type MatchedTrade struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// StrategyId holds the value of the "strategyId" field.
 	StrategyId string `json:"strategyId,omitempty"`
-	// Price holds the value of the "price" field.
-	Price decimal.Decimal `json:"price,omitempty"`
+	// Symbol holds the value of the "symbol" field.
+	Symbol string `json:"symbol,omitempty"`
 	// BuyClientOrderId holds the value of the "buyClientOrderId" field.
 	BuyClientOrderId *int64 `json:"buyClientOrderId,omitempty"`
 	// BuyBaseAmount holds the value of the "buyBaseAmount" field.
@@ -41,17 +41,15 @@ type MatchedTrades struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*MatchedTrades) scanValues(columns []string) ([]any, error) {
+func (*MatchedTrade) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case matchedtrades.FieldBuyBaseAmount, matchedtrades.FieldBuyQuoteAmount, matchedtrades.FieldSellBaseAmount, matchedtrades.FieldSellQuoteAmount:
+		case matchedtrade.FieldBuyBaseAmount, matchedtrade.FieldBuyQuoteAmount, matchedtrade.FieldSellBaseAmount, matchedtrade.FieldSellQuoteAmount:
 			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
-		case matchedtrades.FieldPrice:
-			values[i] = new(decimal.Decimal)
-		case matchedtrades.FieldID, matchedtrades.FieldBuyClientOrderId, matchedtrades.FieldBuyOrderTimestamp, matchedtrades.FieldSellClientOrderId, matchedtrades.FieldSellOrderTimestamp:
+		case matchedtrade.FieldID, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldBuyOrderTimestamp, matchedtrade.FieldSellClientOrderId, matchedtrade.FieldSellOrderTimestamp:
 			values[i] = new(sql.NullInt64)
-		case matchedtrades.FieldStrategyId:
+		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -61,81 +59,81 @@ func (*MatchedTrades) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the MatchedTrades fields.
-func (_m *MatchedTrades) assignValues(columns []string, values []any) error {
+// to the MatchedTrade fields.
+func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case matchedtrades.FieldID:
+		case matchedtrade.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case matchedtrades.FieldStrategyId:
+		case matchedtrade.FieldStrategyId:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field strategyId", values[i])
 			} else if value.Valid {
 				_m.StrategyId = value.String
 			}
-		case matchedtrades.FieldPrice:
-			if value, ok := values[i].(*decimal.Decimal); !ok {
-				return fmt.Errorf("unexpected type %T for field price", values[i])
-			} else if value != nil {
-				_m.Price = *value
+		case matchedtrade.FieldSymbol:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field symbol", values[i])
+			} else if value.Valid {
+				_m.Symbol = value.String
 			}
-		case matchedtrades.FieldBuyClientOrderId:
+		case matchedtrade.FieldBuyClientOrderId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field buyClientOrderId", values[i])
 			} else if value.Valid {
 				_m.BuyClientOrderId = new(int64)
 				*_m.BuyClientOrderId = value.Int64
 			}
-		case matchedtrades.FieldBuyBaseAmount:
+		case matchedtrade.FieldBuyBaseAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field buyBaseAmount", values[i])
 			} else if value.Valid {
 				_m.BuyBaseAmount = new(decimal.Decimal)
 				*_m.BuyBaseAmount = *value.S.(*decimal.Decimal)
 			}
-		case matchedtrades.FieldBuyQuoteAmount:
+		case matchedtrade.FieldBuyQuoteAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field buyQuoteAmount", values[i])
 			} else if value.Valid {
 				_m.BuyQuoteAmount = new(decimal.Decimal)
 				*_m.BuyQuoteAmount = *value.S.(*decimal.Decimal)
 			}
-		case matchedtrades.FieldBuyOrderTimestamp:
+		case matchedtrade.FieldBuyOrderTimestamp:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field buyOrderTimestamp", values[i])
 			} else if value.Valid {
 				_m.BuyOrderTimestamp = new(int64)
 				*_m.BuyOrderTimestamp = value.Int64
 			}
-		case matchedtrades.FieldSellClientOrderId:
+		case matchedtrade.FieldSellClientOrderId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sellClientOrderId", values[i])
 			} else if value.Valid {
 				_m.SellClientOrderId = new(int64)
 				*_m.SellClientOrderId = value.Int64
 			}
-		case matchedtrades.FieldSellBaseAmount:
+		case matchedtrade.FieldSellBaseAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field sellBaseAmount", values[i])
 			} else if value.Valid {
 				_m.SellBaseAmount = new(decimal.Decimal)
 				*_m.SellBaseAmount = *value.S.(*decimal.Decimal)
 			}
-		case matchedtrades.FieldSellQuoteAmount:
+		case matchedtrade.FieldSellQuoteAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field sellQuoteAmount", values[i])
 			} else if value.Valid {
 				_m.SellQuoteAmount = new(decimal.Decimal)
 				*_m.SellQuoteAmount = *value.S.(*decimal.Decimal)
 			}
-		case matchedtrades.FieldSellOrderTimestamp:
+		case matchedtrade.FieldSellOrderTimestamp:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sellOrderTimestamp", values[i])
 			} else if value.Valid {
@@ -149,40 +147,40 @@ func (_m *MatchedTrades) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the MatchedTrades.
+// Value returns the ent.Value that was dynamically selected and assigned to the MatchedTrade.
 // This includes values selected through modifiers, order, etc.
-func (_m *MatchedTrades) Value(name string) (ent.Value, error) {
+func (_m *MatchedTrade) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this MatchedTrades.
-// Note that you need to call MatchedTrades.Unwrap() before calling this method if this MatchedTrades
+// Update returns a builder for updating this MatchedTrade.
+// Note that you need to call MatchedTrade.Unwrap() before calling this method if this MatchedTrade
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *MatchedTrades) Update() *MatchedTradesUpdateOne {
-	return NewMatchedTradesClient(_m.config).UpdateOne(_m)
+func (_m *MatchedTrade) Update() *MatchedTradeUpdateOne {
+	return NewMatchedTradeClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the MatchedTrades entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the MatchedTrade entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *MatchedTrades) Unwrap() *MatchedTrades {
+func (_m *MatchedTrade) Unwrap() *MatchedTrade {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: MatchedTrades is not a transactional entity")
+		panic("ent: MatchedTrade is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *MatchedTrades) String() string {
+func (_m *MatchedTrade) String() string {
 	var builder strings.Builder
-	builder.WriteString("MatchedTrades(")
+	builder.WriteString("MatchedTrade(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("strategyId=")
 	builder.WriteString(_m.StrategyId)
 	builder.WriteString(", ")
-	builder.WriteString("price=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Price))
+	builder.WriteString("symbol=")
+	builder.WriteString(_m.Symbol)
 	builder.WriteString(", ")
 	if v := _m.BuyClientOrderId; v != nil {
 		builder.WriteString("buyClientOrderId=")
@@ -227,5 +225,5 @@ func (_m *MatchedTrades) String() string {
 	return builder.String()
 }
 
-// MatchedTradesSlice is a parsable slice of MatchedTrades.
-type MatchedTradesSlice []*MatchedTrades
+// MatchedTrades is a parsable slice of MatchedTrade.
+type MatchedTrades []*MatchedTrade
