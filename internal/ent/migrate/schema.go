@@ -93,7 +93,7 @@ var (
 		{Name: "symbol", Type: field.TypeString},
 		{Name: "order_id", Type: field.TypeInt64},
 		{Name: "client_order_id", Type: field.TypeInt64},
-		{Name: "side", Type: field.TypeString},
+		{Name: "side", Type: field.TypeEnum, Enums: []string{"buy", "sell"}},
 		{Name: "price", Type: field.TypeString},
 		{Name: "base_amount", Type: field.TypeString},
 		{Name: "filled_base_amount", Type: field.TypeString},

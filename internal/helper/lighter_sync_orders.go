@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
@@ -69,9 +70,9 @@ exit:
 				Exchange:          exchange.Lighter,
 				Account:           account,
 				Symbol:            symbol,
-				OrderID:           item.OrderIndex,
-				ClientOrderID:     item.ClientOrderIndex,
-				Side:              lo.If(item.IsAsk, "sell").Else("buy"),
+				OrderId:           item.OrderIndex,
+				ClientOrderId:     item.ClientOrderIndex,
+				Side:              lo.If(item.IsAsk, order.SideSell).Else(order.SideBuy),
 				Price:             item.Price,
 				BaseAmount:        item.InitialBaseAmount,
 				FilledBaseAmount:  item.FilledBaseAmount,

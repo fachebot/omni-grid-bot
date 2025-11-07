@@ -25,9 +25,9 @@ func (Order) Fields() []ent.Field {
 		field.String("exchange"),
 		field.String("account"),
 		field.String("symbol"),
-		field.Int64("order_id"),
-		field.Int64("client_order_id"),
-		field.String("side"),
+		field.Int64("orderId"),
+		field.Int64("clientOrderId"),
+		field.Enum("side").Values("buy", "sell"),
 		field.String("price").GoType(decimal.Decimal{}),
 		field.String("baseAmount").GoType(decimal.Decimal{}),
 		field.String("filledBaseAmount").GoType(decimal.Decimal{}),
@@ -46,7 +46,7 @@ func (Order) Edges() []ent.Edge {
 func (Order) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("exchange", "account"),
-		index.Fields("exchange", "account", "client_order_id"),
-		index.Fields("exchange", "symbol", "order_id").Unique(),
+		index.Fields("exchange", "account", "clientOrderId"),
+		index.Fields("exchange", "symbol", "orderId").Unique(),
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/config"
+	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
 	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
 	"github.com/samber/lo"
@@ -277,18 +278,18 @@ func (subscriber *LighterSubscriber) readMessages() {
 				}
 
 				for marketIndex, marketOrders := range message.Orders {
-					for _, order := range marketOrders {
+					for _, ord := range marketOrders {
 						userOrders.Orders = append(userOrders.Orders, &exchange.Order{
 							Symbol:            marketIndex,
-							OrderID:           order.OrderIndex,
-							ClientOrderID:     order.ClientOrderIndex,
-							Side:              lo.If(order.IsAsk, "sell").Else("buy"),
-							Price:             order.Price,
-							BaseAmount:        order.InitialBaseAmount,
-							FilledBaseAmount:  order.FilledBaseAmount,
-							FilledQuoteAmount: order.FilledQuoteAmount,
-							Timestamp:         order.Timestamp,
-							Status:            ConvertOrderStatus(order.Status),
+							OrderID:           ord.OrderIndex,
+							ClientOrderID:     ord.ClientOrderIndex,
+							Side:              lo.If(ord.IsAsk, order.SideSell).Else(order.SideBuy),
+							Price:             ord.Price,
+							BaseAmount:        ord.InitialBaseAmount,
+							FilledBaseAmount:  ord.FilledBaseAmount,
+							FilledQuoteAmount: ord.FilledQuoteAmount,
+							Timestamp:         ord.Timestamp,
+							Status:            ConvertOrderStatus(ord.Status),
 						})
 					}
 				}

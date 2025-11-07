@@ -69,20 +69,20 @@ func (_c *OrderCreate) SetSymbol(v string) *OrderCreate {
 	return _c
 }
 
-// SetOrderID sets the "order_id" field.
-func (_c *OrderCreate) SetOrderID(v int64) *OrderCreate {
-	_c.mutation.SetOrderID(v)
+// SetOrderId sets the "orderId" field.
+func (_c *OrderCreate) SetOrderId(v int64) *OrderCreate {
+	_c.mutation.SetOrderId(v)
 	return _c
 }
 
-// SetClientOrderID sets the "client_order_id" field.
-func (_c *OrderCreate) SetClientOrderID(v int64) *OrderCreate {
-	_c.mutation.SetClientOrderID(v)
+// SetClientOrderId sets the "clientOrderId" field.
+func (_c *OrderCreate) SetClientOrderId(v int64) *OrderCreate {
+	_c.mutation.SetClientOrderId(v)
 	return _c
 }
 
 // SetSide sets the "side" field.
-func (_c *OrderCreate) SetSide(v string) *OrderCreate {
+func (_c *OrderCreate) SetSide(v order.Side) *OrderCreate {
 	_c.mutation.SetSide(v)
 	return _c
 }
@@ -185,14 +185,19 @@ func (_c *OrderCreate) check() error {
 	if _, ok := _c.mutation.Symbol(); !ok {
 		return &ValidationError{Name: "symbol", err: errors.New(`ent: missing required field "Order.symbol"`)}
 	}
-	if _, ok := _c.mutation.OrderID(); !ok {
-		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "Order.order_id"`)}
+	if _, ok := _c.mutation.OrderId(); !ok {
+		return &ValidationError{Name: "orderId", err: errors.New(`ent: missing required field "Order.orderId"`)}
 	}
-	if _, ok := _c.mutation.ClientOrderID(); !ok {
-		return &ValidationError{Name: "client_order_id", err: errors.New(`ent: missing required field "Order.client_order_id"`)}
+	if _, ok := _c.mutation.ClientOrderId(); !ok {
+		return &ValidationError{Name: "clientOrderId", err: errors.New(`ent: missing required field "Order.clientOrderId"`)}
 	}
 	if _, ok := _c.mutation.Side(); !ok {
 		return &ValidationError{Name: "side", err: errors.New(`ent: missing required field "Order.side"`)}
+	}
+	if v, ok := _c.mutation.Side(); ok {
+		if err := order.SideValidator(v); err != nil {
+			return &ValidationError{Name: "side", err: fmt.Errorf(`ent: validator failed for field "Order.side": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Order.price"`)}
@@ -264,16 +269,16 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldSymbol, field.TypeString, value)
 		_node.Symbol = value
 	}
-	if value, ok := _c.mutation.OrderID(); ok {
-		_spec.SetField(order.FieldOrderID, field.TypeInt64, value)
-		_node.OrderID = value
+	if value, ok := _c.mutation.OrderId(); ok {
+		_spec.SetField(order.FieldOrderId, field.TypeInt64, value)
+		_node.OrderId = value
 	}
-	if value, ok := _c.mutation.ClientOrderID(); ok {
-		_spec.SetField(order.FieldClientOrderID, field.TypeInt64, value)
-		_node.ClientOrderID = value
+	if value, ok := _c.mutation.ClientOrderId(); ok {
+		_spec.SetField(order.FieldClientOrderId, field.TypeInt64, value)
+		_node.ClientOrderId = value
 	}
 	if value, ok := _c.mutation.Side(); ok {
-		_spec.SetField(order.FieldSide, field.TypeString, value)
+		_spec.SetField(order.FieldSide, field.TypeEnum, value)
 		_node.Side = value
 	}
 	if value, ok := _c.mutation.Price(); ok {
@@ -400,44 +405,44 @@ func (u *OrderUpsert) UpdateSymbol() *OrderUpsert {
 	return u
 }
 
-// SetOrderID sets the "order_id" field.
-func (u *OrderUpsert) SetOrderID(v int64) *OrderUpsert {
-	u.Set(order.FieldOrderID, v)
+// SetOrderId sets the "orderId" field.
+func (u *OrderUpsert) SetOrderId(v int64) *OrderUpsert {
+	u.Set(order.FieldOrderId, v)
 	return u
 }
 
-// UpdateOrderID sets the "order_id" field to the value that was provided on create.
-func (u *OrderUpsert) UpdateOrderID() *OrderUpsert {
-	u.SetExcluded(order.FieldOrderID)
+// UpdateOrderId sets the "orderId" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateOrderId() *OrderUpsert {
+	u.SetExcluded(order.FieldOrderId)
 	return u
 }
 
-// AddOrderID adds v to the "order_id" field.
-func (u *OrderUpsert) AddOrderID(v int64) *OrderUpsert {
-	u.Add(order.FieldOrderID, v)
+// AddOrderId adds v to the "orderId" field.
+func (u *OrderUpsert) AddOrderId(v int64) *OrderUpsert {
+	u.Add(order.FieldOrderId, v)
 	return u
 }
 
-// SetClientOrderID sets the "client_order_id" field.
-func (u *OrderUpsert) SetClientOrderID(v int64) *OrderUpsert {
-	u.Set(order.FieldClientOrderID, v)
+// SetClientOrderId sets the "clientOrderId" field.
+func (u *OrderUpsert) SetClientOrderId(v int64) *OrderUpsert {
+	u.Set(order.FieldClientOrderId, v)
 	return u
 }
 
-// UpdateClientOrderID sets the "client_order_id" field to the value that was provided on create.
-func (u *OrderUpsert) UpdateClientOrderID() *OrderUpsert {
-	u.SetExcluded(order.FieldClientOrderID)
+// UpdateClientOrderId sets the "clientOrderId" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateClientOrderId() *OrderUpsert {
+	u.SetExcluded(order.FieldClientOrderId)
 	return u
 }
 
-// AddClientOrderID adds v to the "client_order_id" field.
-func (u *OrderUpsert) AddClientOrderID(v int64) *OrderUpsert {
-	u.Add(order.FieldClientOrderID, v)
+// AddClientOrderId adds v to the "clientOrderId" field.
+func (u *OrderUpsert) AddClientOrderId(v int64) *OrderUpsert {
+	u.Add(order.FieldClientOrderId, v)
 	return u
 }
 
 // SetSide sets the "side" field.
-func (u *OrderUpsert) SetSide(v string) *OrderUpsert {
+func (u *OrderUpsert) SetSide(v order.Side) *OrderUpsert {
 	u.Set(order.FieldSide, v)
 	return u
 }
@@ -627,50 +632,50 @@ func (u *OrderUpsertOne) UpdateSymbol() *OrderUpsertOne {
 	})
 }
 
-// SetOrderID sets the "order_id" field.
-func (u *OrderUpsertOne) SetOrderID(v int64) *OrderUpsertOne {
+// SetOrderId sets the "orderId" field.
+func (u *OrderUpsertOne) SetOrderId(v int64) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetOrderID(v)
+		s.SetOrderId(v)
 	})
 }
 
-// AddOrderID adds v to the "order_id" field.
-func (u *OrderUpsertOne) AddOrderID(v int64) *OrderUpsertOne {
+// AddOrderId adds v to the "orderId" field.
+func (u *OrderUpsertOne) AddOrderId(v int64) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.AddOrderID(v)
+		s.AddOrderId(v)
 	})
 }
 
-// UpdateOrderID sets the "order_id" field to the value that was provided on create.
-func (u *OrderUpsertOne) UpdateOrderID() *OrderUpsertOne {
+// UpdateOrderId sets the "orderId" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateOrderId() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateOrderID()
+		s.UpdateOrderId()
 	})
 }
 
-// SetClientOrderID sets the "client_order_id" field.
-func (u *OrderUpsertOne) SetClientOrderID(v int64) *OrderUpsertOne {
+// SetClientOrderId sets the "clientOrderId" field.
+func (u *OrderUpsertOne) SetClientOrderId(v int64) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetClientOrderID(v)
+		s.SetClientOrderId(v)
 	})
 }
 
-// AddClientOrderID adds v to the "client_order_id" field.
-func (u *OrderUpsertOne) AddClientOrderID(v int64) *OrderUpsertOne {
+// AddClientOrderId adds v to the "clientOrderId" field.
+func (u *OrderUpsertOne) AddClientOrderId(v int64) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.AddClientOrderID(v)
+		s.AddClientOrderId(v)
 	})
 }
 
-// UpdateClientOrderID sets the "client_order_id" field to the value that was provided on create.
-func (u *OrderUpsertOne) UpdateClientOrderID() *OrderUpsertOne {
+// UpdateClientOrderId sets the "clientOrderId" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateClientOrderId() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateClientOrderID()
+		s.UpdateClientOrderId()
 	})
 }
 
 // SetSide sets the "side" field.
-func (u *OrderUpsertOne) SetSide(v string) *OrderUpsertOne {
+func (u *OrderUpsertOne) SetSide(v order.Side) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetSide(v)
 	})
@@ -1041,50 +1046,50 @@ func (u *OrderUpsertBulk) UpdateSymbol() *OrderUpsertBulk {
 	})
 }
 
-// SetOrderID sets the "order_id" field.
-func (u *OrderUpsertBulk) SetOrderID(v int64) *OrderUpsertBulk {
+// SetOrderId sets the "orderId" field.
+func (u *OrderUpsertBulk) SetOrderId(v int64) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetOrderID(v)
+		s.SetOrderId(v)
 	})
 }
 
-// AddOrderID adds v to the "order_id" field.
-func (u *OrderUpsertBulk) AddOrderID(v int64) *OrderUpsertBulk {
+// AddOrderId adds v to the "orderId" field.
+func (u *OrderUpsertBulk) AddOrderId(v int64) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.AddOrderID(v)
+		s.AddOrderId(v)
 	})
 }
 
-// UpdateOrderID sets the "order_id" field to the value that was provided on create.
-func (u *OrderUpsertBulk) UpdateOrderID() *OrderUpsertBulk {
+// UpdateOrderId sets the "orderId" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateOrderId() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateOrderID()
+		s.UpdateOrderId()
 	})
 }
 
-// SetClientOrderID sets the "client_order_id" field.
-func (u *OrderUpsertBulk) SetClientOrderID(v int64) *OrderUpsertBulk {
+// SetClientOrderId sets the "clientOrderId" field.
+func (u *OrderUpsertBulk) SetClientOrderId(v int64) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.SetClientOrderID(v)
+		s.SetClientOrderId(v)
 	})
 }
 
-// AddClientOrderID adds v to the "client_order_id" field.
-func (u *OrderUpsertBulk) AddClientOrderID(v int64) *OrderUpsertBulk {
+// AddClientOrderId adds v to the "clientOrderId" field.
+func (u *OrderUpsertBulk) AddClientOrderId(v int64) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.AddClientOrderID(v)
+		s.AddClientOrderId(v)
 	})
 }
 
-// UpdateClientOrderID sets the "client_order_id" field to the value that was provided on create.
-func (u *OrderUpsertBulk) UpdateClientOrderID() *OrderUpsertBulk {
+// UpdateClientOrderId sets the "clientOrderId" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateClientOrderId() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
-		s.UpdateClientOrderID()
+		s.UpdateClientOrderId()
 	})
 }
 
 // SetSide sets the "side" field.
-func (u *OrderUpsertBulk) SetSide(v string) *OrderUpsertBulk {
+func (u *OrderUpsertBulk) SetSide(v order.Side) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetSide(v)
 	})

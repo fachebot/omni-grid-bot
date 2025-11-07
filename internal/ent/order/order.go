@@ -24,10 +24,10 @@ const (
 	FieldAccount = "account"
 	// FieldSymbol holds the string denoting the symbol field in the database.
 	FieldSymbol = "symbol"
-	// FieldOrderID holds the string denoting the order_id field in the database.
-	FieldOrderID = "order_id"
-	// FieldClientOrderID holds the string denoting the client_order_id field in the database.
-	FieldClientOrderID = "client_order_id"
+	// FieldOrderId holds the string denoting the orderid field in the database.
+	FieldOrderId = "order_id"
+	// FieldClientOrderId holds the string denoting the clientorderid field in the database.
+	FieldClientOrderId = "client_order_id"
 	// FieldSide holds the string denoting the side field in the database.
 	FieldSide = "side"
 	// FieldPrice holds the string denoting the price field in the database.
@@ -54,8 +54,8 @@ var Columns = []string{
 	FieldExchange,
 	FieldAccount,
 	FieldSymbol,
-	FieldOrderID,
-	FieldClientOrderID,
+	FieldOrderId,
+	FieldClientOrderId,
 	FieldSide,
 	FieldPrice,
 	FieldBaseAmount,
@@ -83,6 +83,29 @@ var (
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
 )
+
+// Side defines the type for the "side" enum field.
+type Side string
+
+// Side values.
+const (
+	SideBuy  Side = "buy"
+	SideSell Side = "sell"
+)
+
+func (s Side) String() string {
+	return string(s)
+}
+
+// SideValidator is a validator for the "side" field enum values. It is called by the builders before save.
+func SideValidator(s Side) error {
+	switch s {
+	case SideBuy, SideSell:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for side field: %q", s)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -143,14 +166,14 @@ func BySymbol(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSymbol, opts...).ToFunc()
 }
 
-// ByOrderID orders the results by the order_id field.
-func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
+// ByOrderId orders the results by the orderId field.
+func ByOrderId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrderId, opts...).ToFunc()
 }
 
-// ByClientOrderID orders the results by the client_order_id field.
-func ByClientOrderID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldClientOrderID, opts...).ToFunc()
+// ByClientOrderId orders the results by the clientOrderId field.
+func ByClientOrderId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientOrderId, opts...).ToFunc()
 }
 
 // BySide orders the results by the side field.

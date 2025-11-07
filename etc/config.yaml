@@ -2,7 +2,7 @@
 Sock5Proxy:
   Host: 127.0.0.1 # 代理服务器地址
   Port: 10808 # 代理服务器端口
-  Enable: true # 是否启用代理
+  Enable: false # 是否启用代理
 
 # 电报机器人配置
 TelegramBot:

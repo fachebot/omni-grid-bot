@@ -17,7 +17,7 @@ type Order struct {
 	Symbol            string
 	OrderID           int64
 	ClientOrderID     int64
-	Side              string
+	Side              order.Side
 	Price             decimal.Decimal
 	BaseAmount        decimal.Decimal
 	FilledBaseAmount  decimal.Decimal

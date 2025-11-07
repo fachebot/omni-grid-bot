@@ -28,12 +28,12 @@ type Order struct {
 	Account string `json:"account,omitempty"`
 	// Symbol holds the value of the "symbol" field.
 	Symbol string `json:"symbol,omitempty"`
-	// OrderID holds the value of the "order_id" field.
-	OrderID int64 `json:"order_id,omitempty"`
-	// ClientOrderID holds the value of the "client_order_id" field.
-	ClientOrderID int64 `json:"client_order_id,omitempty"`
+	// OrderId holds the value of the "orderId" field.
+	OrderId int64 `json:"orderId,omitempty"`
+	// ClientOrderId holds the value of the "clientOrderId" field.
+	ClientOrderId int64 `json:"clientOrderId,omitempty"`
 	// Side holds the value of the "side" field.
-	Side string `json:"side,omitempty"`
+	Side order.Side `json:"side,omitempty"`
 	// Price holds the value of the "price" field.
 	Price decimal.Decimal `json:"price,omitempty"`
 	// BaseAmount holds the value of the "baseAmount" field.
@@ -56,7 +56,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldPrice, order.FieldBaseAmount, order.FieldFilledBaseAmount, order.FieldFilledQuoteAmount:
 			values[i] = new(decimal.Decimal)
-		case order.FieldID, order.FieldOrderID, order.FieldClientOrderID, order.FieldTimestamp:
+		case order.FieldID, order.FieldOrderId, order.FieldClientOrderId, order.FieldTimestamp:
 			values[i] = new(sql.NullInt64)
 		case order.FieldExchange, order.FieldAccount, order.FieldSymbol, order.FieldSide, order.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -113,23 +113,23 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Symbol = value.String
 			}
-		case order.FieldOrderID:
+		case order.FieldOrderId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+				return fmt.Errorf("unexpected type %T for field orderId", values[i])
 			} else if value.Valid {
-				_m.OrderID = value.Int64
+				_m.OrderId = value.Int64
 			}
-		case order.FieldClientOrderID:
+		case order.FieldClientOrderId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field client_order_id", values[i])
+				return fmt.Errorf("unexpected type %T for field clientOrderId", values[i])
 			} else if value.Valid {
-				_m.ClientOrderID = value.Int64
+				_m.ClientOrderId = value.Int64
 			}
 		case order.FieldSide:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field side", values[i])
 			} else if value.Valid {
-				_m.Side = value.String
+				_m.Side = order.Side(value.String)
 			}
 		case order.FieldPrice:
 			if value, ok := values[i].(*decimal.Decimal); !ok {
@@ -218,14 +218,14 @@ func (_m *Order) String() string {
 	builder.WriteString("symbol=")
 	builder.WriteString(_m.Symbol)
 	builder.WriteString(", ")
-	builder.WriteString("order_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
+	builder.WriteString("orderId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrderId))
 	builder.WriteString(", ")
-	builder.WriteString("client_order_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ClientOrderID))
+	builder.WriteString("clientOrderId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ClientOrderId))
 	builder.WriteString(", ")
 	builder.WriteString("side=")
-	builder.WriteString(_m.Side)
+	builder.WriteString(fmt.Sprintf("%v", _m.Side))
 	builder.WriteString(", ")
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Price))

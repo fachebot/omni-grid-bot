@@ -17,15 +17,15 @@ func NewOrderModel(client *ent.OrderClient) *OrderModel {
 
 func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 	existing, err := m.client.Query().
-		Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIDEQ(args.OrderID)).
+		Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIdEQ(args.OrderId)).
 		First(ctx)
 	if ent.IsNotFound(err) {
 		return m.client.Create().
 			SetExchange(args.Exchange).
 			SetAccount(args.Account).
 			SetSymbol(args.Symbol).
-			SetOrderID(args.OrderID).
-			SetClientOrderID(args.ClientOrderID).
+			SetOrderId(args.OrderId).
+			SetClientOrderId(args.ClientOrderId).
 			SetSide(args.Side).
 			SetPrice(args.Price).
 			SetBaseAmount(args.BaseAmount).
@@ -50,7 +50,7 @@ func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 			SetFilledQuoteAmount(args.FilledQuoteAmount).
 			SetStatus(args.Status).
 			SetTimestamp(args.Timestamp).
-			Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIDEQ(args.OrderID)).
+			Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIdEQ(args.OrderId)).
 			Exec(ctx)
 	}
 
@@ -59,7 +59,7 @@ func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 
 func (m *OrderModel) FindOneByAccountClientOrderId(ctx context.Context, exchange string, account string, clientOrderId int64) (*ent.Order, error) {
 	return m.client.Query().
-		Where(order.ExchangeEQ(exchange), order.AccountEQ(account), order.ClientOrderIDEQ(clientOrderId)).
+		Where(order.ExchangeEQ(exchange), order.AccountEQ(account), order.ClientOrderIdEQ(clientOrderId)).
 		First(ctx)
 }
 
@@ -69,6 +69,6 @@ func (m *OrderModel) FindAllByAccountClientOrderIds(ctx context.Context, exchang
 	}
 
 	return m.client.Query().
-		Where(order.ExchangeEQ(exchange), order.AccountEQ(account), order.ClientOrderIDIn(clientOrderIds...)).
+		Where(order.ExchangeEQ(exchange), order.AccountEQ(account), order.ClientOrderIdIn(clientOrderIds...)).
 		All(ctx)
 }
