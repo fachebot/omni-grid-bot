@@ -624,7 +624,7 @@ func CalculateProfitMargin(record *ent.Strategy, prices []decimal.Decimal) (deci
 
 func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, userId int64, update tele.Update, record *ent.Strategy, newMessage bool) error {
 	name := StrategyName(record)
-	text := fmt.Sprintf("*Lighter网格策略* | 编辑策略 `%s`\n\n", name)
+	text := fmt.Sprintf("*%s* | 编辑策略 `%s`\n\n", svcCtx.Config.AppName, name)
 
 	// 生成网格列表
 	if record.Exchange != "" &&

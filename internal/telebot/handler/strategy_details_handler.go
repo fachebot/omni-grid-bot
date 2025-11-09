@@ -138,7 +138,7 @@ func formatGridListWithCurrentPrice(lastPrice decimal.Decimal, grids []*ent.Grid
 
 func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) string {
 	name := StrategyName(record)
-	text := fmt.Sprintf("*Lighter网格策略* | 策略详情 `%s`\n\n", name)
+	text := fmt.Sprintf("*%s* | 策略详情 `%s`\n\n", svcCtx.Config.AppName, name)
 
 	// 账户信息
 	text += "📊 账户\n"

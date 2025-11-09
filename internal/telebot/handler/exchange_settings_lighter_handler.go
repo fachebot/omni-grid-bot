@@ -126,7 +126,7 @@ func DisplayExchangeSettingsLighterSettings(ctx context.Context, svcCtx *svc.Ser
 	}
 
 	name := StrategyName(record)
-	text := fmt.Sprintf("*Lighter网格策略* | 交易所配置 `%s`", name)
+	text := fmt.Sprintf("*%s* | 交易所配置 `%s`", svcCtx.Config.AppName, name)
 	text += "\n\n「调整设置, 优化您的跟单体验」"
 
 	h := ExchangeSettingsLighterHandler{}

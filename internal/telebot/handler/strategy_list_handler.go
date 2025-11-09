@@ -127,8 +127,12 @@ func DisplayStrategyList(ctx context.Context, svcCtx *svc.ServiceContext, userId
 	replyMarkup := &tele.ReplyMarkup{
 		InlineKeyboard: inlineKeyboard,
 	}
-	text := "*Lighter网格策略* | 我的策略"
-	text = text + "\n\n⏳ 7x24小时自动化交易\n🔥 市场震荡行情的最佳解决方案\n\n**核心优势**\n✓ 突破传统低买高卖模式\n✓ 震荡行情中收益最大化\n\n**适用场景**\n🔸 横盘震荡行情\n🔸 主流币/稳定币交易对"
+	text := fmt.Sprintf("*%s | 专业的合约网格机器人*\n\n", svcCtx.Config.AppName)
+	text += "`盈利如春雨, 润物无声, 渐丰收!`\n\n"
+
+	text += "🔥 为震荡而生：在横盘和波动市中自动低买高卖。\n"
+	text += "⏳ 全托管执行：挂单、补仓、止盈、止损全自动。\n"
+	text += "\n[Lighter](app.lighter.xyz/?referral=28913X95) | [ParaDex](https://app.paradex.trade/r/resilienthunter70)"
 
 	_, err = util.ReplyMessage(svcCtx.Bot, update, text, replyMarkup)
 	if err != nil {
