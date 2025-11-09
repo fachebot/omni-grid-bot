@@ -103,6 +103,11 @@ func SellOrderTimestamp(v int64) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldSellOrderTimestamp, v))
 }
 
+// Profit applies equality check predicate on the "profit" field. It's identical to ProfitEQ.
+func Profit(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldProfit, v))
+}
+
 // StrategyIdEQ applies the EQ predicate on the "strategyId" field.
 func StrategyIdEQ(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldStrategyId, v))
@@ -751,6 +756,56 @@ func SellOrderTimestampIsNil() predicate.MatchedTrade {
 // SellOrderTimestampNotNil applies the NotNil predicate on the "sellOrderTimestamp" field.
 func SellOrderTimestampNotNil() predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNotNull(FieldSellOrderTimestamp))
+}
+
+// ProfitEQ applies the EQ predicate on the "profit" field.
+func ProfitEQ(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldProfit, v))
+}
+
+// ProfitNEQ applies the NEQ predicate on the "profit" field.
+func ProfitNEQ(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNEQ(FieldProfit, v))
+}
+
+// ProfitIn applies the In predicate on the "profit" field.
+func ProfitIn(vs ...float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldIn(FieldProfit, vs...))
+}
+
+// ProfitNotIn applies the NotIn predicate on the "profit" field.
+func ProfitNotIn(vs ...float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNotIn(FieldProfit, vs...))
+}
+
+// ProfitGT applies the GT predicate on the "profit" field.
+func ProfitGT(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGT(FieldProfit, v))
+}
+
+// ProfitGTE applies the GTE predicate on the "profit" field.
+func ProfitGTE(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGTE(FieldProfit, v))
+}
+
+// ProfitLT applies the LT predicate on the "profit" field.
+func ProfitLT(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLT(FieldProfit, v))
+}
+
+// ProfitLTE applies the LTE predicate on the "profit" field.
+func ProfitLTE(v float64) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLTE(FieldProfit, v))
+}
+
+// ProfitIsNil applies the IsNil predicate on the "profit" field.
+func ProfitIsNil() predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldIsNull(FieldProfit))
+}
+
+// ProfitNotNil applies the NotNil predicate on the "profit" field.
+func ProfitNotNil() predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNotNull(FieldProfit))
 }
 
 // And groups predicates with the AND operator between them.

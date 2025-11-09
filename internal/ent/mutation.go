@@ -1067,6 +1067,8 @@ type MatchedTradeMutation struct {
 	sellQuoteAmount       *decimal.Decimal
 	sellOrderTimestamp    *int64
 	addsellOrderTimestamp *int64
+	profit                *float64
+	addprofit             *float64
 	clearedFields         map[string]struct{}
 	done                  bool
 	oldValue              func(context.Context) (*MatchedTrade, error)
@@ -1719,6 +1721,76 @@ func (m *MatchedTradeMutation) ResetSellOrderTimestamp() {
 	delete(m.clearedFields, matchedtrade.FieldSellOrderTimestamp)
 }
 
+// SetProfit sets the "profit" field.
+func (m *MatchedTradeMutation) SetProfit(f float64) {
+	m.profit = &f
+	m.addprofit = nil
+}
+
+// Profit returns the value of the "profit" field in the mutation.
+func (m *MatchedTradeMutation) Profit() (r float64, exists bool) {
+	v := m.profit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfit returns the old "profit" field's value of the MatchedTrade entity.
+// If the MatchedTrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradeMutation) OldProfit(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfit: %w", err)
+	}
+	return oldValue.Profit, nil
+}
+
+// AddProfit adds f to the "profit" field.
+func (m *MatchedTradeMutation) AddProfit(f float64) {
+	if m.addprofit != nil {
+		*m.addprofit += f
+	} else {
+		m.addprofit = &f
+	}
+}
+
+// AddedProfit returns the value that was added to the "profit" field in this mutation.
+func (m *MatchedTradeMutation) AddedProfit() (r float64, exists bool) {
+	v := m.addprofit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (m *MatchedTradeMutation) ClearProfit() {
+	m.profit = nil
+	m.addprofit = nil
+	m.clearedFields[matchedtrade.FieldProfit] = struct{}{}
+}
+
+// ProfitCleared returns if the "profit" field was cleared in this mutation.
+func (m *MatchedTradeMutation) ProfitCleared() bool {
+	_, ok := m.clearedFields[matchedtrade.FieldProfit]
+	return ok
+}
+
+// ResetProfit resets all changes to the "profit" field.
+func (m *MatchedTradeMutation) ResetProfit() {
+	m.profit = nil
+	m.addprofit = nil
+	delete(m.clearedFields, matchedtrade.FieldProfit)
+}
+
 // Where appends a list predicates to the MatchedTradeMutation builder.
 func (m *MatchedTradeMutation) Where(ps ...predicate.MatchedTrade) {
 	m.predicates = append(m.predicates, ps...)
@@ -1753,7 +1825,7 @@ func (m *MatchedTradeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MatchedTradeMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.strategyId != nil {
 		fields = append(fields, matchedtrade.FieldStrategyId)
 	}
@@ -1784,6 +1856,9 @@ func (m *MatchedTradeMutation) Fields() []string {
 	if m.sellOrderTimestamp != nil {
 		fields = append(fields, matchedtrade.FieldSellOrderTimestamp)
 	}
+	if m.profit != nil {
+		fields = append(fields, matchedtrade.FieldProfit)
+	}
 	return fields
 }
 
@@ -1812,6 +1887,8 @@ func (m *MatchedTradeMutation) Field(name string) (ent.Value, bool) {
 		return m.SellQuoteAmount()
 	case matchedtrade.FieldSellOrderTimestamp:
 		return m.SellOrderTimestamp()
+	case matchedtrade.FieldProfit:
+		return m.Profit()
 	}
 	return nil, false
 }
@@ -1841,6 +1918,8 @@ func (m *MatchedTradeMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldSellQuoteAmount(ctx)
 	case matchedtrade.FieldSellOrderTimestamp:
 		return m.OldSellOrderTimestamp(ctx)
+	case matchedtrade.FieldProfit:
+		return m.OldProfit(ctx)
 	}
 	return nil, fmt.Errorf("unknown MatchedTrade field %s", name)
 }
@@ -1920,6 +1999,13 @@ func (m *MatchedTradeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSellOrderTimestamp(v)
 		return nil
+	case matchedtrade.FieldProfit:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfit(v)
+		return nil
 	}
 	return fmt.Errorf("unknown MatchedTrade field %s", name)
 }
@@ -1940,6 +2026,9 @@ func (m *MatchedTradeMutation) AddedFields() []string {
 	if m.addsellOrderTimestamp != nil {
 		fields = append(fields, matchedtrade.FieldSellOrderTimestamp)
 	}
+	if m.addprofit != nil {
+		fields = append(fields, matchedtrade.FieldProfit)
+	}
 	return fields
 }
 
@@ -1956,6 +2045,8 @@ func (m *MatchedTradeMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSellClientOrderId()
 	case matchedtrade.FieldSellOrderTimestamp:
 		return m.AddedSellOrderTimestamp()
+	case matchedtrade.FieldProfit:
+		return m.AddedProfit()
 	}
 	return nil, false
 }
@@ -1993,6 +2084,13 @@ func (m *MatchedTradeMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddSellOrderTimestamp(v)
 		return nil
+	case matchedtrade.FieldProfit:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddProfit(v)
+		return nil
 	}
 	return fmt.Errorf("unknown MatchedTrade numeric field %s", name)
 }
@@ -2024,6 +2122,9 @@ func (m *MatchedTradeMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(matchedtrade.FieldSellOrderTimestamp) {
 		fields = append(fields, matchedtrade.FieldSellOrderTimestamp)
+	}
+	if m.FieldCleared(matchedtrade.FieldProfit) {
+		fields = append(fields, matchedtrade.FieldProfit)
 	}
 	return fields
 }
@@ -2063,6 +2164,9 @@ func (m *MatchedTradeMutation) ClearField(name string) error {
 	case matchedtrade.FieldSellOrderTimestamp:
 		m.ClearSellOrderTimestamp()
 		return nil
+	case matchedtrade.FieldProfit:
+		m.ClearProfit()
+		return nil
 	}
 	return fmt.Errorf("unknown MatchedTrade nullable field %s", name)
 }
@@ -2100,6 +2204,9 @@ func (m *MatchedTradeMutation) ResetField(name string) error {
 		return nil
 	case matchedtrade.FieldSellOrderTimestamp:
 		m.ResetSellOrderTimestamp()
+		return nil
+	case matchedtrade.FieldProfit:
+		m.ResetProfit()
 		return nil
 	}
 	return fmt.Errorf("unknown MatchedTrade field %s", name)

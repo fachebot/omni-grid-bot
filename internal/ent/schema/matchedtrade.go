@@ -25,6 +25,7 @@ func (MatchedTrade) Fields() []ent.Field {
 		field.String("sellBaseAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.String("sellQuoteAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.Int64("sellOrderTimestamp").Nillable().Optional(),
+		field.Float("profit").Nillable().Optional(),
 	}
 }
 

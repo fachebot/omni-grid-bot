@@ -31,6 +31,8 @@ const (
 	FieldSellQuoteAmount = "sell_quote_amount"
 	// FieldSellOrderTimestamp holds the string denoting the sellordertimestamp field in the database.
 	FieldSellOrderTimestamp = "sell_order_timestamp"
+	// FieldProfit holds the string denoting the profit field in the database.
+	FieldProfit = "profit"
 	// Table holds the table name of the matchedtrade in the database.
 	Table = "matched_trades"
 )
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldSellBaseAmount,
 	FieldSellQuoteAmount,
 	FieldSellOrderTimestamp,
+	FieldProfit,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -121,4 +124,9 @@ func BySellQuoteAmount(opts ...sql.OrderTermOption) OrderOption {
 // BySellOrderTimestamp orders the results by the sellOrderTimestamp field.
 func BySellOrderTimestamp(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSellOrderTimestamp, opts...).ToFunc()
+}
+
+// ByProfit orders the results by the profit field.
+func ByProfit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProfit, opts...).ToFunc()
 }

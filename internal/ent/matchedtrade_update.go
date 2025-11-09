@@ -244,6 +244,33 @@ func (_u *MatchedTradeUpdate) ClearSellOrderTimestamp() *MatchedTradeUpdate {
 	return _u
 }
 
+// SetProfit sets the "profit" field.
+func (_u *MatchedTradeUpdate) SetProfit(v float64) *MatchedTradeUpdate {
+	_u.mutation.ResetProfit()
+	_u.mutation.SetProfit(v)
+	return _u
+}
+
+// SetNillableProfit sets the "profit" field if the given value is not nil.
+func (_u *MatchedTradeUpdate) SetNillableProfit(v *float64) *MatchedTradeUpdate {
+	if v != nil {
+		_u.SetProfit(*v)
+	}
+	return _u
+}
+
+// AddProfit adds value to the "profit" field.
+func (_u *MatchedTradeUpdate) AddProfit(v float64) *MatchedTradeUpdate {
+	_u.mutation.AddProfit(v)
+	return _u
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (_u *MatchedTradeUpdate) ClearProfit() *MatchedTradeUpdate {
+	_u.mutation.ClearProfit()
+	return _u
+}
+
 // Mutation returns the MatchedTradeMutation object of the builder.
 func (_u *MatchedTradeUpdate) Mutation() *MatchedTradeMutation {
 	return _u.mutation
@@ -363,6 +390,15 @@ func (_u *MatchedTradeUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.SellOrderTimestampCleared() {
 		_spec.ClearField(matchedtrade.FieldSellOrderTimestamp, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.Profit(); ok {
+		_spec.SetField(matchedtrade.FieldProfit, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedProfit(); ok {
+		_spec.AddField(matchedtrade.FieldProfit, field.TypeFloat64, value)
+	}
+	if _u.mutation.ProfitCleared() {
+		_spec.ClearField(matchedtrade.FieldProfit, field.TypeFloat64)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -600,6 +636,33 @@ func (_u *MatchedTradeUpdateOne) ClearSellOrderTimestamp() *MatchedTradeUpdateOn
 	return _u
 }
 
+// SetProfit sets the "profit" field.
+func (_u *MatchedTradeUpdateOne) SetProfit(v float64) *MatchedTradeUpdateOne {
+	_u.mutation.ResetProfit()
+	_u.mutation.SetProfit(v)
+	return _u
+}
+
+// SetNillableProfit sets the "profit" field if the given value is not nil.
+func (_u *MatchedTradeUpdateOne) SetNillableProfit(v *float64) *MatchedTradeUpdateOne {
+	if v != nil {
+		_u.SetProfit(*v)
+	}
+	return _u
+}
+
+// AddProfit adds value to the "profit" field.
+func (_u *MatchedTradeUpdateOne) AddProfit(v float64) *MatchedTradeUpdateOne {
+	_u.mutation.AddProfit(v)
+	return _u
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (_u *MatchedTradeUpdateOne) ClearProfit() *MatchedTradeUpdateOne {
+	_u.mutation.ClearProfit()
+	return _u
+}
+
 // Mutation returns the MatchedTradeMutation object of the builder.
 func (_u *MatchedTradeUpdateOne) Mutation() *MatchedTradeMutation {
 	return _u.mutation
@@ -749,6 +812,15 @@ func (_u *MatchedTradeUpdateOne) sqlSave(ctx context.Context) (_node *MatchedTra
 	}
 	if _u.mutation.SellOrderTimestampCleared() {
 		_spec.ClearField(matchedtrade.FieldSellOrderTimestamp, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.Profit(); ok {
+		_spec.SetField(matchedtrade.FieldProfit, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedProfit(); ok {
+		_spec.AddField(matchedtrade.FieldProfit, field.TypeFloat64, value)
+	}
+	if _u.mutation.ProfitCleared() {
+		_spec.ClearField(matchedtrade.FieldProfit, field.TypeFloat64)
 	}
 	_node = &MatchedTrade{config: _u.config}
 	_spec.Assign = _node.assignValues

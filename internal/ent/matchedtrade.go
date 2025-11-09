@@ -37,7 +37,9 @@ type MatchedTrade struct {
 	SellQuoteAmount *decimal.Decimal `json:"sellQuoteAmount,omitempty"`
 	// SellOrderTimestamp holds the value of the "sellOrderTimestamp" field.
 	SellOrderTimestamp *int64 `json:"sellOrderTimestamp,omitempty"`
-	selectValues       sql.SelectValues
+	// Profit holds the value of the "profit" field.
+	Profit       *float64 `json:"profit,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -47,6 +49,8 @@ func (*MatchedTrade) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case matchedtrade.FieldBuyBaseAmount, matchedtrade.FieldBuyQuoteAmount, matchedtrade.FieldSellBaseAmount, matchedtrade.FieldSellQuoteAmount:
 			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
+		case matchedtrade.FieldProfit:
+			values[i] = new(sql.NullFloat64)
 		case matchedtrade.FieldID, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldBuyOrderTimestamp, matchedtrade.FieldSellClientOrderId, matchedtrade.FieldSellOrderTimestamp:
 			values[i] = new(sql.NullInt64)
 		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol:
@@ -140,6 +144,13 @@ func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 				_m.SellOrderTimestamp = new(int64)
 				*_m.SellOrderTimestamp = value.Int64
 			}
+		case matchedtrade.FieldProfit:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field profit", values[i])
+			} else if value.Valid {
+				_m.Profit = new(float64)
+				*_m.Profit = value.Float64
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -219,6 +230,11 @@ func (_m *MatchedTrade) String() string {
 	builder.WriteString(", ")
 	if v := _m.SellOrderTimestamp; v != nil {
 		builder.WriteString("sellOrderTimestamp=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.Profit; v != nil {
+		builder.WriteString("profit=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteByte(')')

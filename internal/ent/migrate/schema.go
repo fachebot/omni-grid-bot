@@ -59,6 +59,7 @@ var (
 		{Name: "sell_base_amount", Type: field.TypeString, Nullable: true},
 		{Name: "sell_quote_amount", Type: field.TypeString, Nullable: true},
 		{Name: "sell_order_timestamp", Type: field.TypeInt64, Nullable: true},
+		{Name: "profit", Type: field.TypeFloat64, Nullable: true},
 	}
 	// MatchedTradesTable holds the schema information for the "matched_trades" table.
 	MatchedTradesTable = &schema.Table{

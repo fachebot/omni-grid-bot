@@ -146,6 +146,20 @@ func (_c *MatchedTradeCreate) SetNillableSellOrderTimestamp(v *int64) *MatchedTr
 	return _c
 }
 
+// SetProfit sets the "profit" field.
+func (_c *MatchedTradeCreate) SetProfit(v float64) *MatchedTradeCreate {
+	_c.mutation.SetProfit(v)
+	return _c
+}
+
+// SetNillableProfit sets the "profit" field if the given value is not nil.
+func (_c *MatchedTradeCreate) SetNillableProfit(v *float64) *MatchedTradeCreate {
+	if v != nil {
+		_c.SetProfit(*v)
+	}
+	return _c
+}
+
 // Mutation returns the MatchedTradeMutation object of the builder.
 func (_c *MatchedTradeCreate) Mutation() *MatchedTradeMutation {
 	return _c.mutation
@@ -257,6 +271,10 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.SellOrderTimestamp(); ok {
 		_spec.SetField(matchedtrade.FieldSellOrderTimestamp, field.TypeInt64, value)
 		_node.SellOrderTimestamp = &value
+	}
+	if value, ok := _c.mutation.Profit(); ok {
+		_spec.SetField(matchedtrade.FieldProfit, field.TypeFloat64, value)
+		_node.Profit = &value
 	}
 	return _node, _spec
 }
@@ -499,6 +517,30 @@ func (u *MatchedTradeUpsert) AddSellOrderTimestamp(v int64) *MatchedTradeUpsert 
 // ClearSellOrderTimestamp clears the value of the "sellOrderTimestamp" field.
 func (u *MatchedTradeUpsert) ClearSellOrderTimestamp() *MatchedTradeUpsert {
 	u.SetNull(matchedtrade.FieldSellOrderTimestamp)
+	return u
+}
+
+// SetProfit sets the "profit" field.
+func (u *MatchedTradeUpsert) SetProfit(v float64) *MatchedTradeUpsert {
+	u.Set(matchedtrade.FieldProfit, v)
+	return u
+}
+
+// UpdateProfit sets the "profit" field to the value that was provided on create.
+func (u *MatchedTradeUpsert) UpdateProfit() *MatchedTradeUpsert {
+	u.SetExcluded(matchedtrade.FieldProfit)
+	return u
+}
+
+// AddProfit adds v to the "profit" field.
+func (u *MatchedTradeUpsert) AddProfit(v float64) *MatchedTradeUpsert {
+	u.Add(matchedtrade.FieldProfit, v)
+	return u
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (u *MatchedTradeUpsert) ClearProfit() *MatchedTradeUpsert {
+	u.SetNull(matchedtrade.FieldProfit)
 	return u
 }
 
@@ -763,6 +805,34 @@ func (u *MatchedTradeUpsertOne) UpdateSellOrderTimestamp() *MatchedTradeUpsertOn
 func (u *MatchedTradeUpsertOne) ClearSellOrderTimestamp() *MatchedTradeUpsertOne {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.ClearSellOrderTimestamp()
+	})
+}
+
+// SetProfit sets the "profit" field.
+func (u *MatchedTradeUpsertOne) SetProfit(v float64) *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetProfit(v)
+	})
+}
+
+// AddProfit adds v to the "profit" field.
+func (u *MatchedTradeUpsertOne) AddProfit(v float64) *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.AddProfit(v)
+	})
+}
+
+// UpdateProfit sets the "profit" field to the value that was provided on create.
+func (u *MatchedTradeUpsertOne) UpdateProfit() *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateProfit()
+	})
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (u *MatchedTradeUpsertOne) ClearProfit() *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.ClearProfit()
 	})
 }
 
@@ -1190,6 +1260,34 @@ func (u *MatchedTradeUpsertBulk) UpdateSellOrderTimestamp() *MatchedTradeUpsertB
 func (u *MatchedTradeUpsertBulk) ClearSellOrderTimestamp() *MatchedTradeUpsertBulk {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.ClearSellOrderTimestamp()
+	})
+}
+
+// SetProfit sets the "profit" field.
+func (u *MatchedTradeUpsertBulk) SetProfit(v float64) *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetProfit(v)
+	})
+}
+
+// AddProfit adds v to the "profit" field.
+func (u *MatchedTradeUpsertBulk) AddProfit(v float64) *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.AddProfit(v)
+	})
+}
+
+// UpdateProfit sets the "profit" field to the value that was provided on create.
+func (u *MatchedTradeUpsertBulk) UpdateProfit() *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateProfit()
+	})
+}
+
+// ClearProfit clears the value of the "profit" field.
+func (u *MatchedTradeUpsertBulk) ClearProfit() *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.ClearProfit()
 	})
 }
 

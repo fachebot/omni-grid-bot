@@ -29,26 +29,39 @@ func (m *MatchedTradeModel) Create(ctx context.Context, args ent.MatchedTrade) e
 		SetNillableSellBaseAmount(args.SellBaseAmount).
 		SetNillableSellQuoteAmount(args.SellQuoteAmount).
 		SetNillableSellOrderTimestamp(args.SellOrderTimestamp).
+		SetNillableProfit(args.Profit).
 		Exec(ctx)
 }
 
-func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId string, buyOrder *ent.Order) (newCreated bool, err error) {
+func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId string, buyOrder *ent.Order) (matched *ent.MatchedTrade, err error) {
 	ps := []predicate.MatchedTrade{
 		matchedtrade.StrategyIdEQ(strategyId),
 		matchedtrade.BuyClientOrderIdEQ(buyOrder.ClientOrderId),
 	}
-	count, err := m.client.Update().
-		Where(ps...).
-		SetBuyBaseAmount(buyOrder.FilledBaseAmount).
-		SetBuyQuoteAmount(buyOrder.FilledQuoteAmount).
-		SetBuyOrderTimestamp(buyOrder.Timestamp).
-		Save(ctx)
-	if err != nil {
-		return false, err
+	r, err := m.client.Query().Where(ps...).First(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return matched, err
 	}
 
-	if count > 0 {
-		return false, nil
+	if err == nil {
+		err = m.client.Update().
+			Where(ps...).
+			SetBuyBaseAmount(buyOrder.FilledBaseAmount).
+			SetBuyQuoteAmount(buyOrder.FilledQuoteAmount).
+			SetBuyOrderTimestamp(buyOrder.Timestamp).
+			Exec(ctx)
+		if err != nil {
+			return matched, err
+		}
+
+		if r.SellClientOrderId != nil && r.SellOrderTimestamp != nil {
+			matched = r
+			r.BuyBaseAmount = &buyOrder.FilledBaseAmount
+			r.BuyQuoteAmount = &buyOrder.FilledQuoteAmount
+			r.BuyOrderTimestamp = &buyOrder.Timestamp
+		}
+
+		return matched, nil
 	}
 
 	args := ent.MatchedTrade{
@@ -59,26 +72,43 @@ func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId strin
 		BuyQuoteAmount:    &buyOrder.FilledQuoteAmount,
 		BuyOrderTimestamp: &buyOrder.Timestamp,
 	}
-	return true, m.Create(ctx, args)
+	if err = m.Create(ctx, args); err != nil {
+		return matched, err
+	}
+
+	return matched, nil
 }
 
-func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId string, sellOrder *ent.Order) (newCreated bool, err error) {
+func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId string, sellOrder *ent.Order) (matched *ent.MatchedTrade, err error) {
 	ps := []predicate.MatchedTrade{
 		matchedtrade.StrategyIdEQ(strategyId),
 		matchedtrade.SellClientOrderIdEQ(sellOrder.ClientOrderId),
 	}
-	count, err := m.client.Update().
-		Where(ps...).
-		SetSellBaseAmount(sellOrder.FilledBaseAmount).
-		SetSellQuoteAmount(sellOrder.FilledQuoteAmount).
-		SetSellOrderTimestamp(sellOrder.Timestamp).
-		Save(ctx)
-	if err != nil {
-		return false, err
+	r, err := m.client.Query().Where(ps...).First(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return matched, err
 	}
 
-	if count > 0 {
-		return false, nil
+	if err == nil {
+		err = m.client.Update().
+			Where(ps...).
+			SetSellBaseAmount(sellOrder.FilledBaseAmount).
+			SetSellQuoteAmount(sellOrder.FilledQuoteAmount).
+			SetSellOrderTimestamp(sellOrder.Timestamp).
+			Exec(ctx)
+
+		if err != nil {
+			return matched, err
+		}
+
+		if r.BuyClientOrderId != nil && r.BuyOrderTimestamp != nil {
+			matched = r
+			r.SellBaseAmount = &sellOrder.FilledBaseAmount
+			r.SellQuoteAmount = &sellOrder.FilledQuoteAmount
+			r.SellOrderTimestamp = &sellOrder.Timestamp
+		}
+
+		return matched, nil
 	}
 
 	args := ent.MatchedTrade{
@@ -89,7 +119,15 @@ func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId stri
 		SellQuoteAmount:    &sellOrder.FilledQuoteAmount,
 		SellOrderTimestamp: &sellOrder.Timestamp,
 	}
-	return true, m.Create(ctx, args)
+	if err = m.Create(ctx, args); err != nil {
+		return matched, err
+	}
+
+	return matched, nil
+}
+
+func (m *MatchedTradeModel) UpdateProfit(ctx context.Context, id int, value float64) error {
+	return m.client.UpdateOneID(id).SetProfit(value).Exec(ctx)
 }
 
 func (m *MatchedTradeModel) UpdateByBuyOrder(

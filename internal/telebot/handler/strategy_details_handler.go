@@ -9,11 +9,13 @@ import (
 
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
 	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
 	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
 	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
 	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
 	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
 	"github.com/fachebot/perp-dex-grid-bot/internal/util"
+	"github.com/fachebot/perp-dex-grid-bot/internal/util/format"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	tele "gopkg.in/telebot.v4"
@@ -138,17 +140,61 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	name := StrategyName(record)
 	text := fmt.Sprintf("*Lighter网格策略* | 策略详情 `%s`\n\n", name)
 
-	text += fmt.Sprintf("📊 交易平台: *%s*\n", lo.If(record.Exchange != "", record.Exchange).Else("未设置"))
-	text += fmt.Sprintf("📈 交易标的: %s\n", lo.If(record.Symbol != "", record.Symbol).Else("未设置"))
-	text += fmt.Sprintf("💹 网格模式: %s\n", lo.If(record.Mode == strategy.ModeLong, "做多").Else("做空"))
-	text += fmt.Sprintf("🔢 杠杆倍数: %dX\n", record.Leverage)
-	text += fmt.Sprintf("🔒 保证金模式: %s\n", lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓"))
-	text += fmt.Sprintf("📈 价格区间: %s\n", lo.If(record.PriceLower.IsZero() || record.PriceUpper.IsZero(), "未设置").
+	// 账户信息
+	text += "📊 账户\n"
+	exchangeAccount := lo.If(record.Exchange != "", record.Exchange).Else("未设置")
+	if record.Exchange != "" && record.Account != "" {
+		exchangeAccount += "#" + record.Account
+	}
+	text += fmt.Sprintf("┣ 交易平台: *%s*\n", exchangeAccount)
+
+	var position *exchange.Position
+	var availableBalance decimal.Decimal
+	if record.Exchange != "" && record.Account != "" {
+		account, err := helper.GetAccountInfo(ctx, svcCtx, record.Exchange, record.Account)
+		if err == nil {
+			availableBalance = account.AvailableBalance
+			position, _ = lo.Find(account.Positions, func(item *exchange.Position) bool {
+				if record.Symbol != item.Symbol {
+					return false
+				}
+				if record.Mode != strategy.ModeLong && item.Side == exchange.PositionSideLong {
+					return false
+				}
+				if record.Mode == strategy.ModeShort && item.Side == exchange.PositionSideShort {
+					return false
+				}
+				return true
+			})
+		}
+	}
+	text += fmt.Sprintf("┗ 可用余额: `%s` USD\n\n", availableBalance)
+
+	// 策略信息
+	text += "📌 策略\n"
+	positionSide := lo.If(record.Mode == strategy.ModeLong, "做多").Else("做空")
+	marginMode := lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓")
+	text += fmt.Sprintf("┣ 方向: %s | 杠杆: %dX | %s\n", positionSide, record.Leverage, marginMode)
+	text += fmt.Sprintf("┣ 交易标的: %s\n", lo.If(record.Symbol != "", record.Symbol).Else("未设置"))
+	text += fmt.Sprintf("┣ 价格区间: %s\n", lo.If(record.PriceLower.IsZero() || record.PriceUpper.IsZero(), "未设置").
 		Else(fmt.Sprintf("$%s ~ $%s", record.PriceLower, record.PriceUpper)))
-	text += fmt.Sprintf("⚙️ 单格投入: %s\n", lo.If(record.Symbol != "" && !record.InitialOrderSize.IsZero(), fmt.Sprintf("%s %s", record.InitialOrderSize, record.Symbol)).Else("未设置"))
-	text += "💵 总利润: 0\n"
-	text += "✅ 已实现利润: 0\n"
-	text += "❓ 未实现利润: 0\n"
+	text += fmt.Sprintf("┗ 单格投入: %s\n\n", lo.If(record.Symbol != "" && !record.InitialOrderSize.IsZero(), fmt.Sprintf("%s %s", record.InitialOrderSize, record.Symbol)).Else("未设置"))
+
+	// 持仓信息
+	if position != nil {
+		text += "📦 持仓\n"
+		text += fmt.Sprintf("┣ 持仓数量: %s %s\n", position.Position, position.Symbol)
+		text += fmt.Sprintf("┣ 持仓价值: $%s\n", format.Price(position.PositionValue, 5))
+		text += fmt.Sprintf("┣ 强平价格: $%s\n", format.Price(position.LiquidationPrice, 5))
+		text += fmt.Sprintf("┣ 平均持仓成本: $%s\n", format.Price(position.AvgEntryPrice, 5))
+		text += fmt.Sprintf("┗ 已分配保证金: $%s\n\n", format.Price(position.AllocatedMargin, 5))
+	}
+
+	// 收益信息
+	text += "💰 收益\n"
+	text += "┣ 总利润: 0\n"
+	text += "┣ 已实现利润: 0\n"
+	text += "┗ 未实现利润: 0\n"
 
 	if record.Status == strategy.StatusActive {
 		// 查询最新价格
@@ -176,8 +222,8 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 				slices.Reverse(gridList)
 			}
 			text += "\n🟢 买入订单 | 🔴 卖出订单\n\n" + strings.Join(gridList, "\n")
-			text += fmt.Sprintf("\n\n总投资额: %v USD", totalInvestment)
-			text += fmt.Sprintf("\n初始保证金: %v USD", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
+			text += fmt.Sprintf("\n\n总投资额: $%v", totalInvestment)
+			text += fmt.Sprintf("\n初始保证金: $%v", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
 		}
 	}
 
