@@ -186,15 +186,23 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		text += fmt.Sprintf("┣ 持仓数量: %s %s\n", position.Position, position.Symbol)
 		text += fmt.Sprintf("┣ 持仓价值: $%s\n", format.Price(position.PositionValue, 5))
 		text += fmt.Sprintf("┣ 强平价格: $%s\n", format.Price(position.LiquidationPrice, 5))
-		text += fmt.Sprintf("┣ 平均持仓成本: $%s\n", format.Price(position.AvgEntryPrice, 5))
-		text += fmt.Sprintf("┗ 已分配保证金: $%s\n\n", format.Price(position.AllocatedMargin, 5))
+		text += fmt.Sprintf("┗ 平均持仓成本: $%s\n\n", format.Price(position.AvgEntryPrice, 5))
 	}
 
 	// 收益信息
+	unrealizedPnl := decimal.Zero
+	if position != nil {
+		unrealizedPnl = position.UnrealizedPnl
+	}
+	realizedPnl, err := svcCtx.MatchedTradeModel.QueryTotalProfit(ctx, record.GUID)
+	if err != nil {
+		logger.Warnf("[StrategyDetailsText] 查询已实现利润失败, id: %s, %v", record.GUID, err)
+	}
+
 	text += "💰 收益\n"
-	text += "┣ 总利润: 0\n"
-	text += "┣ 已实现利润: 0\n"
-	text += "┗ 未实现利润: 0\n"
+	text += fmt.Sprintf("┣ 总利润: %s\n", realizedPnl.Add(unrealizedPnl))
+	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl)
+	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl)
 
 	if record.Status == strategy.StatusActive {
 		// 查询最新价格
@@ -221,13 +229,13 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 			if record.Mode == strategy.ModeLong {
 				slices.Reverse(gridList)
 			}
-			text += "\n🟢 买入订单 | 🔴 卖出订单\n\n" + strings.Join(gridList, "\n")
-			text += fmt.Sprintf("\n\n总投资额: $%v", totalInvestment)
-			text += fmt.Sprintf("\n初始保证金: $%v", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
+			text += "🟢 买入订单 | 🔴 卖出订单\n\n" + strings.Join(gridList, "\n")
+			text += fmt.Sprintf("\n\n总投资额: $%v\n", totalInvestment)
+			text += fmt.Sprintf("初始保证金: $%v\n\n", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
 		}
 	}
 
-	text += fmt.Sprintf("\n\n🕒 更新时间: [%s]\n\n⚠️ 重要提示:\n▸ *停止策略会清空之前的网格记录!*", util.FormaTime(time.Now()))
+	text += fmt.Sprintf("🕒 更新时间: [%s]\n\n⚠️ 重要提示:\n▸ *停止策略会清空之前的网格记录!*", util.FormaTime(time.Now()))
 	return text
 }
 

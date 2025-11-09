@@ -33,6 +33,15 @@ func (m *MatchedTradeModel) Create(ctx context.Context, args ent.MatchedTrade) e
 		Exec(ctx)
 }
 
+func (m *MatchedTradeModel) QueryTotalProfit(ctx context.Context, strategyId string) (decimal.Decimal, error) {
+	var v []struct{ Sum decimal.Decimal }
+	err := m.client.Query().Aggregate(ent.Sum(matchedtrade.FieldProfit)).Scan(ctx, &v)
+	if err != nil || len(v) == 0 {
+		return decimal.Zero, nil
+	}
+	return v[0].Sum, nil
+}
+
 func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId string, buyOrder *ent.Order) (matched *ent.MatchedTrade, err error) {
 	ps := []predicate.MatchedTrade{
 		matchedtrade.StrategyIdEQ(strategyId),
@@ -137,8 +146,8 @@ func (m *MatchedTradeModel) UpdateByBuyOrder(
 	sellClientOrderId int64,
 	sellBaseAmount,
 	sellQuoteAmount *decimal.Decimal,
-	sellOrderTimestamp *int64,
-) error {
+	sellOrderTimestamp *int64) error {
+
 	return m.client.Update().
 		Where(matchedtrade.StrategyIdEQ(strategyId), matchedtrade.BuyClientOrderIdEQ(buyOrder.ClientOrderId)).
 		SetNillableBuyBaseAmount(&buyOrder.FilledBaseAmount).
@@ -158,8 +167,8 @@ func (m *MatchedTradeModel) UpdateBySellOrder(
 	buyClientOrderId int64,
 	buyBaseAmount,
 	buyQuoteAmount *decimal.Decimal,
-	buyOrderTimestamp *int64,
-) error {
+	buyOrderTimestamp *int64) error {
+
 	return m.client.Update().
 		Where(matchedtrade.StrategyIdEQ(strategyId), matchedtrade.SellClientOrderIdEQ(sellOrder.ClientOrderId)).
 		SetNillableSellBaseAmount(&sellOrder.FilledBaseAmount).
@@ -170,4 +179,9 @@ func (m *MatchedTradeModel) UpdateBySellOrder(
 		SetNillableBuyQuoteAmount(buyQuoteAmount).
 		SetNillableBuyOrderTimestamp(buyOrderTimestamp).
 		Exec(ctx)
+}
+
+func (m *MatchedTradeModel) DeleteByStrategyId(ctx context.Context, strategyId string) error {
+	_, err := m.client.Delete().Where(matchedtrade.StrategyIdEQ(strategyId)).Exec(ctx)
+	return err
 }
