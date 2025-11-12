@@ -35,3 +35,6 @@ data
 logs
 config/*.yml
 config/*.yaml
+
+# bin file
+omni-grid-bot
