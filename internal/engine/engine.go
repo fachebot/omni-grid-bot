@@ -100,6 +100,9 @@ func (engine *StrategyEngine) StopStrategy(id string) {
 		userStrategyCount = len(newUserStrategyList)
 		engine.userStrategyMap[record.Account] = newUserStrategyList
 	}
+
+	delete(engine.strategyMap, id)
+
 	engine.mutex.Unlock()
 
 	// 取消订阅用户订单

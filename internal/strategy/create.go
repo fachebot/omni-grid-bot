@@ -3,7 +3,6 @@ package strategy
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
@@ -247,7 +246,6 @@ func GenerateArithmeticGrid(priceLower, priceUpper decimal.Decimal, gridNum int,
 	// 检查步长是否太小
 	minStep := decimal.New(1, -priceDecimals)
 	if step.LessThan(minStep) {
-		fmt.Println(step, minStep)
 		return nil, errors.New("price range too small for the number of grids")
 	}
 
