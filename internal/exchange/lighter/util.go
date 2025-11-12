@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	lighterclient "github.com/elliottech/lighter-go/client"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
 
 func ConvertOrderStatus(status OrderStatus) order.Status {

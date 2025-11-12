@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 	"github.com/shopspring/decimal"
 )
 

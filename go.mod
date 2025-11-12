@@ -1,4 +1,4 @@
-module github.com/fachebot/perp-dex-grid-bot
+module github.com/fachebot/omni-grid-bot
 
 go 1.24.0
 

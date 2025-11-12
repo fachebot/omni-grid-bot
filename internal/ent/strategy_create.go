@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/shopspring/decimal"
 )
 

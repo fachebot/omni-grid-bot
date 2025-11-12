@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 )
 
 type LighterCache struct {

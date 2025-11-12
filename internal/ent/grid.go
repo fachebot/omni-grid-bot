@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
+	"github.com/fachebot/omni-grid-bot/internal/ent/grid"
 	"github.com/shopspring/decimal"
 )
 

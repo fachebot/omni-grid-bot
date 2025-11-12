@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
-	"github.com/fachebot/perp-dex-grid-bot/internal/helper"
-	"github.com/fachebot/perp-dex-grid-bot/internal/model"
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
-	"github.com/fachebot/perp-dex-grid-bot/internal/util"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/helper"
+	"github.com/fachebot/omni-grid-bot/internal/model"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/util"
 	"github.com/shopspring/decimal"
 )
 

@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/cache"
-	"github.com/fachebot/perp-dex-grid-bot/internal/config"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange/lighter"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
-	"github.com/fachebot/perp-dex-grid-bot/internal/model"
+	"github.com/fachebot/omni-grid-bot/internal/cache"
+	"github.com/fachebot/omni-grid-bot/internal/config"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/model"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/net/proxy"

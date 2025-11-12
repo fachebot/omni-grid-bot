@@ -3,9 +3,9 @@ package model
 import (
 	"context"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrade"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/matchedtrade"
+	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
 	"github.com/shopspring/decimal"
 )
 

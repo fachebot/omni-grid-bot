@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
 )
 
 // The GridFunc type is an adapter to allow the use of ordinary

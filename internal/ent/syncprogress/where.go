@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
+	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

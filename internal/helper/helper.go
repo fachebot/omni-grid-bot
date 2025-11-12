@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange/lighter"
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )

@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
 )
 
 // OrderQuery is the builder for querying Order entities.

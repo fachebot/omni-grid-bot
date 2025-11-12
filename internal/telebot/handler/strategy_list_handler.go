@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
-	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
-	"github.com/fachebot/perp-dex-grid-bot/internal/util"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/telebot/pathrouter"
+	"github.com/fachebot/omni-grid-bot/internal/util"
 	tele "gopkg.in/telebot.v4"
 )
 

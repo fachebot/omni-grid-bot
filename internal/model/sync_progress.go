@@ -3,8 +3,8 @@ package model
 import (
 	"context"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/syncprogress"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/syncprogress"
 )
 
 type SyncProgressModel struct {

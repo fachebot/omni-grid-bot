@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
-	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/telebot/pathrouter"
 	tele "gopkg.in/telebot.v4"
 )
 

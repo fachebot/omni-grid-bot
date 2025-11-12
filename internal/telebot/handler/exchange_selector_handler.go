@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
-	"github.com/fachebot/perp-dex-grid-bot/internal/model"
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
-	"github.com/fachebot/perp-dex-grid-bot/internal/telebot/pathrouter"
-	"github.com/fachebot/perp-dex-grid-bot/internal/util"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/model"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/telebot/pathrouter"
+	"github.com/fachebot/omni-grid-bot/internal/util"
 
 	tele "gopkg.in/telebot.v4"
 )

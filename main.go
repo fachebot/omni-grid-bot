@@ -8,13 +8,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/config"
-	"github.com/fachebot/perp-dex-grid-bot/internal/engine"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange/lighter"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
-	"github.com/fachebot/perp-dex-grid-bot/internal/strategy"
-	"github.com/fachebot/perp-dex-grid-bot/internal/svc"
-	"github.com/fachebot/perp-dex-grid-bot/internal/telebot"
+	"github.com/fachebot/omni-grid-bot/internal/config"
+	"github.com/fachebot/omni-grid-bot/internal/engine"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/telebot"
 )
 
 var (

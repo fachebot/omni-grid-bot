@@ -3,8 +3,8 @@ package util
 import (
 	"context"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
 )
 
 func Tx(ctx context.Context, db *ent.Client, callback func(tx *ent.Tx) error) (err error) {

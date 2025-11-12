@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
 	// required by schema hooks.
-	_ "github.com/fachebot/perp-dex-grid-bot/internal/ent/runtime"
+	_ "github.com/fachebot/omni-grid-bot/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/migrate"
+	"github.com/fachebot/omni-grid-bot/internal/ent/migrate"
 )
 
 type (

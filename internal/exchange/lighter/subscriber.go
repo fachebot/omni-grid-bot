@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/config"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
-	"github.com/fachebot/perp-dex-grid-bot/internal/logger"
+	"github.com/fachebot/omni-grid-bot/internal/config"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/samber/lo"
 
 	"github.com/gorilla/websocket"

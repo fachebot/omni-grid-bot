@@ -3,8 +3,8 @@ package model
 import (
 	"context"
 
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
 
 type OrderModel struct {

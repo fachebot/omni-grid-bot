@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/shopspring/decimal"
 )
 

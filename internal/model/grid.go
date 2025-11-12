@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
+	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/grid"
 )
 
 type GridModel struct {

@@ -2,7 +2,7 @@ package lighter
 
 import (
 	lighterclient "github.com/elliottech/lighter-go/client"
-	"github.com/fachebot/perp-dex-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
 
 	"github.com/shopspring/decimal"
 )

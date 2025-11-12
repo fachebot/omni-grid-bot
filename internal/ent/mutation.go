@@ -11,12 +11,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/grid"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/matchedtrade"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/order"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/predicate"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/strategy"
-	"github.com/fachebot/perp-dex-grid-bot/internal/ent/syncprogress"
+	"github.com/fachebot/omni-grid-bot/internal/ent/grid"
+	"github.com/fachebot/omni-grid-bot/internal/ent/matchedtrade"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
+	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/ent/syncprogress"
 	"github.com/shopspring/decimal"
 )
 
