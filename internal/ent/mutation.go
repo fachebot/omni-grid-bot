@@ -3501,43 +3501,44 @@ func (m *OrderMutation) ResetEdge(name string) error {
 // StrategyMutation represents an operation that mutates the Strategy nodes in the graph.
 type StrategyMutation struct {
 	config
-	op                          Op
-	typ                         string
-	id                          *int
-	create_time                 *time.Time
-	update_time                 *time.Time
-	guid                        *string
-	owner                       *int64
-	addowner                    *int64
-	exchange                    *string
-	symbol                      *string
-	account                     *string
-	mode                        *strategy.Mode
-	marginMode                  *strategy.MarginMode
-	quantityMode                *strategy.QuantityMode
-	priceUpper                  *decimal.Decimal
-	priceLower                  *decimal.Decimal
-	gridNum                     *int
-	addgridNum                  *int
-	leverage                    *int
-	addleverage                 *int
-	initialOrderSize            *decimal.Decimal
-	stopLossRatio               *decimal.Decimal
-	takeProfitRatio             *decimal.Decimal
-	slippageBps                 *int
-	addslippageBps              *int
-	enableAutoExit              *bool
-	enablePushNotification      *bool
-	lastLowerThresholdAlertTime *time.Time
-	lastUpperThresholdAlertTime *time.Time
-	status                      *strategy.Status
-	exchangeApiKey              *string
-	exchangeSecretKey           *string
-	exchangePassphrase          *string
-	clearedFields               map[string]struct{}
-	done                        bool
-	oldValue                    func(context.Context) (*Strategy, error)
-	predicates                  []predicate.Strategy
+	op                            Op
+	typ                           string
+	id                            *int
+	create_time                   *time.Time
+	update_time                   *time.Time
+	guid                          *string
+	owner                         *int64
+	addowner                      *int64
+	exchange                      *string
+	symbol                        *string
+	account                       *string
+	mode                          *strategy.Mode
+	marginMode                    *strategy.MarginMode
+	quantityMode                  *strategy.QuantityMode
+	priceUpper                    *decimal.Decimal
+	priceLower                    *decimal.Decimal
+	gridNum                       *int
+	addgridNum                    *int
+	leverage                      *int
+	addleverage                   *int
+	initialOrderSize              *decimal.Decimal
+	stopLossRatio                 *decimal.Decimal
+	takeProfitRatio               *decimal.Decimal
+	slippageBps                   *int
+	addslippageBps                *int
+	enableAutoExit                *bool
+	enablePushNotification        *bool
+	enablePushMatchedNotification *bool
+	lastLowerThresholdAlertTime   *time.Time
+	lastUpperThresholdAlertTime   *time.Time
+	status                        *strategy.Status
+	exchangeApiKey                *string
+	exchangeSecretKey             *string
+	exchangePassphrase            *string
+	clearedFields                 map[string]struct{}
+	done                          bool
+	oldValue                      func(context.Context) (*Strategy, error)
+	predicates                    []predicate.Strategy
 }
 
 var _ ent.Mutation = (*StrategyMutation)(nil)
@@ -4452,6 +4453,55 @@ func (m *StrategyMutation) ResetEnablePushNotification() {
 	m.enablePushNotification = nil
 }
 
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (m *StrategyMutation) SetEnablePushMatchedNotification(b bool) {
+	m.enablePushMatchedNotification = &b
+}
+
+// EnablePushMatchedNotification returns the value of the "enablePushMatchedNotification" field in the mutation.
+func (m *StrategyMutation) EnablePushMatchedNotification() (r bool, exists bool) {
+	v := m.enablePushMatchedNotification
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnablePushMatchedNotification returns the old "enablePushMatchedNotification" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldEnablePushMatchedNotification(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnablePushMatchedNotification is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnablePushMatchedNotification requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnablePushMatchedNotification: %w", err)
+	}
+	return oldValue.EnablePushMatchedNotification, nil
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (m *StrategyMutation) ClearEnablePushMatchedNotification() {
+	m.enablePushMatchedNotification = nil
+	m.clearedFields[strategy.FieldEnablePushMatchedNotification] = struct{}{}
+}
+
+// EnablePushMatchedNotificationCleared returns if the "enablePushMatchedNotification" field was cleared in this mutation.
+func (m *StrategyMutation) EnablePushMatchedNotificationCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldEnablePushMatchedNotification]
+	return ok
+}
+
+// ResetEnablePushMatchedNotification resets all changes to the "enablePushMatchedNotification" field.
+func (m *StrategyMutation) ResetEnablePushMatchedNotification() {
+	m.enablePushMatchedNotification = nil
+	delete(m.clearedFields, strategy.FieldEnablePushMatchedNotification)
+}
+
 // SetLastLowerThresholdAlertTime sets the "lastLowerThresholdAlertTime" field.
 func (m *StrategyMutation) SetLastLowerThresholdAlertTime(t time.Time) {
 	m.lastLowerThresholdAlertTime = &t
@@ -4728,7 +4778,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 27)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -4788,6 +4838,9 @@ func (m *StrategyMutation) Fields() []string {
 	}
 	if m.enablePushNotification != nil {
 		fields = append(fields, strategy.FieldEnablePushNotification)
+	}
+	if m.enablePushMatchedNotification != nil {
+		fields = append(fields, strategy.FieldEnablePushMatchedNotification)
 	}
 	if m.lastLowerThresholdAlertTime != nil {
 		fields = append(fields, strategy.FieldLastLowerThresholdAlertTime)
@@ -4855,6 +4908,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.EnableAutoExit()
 	case strategy.FieldEnablePushNotification:
 		return m.EnablePushNotification()
+	case strategy.FieldEnablePushMatchedNotification:
+		return m.EnablePushMatchedNotification()
 	case strategy.FieldLastLowerThresholdAlertTime:
 		return m.LastLowerThresholdAlertTime()
 	case strategy.FieldLastUpperThresholdAlertTime:
@@ -4916,6 +4971,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldEnableAutoExit(ctx)
 	case strategy.FieldEnablePushNotification:
 		return m.OldEnablePushNotification(ctx)
+	case strategy.FieldEnablePushMatchedNotification:
+		return m.OldEnablePushMatchedNotification(ctx)
 	case strategy.FieldLastLowerThresholdAlertTime:
 		return m.OldLastLowerThresholdAlertTime(ctx)
 	case strategy.FieldLastUpperThresholdAlertTime:
@@ -5077,6 +5134,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnablePushNotification(v)
 		return nil
+	case strategy.FieldEnablePushMatchedNotification:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnablePushMatchedNotification(v)
+		return nil
 	case strategy.FieldLastLowerThresholdAlertTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -5203,6 +5267,9 @@ func (m *StrategyMutation) ClearedFields() []string {
 	if m.FieldCleared(strategy.FieldSlippageBps) {
 		fields = append(fields, strategy.FieldSlippageBps)
 	}
+	if m.FieldCleared(strategy.FieldEnablePushMatchedNotification) {
+		fields = append(fields, strategy.FieldEnablePushMatchedNotification)
+	}
 	if m.FieldCleared(strategy.FieldLastLowerThresholdAlertTime) {
 		fields = append(fields, strategy.FieldLastLowerThresholdAlertTime)
 	}
@@ -5225,6 +5292,9 @@ func (m *StrategyMutation) ClearField(name string) error {
 	switch name {
 	case strategy.FieldSlippageBps:
 		m.ClearSlippageBps()
+		return nil
+	case strategy.FieldEnablePushMatchedNotification:
+		m.ClearEnablePushMatchedNotification()
 		return nil
 	case strategy.FieldLastLowerThresholdAlertTime:
 		m.ClearLastLowerThresholdAlertTime()
@@ -5299,6 +5369,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldEnablePushNotification:
 		m.ResetEnablePushNotification()
+		return nil
+	case strategy.FieldEnablePushMatchedNotification:
+		m.ResetEnablePushMatchedNotification()
 		return nil
 	case strategy.FieldLastLowerThresholdAlertTime:
 		m.ResetLastLowerThresholdAlertTime()

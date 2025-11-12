@@ -16,7 +16,6 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/util"
 	"github.com/fachebot/omni-grid-bot/internal/util/format"
-	tele "gopkg.in/telebot.v4"
 )
 
 type GridStrategyState struct {
@@ -26,6 +25,10 @@ type GridStrategyState struct {
 	account     helper.AmbiguousAccount
 	sortedGrids []*ent.Grid
 	orders      map[int64]*ent.Order
+}
+
+func strategyName(record *ent.Strategy) string {
+	return record.GUID[len(record.GUID)-4:]
 }
 
 func getUpperLevel(sortedGrids []*ent.Grid, level int) *ent.Grid {
@@ -119,63 +122,92 @@ func (state *GridStrategyState) Rebalance() error {
 	return nil
 }
 
-func (state *GridStrategyState) sendGridMatchedNotification(trade *ent.MatchedTrade) {
-	text := fmt.Sprintf("🚨%s %s %s 交易配对通知\n\n", state.strategy.Exchange, state.strategy.Symbol, state.strategy.Mode)
-	switch state.strategy.Mode {
-	case strategy.ModeLong:
-		text += fmt.Sprintf("🔢 做多数量: %s %s\n", trade.BuyBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 做多价格: %s USD\n", format.Price(trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount), 5))
-		text += fmt.Sprintf("🔢 平多数量: %s %s\n", trade.SellBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 平多价格: %s USD\n", format.Price(trade.SellQuoteAmount.Div(*trade.SellBaseAmount), 5))
-		text += fmt.Sprintf("💰 实现利润: %s USD\n", trade.SellQuoteAmount.Sub(*trade.BuyQuoteAmount))
-		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*trade.SellOrderTimestamp, 0)))
-	case strategy.ModeShort:
-		text += fmt.Sprintf("🔢 做空数量: %s %s\n", trade.SellBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 做空价格: %s USD\n", format.Price(trade.SellQuoteAmount.Div(*trade.SellBaseAmount), 5))
-		text += fmt.Sprintf("🔢 平空数量: %s %s\n", trade.BuyBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 平空价格: %s USD\n", format.Price(trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount), 5))
-		text += fmt.Sprintf("💰 实现利润: %s USD\n", trade.SellQuoteAmount.Sub(*trade.BuyQuoteAmount))
-		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*trade.BuyOrderTimestamp, 0)))
+func (state *GridStrategyState) sendOrderFilleddNotification(ord *ent.Order) {
+	if !state.strategy.EnablePushNotification {
+		return
+	}
+
+	text := fmt.Sprintf("✅ 订单成交通知 `%s`\n\n", strategyName(state.strategy))
+	text += fmt.Sprintf("🏦 交易平台: %s | %s %s\n", state.strategy.Exchange, state.strategy.Symbol, state.strategy.Mode)
+	text += fmt.Sprintf("🆔 订单ID: `%d`\n", ord.OrderId)
+
+	switch ord.Side {
+	case order.SideBuy:
+		text += fmt.Sprintf("🔢 买入数量: %s %s\n", ord.FilledBaseAmount, ord.Symbol)
+		text += fmt.Sprintf("💥 买入价格: %s USD\n", format.Price(ord.Price, 5))
+		text += fmt.Sprintf("💰 交易金额: %s USD\n", ord.FilledQuoteAmount)
+		text += fmt.Sprintf("⏰ 交易时间: `%s`\n", util.FormaTime(time.Unix(ord.Timestamp, 0)))
+	case order.SideSell:
+		text += fmt.Sprintf("🔢 卖出数量: %s %s\n", ord.FilledBaseAmount, ord.Symbol)
+		text += fmt.Sprintf("💥 卖出价格: %s USD\n", format.Price(ord.Price, 5))
+		text += fmt.Sprintf("💰 交易金额: %s USD\n", ord.FilledQuoteAmount)
+		text += fmt.Sprintf("⏰ 交易时间: `%s`\n", util.FormaTime(time.Unix(ord.Timestamp, 0)))
 	}
 
 	chatId := util.ChatId(state.strategy.Owner)
-	replyMarkup := &tele.ReplyMarkup{
-		InlineKeyboard: [][]tele.InlineButton{
-			{
-				{Text: "查看策略", Data: fmt.Sprintf("/strategy/details/%s", trade.StrategyId)},
-			},
-		},
+	_, err := util.SendMarkdownMessage(state.svcCtx.Bot, chatId, text, nil)
+	if err != nil {
+		logger.Debugf("[GridStrategyState] 发送订单成交通知失败, chat: %d, %v", chatId, err)
 	}
-	_, err := util.SendMarkdownMessage(state.svcCtx.Bot, chatId, text, replyMarkup)
+}
+
+func (state *GridStrategyState) sendGridMatchedNotification(completedPair *ent.MatchedTrade) {
+	text := fmt.Sprintf("👫 交易配对通知 `%s`\n\n", strategyName(state.strategy))
+	text += fmt.Sprintf("🏦 交易平台: %s | %s %s\n", state.strategy.Exchange, state.strategy.Symbol, state.strategy.Mode)
+
+	switch state.strategy.Mode {
+	case strategy.ModeLong:
+		text += fmt.Sprintf("🔢 做多数量: %s %s\n", completedPair.BuyBaseAmount.String(), state.strategy.Symbol)
+		text += fmt.Sprintf("💥 做多价格: %s USD\n", format.Price(completedPair.BuyQuoteAmount.Div(*completedPair.BuyBaseAmount), 5))
+		text += fmt.Sprintf("🔢 平多数量: %s %s\n", completedPair.SellBaseAmount.String(), state.strategy.Symbol)
+		text += fmt.Sprintf("💥 平多价格: %s USD\n", format.Price(completedPair.SellQuoteAmount.Div(*completedPair.SellBaseAmount), 5))
+		text += fmt.Sprintf("💰 实现利润: %s USD\n", completedPair.SellQuoteAmount.Sub(*completedPair.BuyQuoteAmount))
+		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*completedPair.SellOrderTimestamp, 0)))
+	case strategy.ModeShort:
+		text += fmt.Sprintf("🔢 做空数量: %s %s\n", completedPair.SellBaseAmount.String(), state.strategy.Symbol)
+		text += fmt.Sprintf("💥 做空价格: %s USD\n", format.Price(completedPair.SellQuoteAmount.Div(*completedPair.SellBaseAmount), 5))
+		text += fmt.Sprintf("🔢 平空数量: %s %s\n", completedPair.BuyBaseAmount.String(), state.strategy.Symbol)
+		text += fmt.Sprintf("💥 平空价格: %s USD\n", format.Price(completedPair.BuyQuoteAmount.Div(*completedPair.BuyBaseAmount), 5))
+		text += fmt.Sprintf("💰 实现利润: %s USD\n", completedPair.SellQuoteAmount.Sub(*completedPair.BuyQuoteAmount))
+		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*completedPair.BuyOrderTimestamp, 0)))
+	}
+
+	chatId := util.ChatId(state.strategy.Owner)
+	_, err := util.SendMarkdownMessage(state.svcCtx.Bot, chatId, text, nil)
 	if err != nil {
 		logger.Debugf("[GridStrategyState] 发送网格匹配通知失败, chat: %d, %v", chatId, err)
 	}
 }
 
-func (state *GridStrategyState) handleGridMatched(_level *ent.Grid, trade *ent.MatchedTrade) {
-	if trade.Profit != nil {
+func (state *GridStrategyState) handleGridMatched(completedPair *ent.MatchedTrade) {
+	if completedPair.Profit != nil {
 		return
 	}
 
-	profit := trade.SellQuoteAmount.Sub(*trade.BuyQuoteAmount)
-	err := state.svcCtx.MatchedTradeModel.UpdateProfit(state.ctx, trade.ID, profit.InexactFloat64())
+	profit := completedPair.SellQuoteAmount.Sub(*completedPair.BuyQuoteAmount)
+	err := state.svcCtx.MatchedTradeModel.UpdateProfit(state.ctx, completedPair.ID, profit.InexactFloat64())
 	if err != nil {
-		logger.Warnf("[GridStrategyState] 更新网格利润失败, id: %d, profit: %v", trade.ID, profit)
+		logger.Warnf("[GridStrategyState] 更新网格利润失败, id: %d, profit: %v", completedPair.ID, profit)
 	}
 
-	go state.sendGridMatchedNotification(trade)
+	if state.strategy.EnablePushMatchedNotification != nil && *state.strategy.EnablePushMatchedNotification {
+		go state.sendGridMatchedNotification(completedPair)
+	}
 }
 
 func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order) error {
 	logger.Infof("[%s %s] #%d 买单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.Price, buyOrder.FilledBaseAmount)
 
-	matched, err := state.svcCtx.MatchedTradeModel.EnsureBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %d, %v", state.strategy.GUID, buyOrder.ClientOrderId, err)
 		return err
 	}
-	if matched != nil {
-		state.handleGridMatched(level, matched)
+	if completedPair != nil {
+		state.handleGridMatched(completedPair)
+	}
+	if isFirstRecord {
+		go state.sendOrderFilleddNotification(buyOrder)
 	}
 
 	upperLevel := getUpperLevel(state.sortedGrids, level.Level)
@@ -239,13 +271,16 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.Order) error {
 	logger.Infof("[%s %s] #%d 卖单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.Price, sellOrder.FilledBaseAmount)
 
-	matched, err := state.svcCtx.MatchedTradeModel.EnsureSellOrder(state.ctx, state.strategy.GUID, sellOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy.GUID, sellOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %d, %v", state.strategy.GUID, sellOrder.ClientOrderId, err)
 		return err
 	}
-	if matched != nil {
-		state.handleGridMatched(level, matched)
+	if completedPair != nil {
+		state.handleGridMatched(completedPair)
+	}
+	if isFirstRecord {
+		go state.sendOrderFilleddNotification(sellOrder)
 	}
 
 	lowerLevel := getLowerLevel(state.sortedGrids, level.Level)

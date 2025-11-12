@@ -54,6 +54,8 @@ const (
 	FieldEnableAutoExit = "enable_auto_exit"
 	// FieldEnablePushNotification holds the string denoting the enablepushnotification field in the database.
 	FieldEnablePushNotification = "enable_push_notification"
+	// FieldEnablePushMatchedNotification holds the string denoting the enablepushmatchednotification field in the database.
+	FieldEnablePushMatchedNotification = "enable_push_matched_notification"
 	// FieldLastLowerThresholdAlertTime holds the string denoting the lastlowerthresholdalerttime field in the database.
 	FieldLastLowerThresholdAlertTime = "last_lower_threshold_alert_time"
 	// FieldLastUpperThresholdAlertTime holds the string denoting the lastupperthresholdalerttime field in the database.
@@ -93,6 +95,7 @@ var Columns = []string{
 	FieldSlippageBps,
 	FieldEnableAutoExit,
 	FieldEnablePushNotification,
+	FieldEnablePushMatchedNotification,
 	FieldLastLowerThresholdAlertTime,
 	FieldLastUpperThresholdAlertTime,
 	FieldStatus,
@@ -334,6 +337,11 @@ func ByEnableAutoExit(opts ...sql.OrderTermOption) OrderOption {
 // ByEnablePushNotification orders the results by the enablePushNotification field.
 func ByEnablePushNotification(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnablePushNotification, opts...).ToFunc()
+}
+
+// ByEnablePushMatchedNotification orders the results by the enablePushMatchedNotification field.
+func ByEnablePushMatchedNotification(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnablePushMatchedNotification, opts...).ToFunc()
 }
 
 // ByLastLowerThresholdAlertTime orders the results by the lastLowerThresholdAlertTime field.

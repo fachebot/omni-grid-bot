@@ -40,6 +40,7 @@ func (Strategy) Fields() []ent.Field {
 		field.Int("slippageBps").Min(0).Max(10000).Nillable().Optional(),
 		field.Bool("enableAutoExit"),
 		field.Bool("enablePushNotification"),
+		field.Bool("enablePushMatchedNotification").Nillable().Optional(),
 		field.Time("lastLowerThresholdAlertTime").Nillable().Optional(),
 		field.Time("lastUpperThresholdAlertTime").Nillable().Optional(),
 		field.Enum("status").Values("active", "inactive"),

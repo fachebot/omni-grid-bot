@@ -140,6 +140,11 @@ func EnablePushNotification(v bool) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldEnablePushNotification, v))
 }
 
+// EnablePushMatchedNotification applies equality check predicate on the "enablePushMatchedNotification" field. It's identical to EnablePushMatchedNotificationEQ.
+func EnablePushMatchedNotification(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldEnablePushMatchedNotification, v))
+}
+
 // LastLowerThresholdAlertTime applies equality check predicate on the "lastLowerThresholdAlertTime" field. It's identical to LastLowerThresholdAlertTimeEQ.
 func LastLowerThresholdAlertTime(v time.Time) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldLastLowerThresholdAlertTime, v))
@@ -1103,6 +1108,26 @@ func EnablePushNotificationEQ(v bool) predicate.Strategy {
 // EnablePushNotificationNEQ applies the NEQ predicate on the "enablePushNotification" field.
 func EnablePushNotificationNEQ(v bool) predicate.Strategy {
 	return predicate.Strategy(sql.FieldNEQ(FieldEnablePushNotification, v))
+}
+
+// EnablePushMatchedNotificationEQ applies the EQ predicate on the "enablePushMatchedNotification" field.
+func EnablePushMatchedNotificationEQ(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldEnablePushMatchedNotification, v))
+}
+
+// EnablePushMatchedNotificationNEQ applies the NEQ predicate on the "enablePushMatchedNotification" field.
+func EnablePushMatchedNotificationNEQ(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldEnablePushMatchedNotification, v))
+}
+
+// EnablePushMatchedNotificationIsNil applies the IsNil predicate on the "enablePushMatchedNotification" field.
+func EnablePushMatchedNotificationIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldEnablePushMatchedNotification))
+}
+
+// EnablePushMatchedNotificationNotNil applies the NotNil predicate on the "enablePushMatchedNotification" field.
+func EnablePushMatchedNotificationNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldEnablePushMatchedNotification))
 }
 
 // LastLowerThresholdAlertTimeEQ applies the EQ predicate on the "lastLowerThresholdAlertTime" field.

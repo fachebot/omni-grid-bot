@@ -321,6 +321,26 @@ func (_u *StrategyUpdate) SetNillableEnablePushNotification(v *bool) *StrategyUp
 	return _u
 }
 
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (_u *StrategyUpdate) SetEnablePushMatchedNotification(v bool) *StrategyUpdate {
+	_u.mutation.SetEnablePushMatchedNotification(v)
+	return _u
+}
+
+// SetNillableEnablePushMatchedNotification sets the "enablePushMatchedNotification" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableEnablePushMatchedNotification(v *bool) *StrategyUpdate {
+	if v != nil {
+		_u.SetEnablePushMatchedNotification(*v)
+	}
+	return _u
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (_u *StrategyUpdate) ClearEnablePushMatchedNotification() *StrategyUpdate {
+	_u.mutation.ClearEnablePushMatchedNotification()
+	return _u
+}
+
 // SetLastLowerThresholdAlertTime sets the "lastLowerThresholdAlertTime" field.
 func (_u *StrategyUpdate) SetLastLowerThresholdAlertTime(v time.Time) *StrategyUpdate {
 	_u.mutation.SetLastLowerThresholdAlertTime(v)
@@ -596,6 +616,12 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.EnablePushNotification(); ok {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnablePushMatchedNotification(); ok {
+		_spec.SetField(strategy.FieldEnablePushMatchedNotification, field.TypeBool, value)
+	}
+	if _u.mutation.EnablePushMatchedNotificationCleared() {
+		_spec.ClearField(strategy.FieldEnablePushMatchedNotification, field.TypeBool)
 	}
 	if value, ok := _u.mutation.LastLowerThresholdAlertTime(); ok {
 		_spec.SetField(strategy.FieldLastLowerThresholdAlertTime, field.TypeTime, value)
@@ -933,6 +959,26 @@ func (_u *StrategyUpdateOne) SetNillableEnablePushNotification(v *bool) *Strateg
 	return _u
 }
 
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (_u *StrategyUpdateOne) SetEnablePushMatchedNotification(v bool) *StrategyUpdateOne {
+	_u.mutation.SetEnablePushMatchedNotification(v)
+	return _u
+}
+
+// SetNillableEnablePushMatchedNotification sets the "enablePushMatchedNotification" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableEnablePushMatchedNotification(v *bool) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetEnablePushMatchedNotification(*v)
+	}
+	return _u
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (_u *StrategyUpdateOne) ClearEnablePushMatchedNotification() *StrategyUpdateOne {
+	_u.mutation.ClearEnablePushMatchedNotification()
+	return _u
+}
+
 // SetLastLowerThresholdAlertTime sets the "lastLowerThresholdAlertTime" field.
 func (_u *StrategyUpdateOne) SetLastLowerThresholdAlertTime(v time.Time) *StrategyUpdateOne {
 	_u.mutation.SetLastLowerThresholdAlertTime(v)
@@ -1238,6 +1284,12 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if value, ok := _u.mutation.EnablePushNotification(); ok {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnablePushMatchedNotification(); ok {
+		_spec.SetField(strategy.FieldEnablePushMatchedNotification, field.TypeBool, value)
+	}
+	if _u.mutation.EnablePushMatchedNotificationCleared() {
+		_spec.ClearField(strategy.FieldEnablePushMatchedNotification, field.TypeBool)
 	}
 	if value, ok := _u.mutation.LastLowerThresholdAlertTime(); ok {
 		_spec.SetField(strategy.FieldLastLowerThresholdAlertTime, field.TypeTime, value)

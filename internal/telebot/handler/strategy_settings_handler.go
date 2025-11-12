@@ -25,17 +25,19 @@ import (
 type SettingsOption int
 
 var (
-	SettingsOptionLeverage         SettingsOption = 1
-	SettingsOptionGridNum          SettingsOption = 2
-	SettingsOptionGridMode         SettingsOption = 3
-	SettingsOptionMarginMode       SettingsOption = 4
-	SettingsOptionQuantityMode     SettingsOption = 5
-	SettingsOptionOrderSize        SettingsOption = 6
-	SettingsOptionPriceLower       SettingsOption = 7
-	SettingsOptionPriceUpper       SettingsOption = 8
-	SettingsOptionExchangeSettings SettingsOption = 9
-	SettingsOptionMarketSymbol     SettingsOption = 10
-	SettingsOptionSlippage         SettingsOption = 11
+	SettingsOptionLeverage                      SettingsOption = 1
+	SettingsOptionGridNum                       SettingsOption = 2
+	SettingsOptionGridMode                      SettingsOption = 3
+	SettingsOptionMarginMode                    SettingsOption = 4
+	SettingsOptionQuantityMode                  SettingsOption = 5
+	SettingsOptionOrderSize                     SettingsOption = 6
+	SettingsOptionPriceLower                    SettingsOption = 7
+	SettingsOptionPriceUpper                    SettingsOption = 8
+	SettingsOptionExchangeSettings              SettingsOption = 9
+	SettingsOptionMarketSymbol                  SettingsOption = 10
+	SettingsOptionSlippage                      SettingsOption = 11
+	SettingsOptionEnablePushNotification        SettingsOption = 12
+	SettingsOptionEnablePushMatchedNotification SettingsOption = 13
 )
 
 const (
@@ -112,6 +114,10 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 		return h.handlePriceUpper(ctx, userId, update, record)
 	case SettingsOptionSlippage:
 		return h.handleSlippage(ctx, userId, update, record)
+	case SettingsOptionEnablePushNotification:
+		return h.handleEnablePushNotificatione(ctx, userId, update, record)
+	case SettingsOptionEnablePushMatchedNotification:
+		return h.handleEnablePushMatchedNotification(ctx, userId, update, record)
 	}
 
 	return nil
@@ -626,6 +632,52 @@ func (h *StrategySettingsHandler) handleSlippage(ctx context.Context, userId int
 	return nil
 }
 
+func (h *StrategySettingsHandler) handleEnablePushNotificatione(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	if update.Callback == nil {
+		return nil
+	}
+
+	text := "✅ 配置修改成功"
+	err := h.svcCtx.StrategyModel.UpdateEnablePushNotification(ctx, record.ID, !record.EnablePushNotification)
+	if err == nil {
+		record.EnablePushNotification = !record.EnablePushNotification
+	} else {
+		text = "❌ 配置修改失败, 请稍后重试"
+		logger.Errorf("[StrategySettingsHandler] 更新配置[EnablePushNotification]失败, %v", err)
+	}
+
+	chatId := update.Callback.Message.Chat.ID
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+	return h.refreshSettingsMessage(ctx, userId, update, record)
+}
+
+func (h *StrategySettingsHandler) handleEnablePushMatchedNotification(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	if update.Callback == nil {
+		return nil
+	}
+
+	enablePushMatchedNotification := false
+	if record.EnablePushMatchedNotification != nil && *record.EnablePushMatchedNotification {
+		enablePushMatchedNotification = true
+	}
+
+	text := "✅ 配置修改成功"
+	err := h.svcCtx.StrategyModel.UpdateEnablePushMatchedNotification(ctx, record.ID, !enablePushMatchedNotification)
+	if err == nil {
+		enablePushMatchedNotification = !enablePushMatchedNotification
+		record.EnablePushMatchedNotification = &enablePushMatchedNotification
+	} else {
+		text = "❌ 配置修改失败, 请稍后重试"
+		logger.Errorf("[StrategySettingsHandler] 更新配置[EnablePushMatchedNotification]失败, %v", err)
+	}
+
+	chatId := update.Callback.Message.Chat.ID
+	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+	return h.refreshSettingsMessage(ctx, userId, update, record)
+}
+
 func GenerateGridList(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) []decimal.Decimal {
 	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
@@ -782,8 +834,9 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 				{Text: fmt.Sprintf("⚖️ 市价交易滑点: %v%%", float64(slippageBps)/10000*100.0), Data: h.FormatPath(record.GUID, SettingsOptionSlippage)},
 			},
 			{
-				{Text: "🔴 关闭成交通知", Data: "/"},
-				{Text: "🔴 关闭匹配通知", Data: "/"},
+				{Text: lo.If(record.EnablePushNotification, "🟢 开启成交通知").Else("🔴 关闭成交通知"), Data: h.FormatPath(record.GUID, SettingsOptionEnablePushNotification)},
+				{Text: lo.If(record.EnablePushMatchedNotification != nil && *record.EnablePushMatchedNotification, "🟢 开启匹配通知").Else("🔴 关闭匹配通知"),
+					Data: h.FormatPath(record.GUID, SettingsOptionEnablePushMatchedNotification)},
 			},
 			{
 				{Text: "◀️ 返回上级", Data: StrategyDetailsHandler{}.FormatPath(record.GUID)},

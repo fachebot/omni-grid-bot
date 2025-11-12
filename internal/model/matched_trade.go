@@ -42,14 +42,16 @@ func (m *MatchedTradeModel) QueryTotalProfit(ctx context.Context, strategyId str
 	return v[0].Sum, nil
 }
 
-func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId string, buyOrder *ent.Order) (matched *ent.MatchedTrade, err error) {
+func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
+	ctx context.Context, strategyId string, buyOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
+
 	ps := []predicate.MatchedTrade{
 		matchedtrade.StrategyIdEQ(strategyId),
 		matchedtrade.BuyClientOrderIdEQ(buyOrder.ClientOrderId),
 	}
 	r, err := m.client.Query().Where(ps...).First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		return matched, err
+		return isFirstRecord, completedPair, err
 	}
 
 	if err == nil {
@@ -60,19 +62,21 @@ func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId strin
 			SetBuyOrderTimestamp(buyOrder.Timestamp).
 			Exec(ctx)
 		if err != nil {
-			return matched, err
+			return isFirstRecord, completedPair, err
 		}
 
 		if r.SellClientOrderId != nil && r.SellOrderTimestamp != nil {
-			matched = r
+			completedPair = r
 			r.BuyBaseAmount = &buyOrder.FilledBaseAmount
 			r.BuyQuoteAmount = &buyOrder.FilledQuoteAmount
 			r.BuyOrderTimestamp = &buyOrder.Timestamp
 		}
 
-		return matched, nil
+		isFirstRecord = r.BuyOrderTimestamp == nil
+		return isFirstRecord, completedPair, nil
 	}
 
+	isFirstRecord = true
 	args := ent.MatchedTrade{
 		StrategyId:        strategyId,
 		Symbol:            buyOrder.Symbol,
@@ -82,20 +86,22 @@ func (m *MatchedTradeModel) EnsureBuyOrder(ctx context.Context, strategyId strin
 		BuyOrderTimestamp: &buyOrder.Timestamp,
 	}
 	if err = m.Create(ctx, args); err != nil {
-		return matched, err
+		return isFirstRecord, completedPair, err
 	}
 
-	return matched, nil
+	return isFirstRecord, completedPair, nil
 }
 
-func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId string, sellOrder *ent.Order) (matched *ent.MatchedTrade, err error) {
+func (m *MatchedTradeModel) RecordAndMatchSellOrder(
+	ctx context.Context, strategyId string, sellOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
+
 	ps := []predicate.MatchedTrade{
 		matchedtrade.StrategyIdEQ(strategyId),
 		matchedtrade.SellClientOrderIdEQ(sellOrder.ClientOrderId),
 	}
 	r, err := m.client.Query().Where(ps...).First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		return matched, err
+		return isFirstRecord, completedPair, err
 	}
 
 	if err == nil {
@@ -107,19 +113,21 @@ func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId stri
 			Exec(ctx)
 
 		if err != nil {
-			return matched, err
+			return isFirstRecord, completedPair, err
 		}
 
 		if r.BuyClientOrderId != nil && r.BuyOrderTimestamp != nil {
-			matched = r
+			completedPair = r
 			r.SellBaseAmount = &sellOrder.FilledBaseAmount
 			r.SellQuoteAmount = &sellOrder.FilledQuoteAmount
 			r.SellOrderTimestamp = &sellOrder.Timestamp
 		}
 
-		return matched, nil
+		isFirstRecord = r.BuyOrderTimestamp == nil
+		return isFirstRecord, completedPair, nil
 	}
 
+	isFirstRecord = true
 	args := ent.MatchedTrade{
 		StrategyId:         strategyId,
 		Symbol:             sellOrder.Symbol,
@@ -129,10 +137,10 @@ func (m *MatchedTradeModel) EnsureSellOrder(ctx context.Context, strategyId stri
 		SellOrderTimestamp: &sellOrder.Timestamp,
 	}
 	if err = m.Create(ctx, args); err != nil {
-		return matched, err
+		return isFirstRecord, completedPair, err
 	}
 
-	return matched, nil
+	return isFirstRecord, completedPair, nil
 }
 
 func (m *MatchedTradeModel) UpdateProfit(ctx context.Context, id int, value float64) error {

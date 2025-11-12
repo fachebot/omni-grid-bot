@@ -145,6 +145,7 @@ var (
 		{Name: "slippage_bps", Type: field.TypeInt, Nullable: true},
 		{Name: "enable_auto_exit", Type: field.TypeBool},
 		{Name: "enable_push_notification", Type: field.TypeBool},
+		{Name: "enable_push_matched_notification", Type: field.TypeBool, Nullable: true},
 		{Name: "last_lower_threshold_alert_time", Type: field.TypeTime, Nullable: true},
 		{Name: "last_upper_threshold_alert_time", Type: field.TypeTime, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}},

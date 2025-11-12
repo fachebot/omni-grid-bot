@@ -38,6 +38,7 @@ func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strat
 		SetNillableSlippageBps(args.SlippageBps).
 		SetEnableAutoExit(args.EnableAutoExit).
 		SetEnablePushNotification(args.EnablePushNotification).
+		SetNillableEnablePushMatchedNotification(args.EnablePushMatchedNotification).
 		SetNillableLastLowerThresholdAlertTime(args.LastLowerThresholdAlertTime).
 		SetNillableLastUpperThresholdAlertTime(args.LastUpperThresholdAlertTime).
 		SetStatus(args.Status).
@@ -146,6 +147,14 @@ func (m *StrategyModel) UpdatePriceLower(ctx context.Context, id int, newValue d
 
 func (m *StrategyModel) UpdatePriceUpper(ctx context.Context, id int, newValue decimal.Decimal) error {
 	return m.client.UpdateOneID(id).SetPriceUpper(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateEnablePushNotification(ctx context.Context, id int, newValue bool) error {
+	return m.client.UpdateOneID(id).SetEnablePushNotification(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateEnablePushMatchedNotification(ctx context.Context, id int, newValue bool) error {
+	return m.client.UpdateOneID(id).SetEnablePushMatchedNotification(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) Delete(ctx context.Context, id int) error {

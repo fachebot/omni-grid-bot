@@ -58,6 +58,8 @@ type Strategy struct {
 	EnableAutoExit bool `json:"enableAutoExit,omitempty"`
 	// EnablePushNotification holds the value of the "enablePushNotification" field.
 	EnablePushNotification bool `json:"enablePushNotification,omitempty"`
+	// EnablePushMatchedNotification holds the value of the "enablePushMatchedNotification" field.
+	EnablePushMatchedNotification *bool `json:"enablePushMatchedNotification,omitempty"`
 	// LastLowerThresholdAlertTime holds the value of the "lastLowerThresholdAlertTime" field.
 	LastLowerThresholdAlertTime *time.Time `json:"lastLowerThresholdAlertTime,omitempty"`
 	// LastUpperThresholdAlertTime holds the value of the "lastUpperThresholdAlertTime" field.
@@ -80,7 +82,7 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize, strategy.FieldStopLossRatio, strategy.FieldTakeProfitRatio:
 			values[i] = new(decimal.Decimal)
-		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification:
+		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification:
 			values[i] = new(sql.NullBool)
 		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage, strategy.FieldSlippageBps:
 			values[i] = new(sql.NullInt64)
@@ -230,6 +232,13 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.EnablePushNotification = value.Bool
 			}
+		case strategy.FieldEnablePushMatchedNotification:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enablePushMatchedNotification", values[i])
+			} else if value.Valid {
+				_m.EnablePushMatchedNotification = new(bool)
+				*_m.EnablePushMatchedNotification = value.Bool
+			}
 		case strategy.FieldLastLowerThresholdAlertTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field lastLowerThresholdAlertTime", values[i])
@@ -365,6 +374,11 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enablePushNotification=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnablePushNotification))
+	builder.WriteString(", ")
+	if v := _m.EnablePushMatchedNotification; v != nil {
+		builder.WriteString("enablePushMatchedNotification=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := _m.LastLowerThresholdAlertTime; v != nil {
 		builder.WriteString("lastLowerThresholdAlertTime=")

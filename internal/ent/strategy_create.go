@@ -183,6 +183,20 @@ func (_c *StrategyCreate) SetEnablePushNotification(v bool) *StrategyCreate {
 	return _c
 }
 
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (_c *StrategyCreate) SetEnablePushMatchedNotification(v bool) *StrategyCreate {
+	_c.mutation.SetEnablePushMatchedNotification(v)
+	return _c
+}
+
+// SetNillableEnablePushMatchedNotification sets the "enablePushMatchedNotification" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableEnablePushMatchedNotification(v *bool) *StrategyCreate {
+	if v != nil {
+		_c.SetEnablePushMatchedNotification(*v)
+	}
+	return _c
+}
+
 // SetLastLowerThresholdAlertTime sets the "lastLowerThresholdAlertTime" field.
 func (_c *StrategyCreate) SetLastLowerThresholdAlertTime(v time.Time) *StrategyCreate {
 	_c.mutation.SetLastLowerThresholdAlertTime(v)
@@ -516,6 +530,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)
 		_node.EnablePushNotification = value
 	}
+	if value, ok := _c.mutation.EnablePushMatchedNotification(); ok {
+		_spec.SetField(strategy.FieldEnablePushMatchedNotification, field.TypeBool, value)
+		_node.EnablePushMatchedNotification = &value
+	}
 	if value, ok := _c.mutation.LastLowerThresholdAlertTime(); ok {
 		_spec.SetField(strategy.FieldLastLowerThresholdAlertTime, field.TypeTime, value)
 		_node.LastLowerThresholdAlertTime = &value
@@ -847,6 +865,24 @@ func (u *StrategyUpsert) SetEnablePushNotification(v bool) *StrategyUpsert {
 // UpdateEnablePushNotification sets the "enablePushNotification" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateEnablePushNotification() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldEnablePushNotification)
+	return u
+}
+
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (u *StrategyUpsert) SetEnablePushMatchedNotification(v bool) *StrategyUpsert {
+	u.Set(strategy.FieldEnablePushMatchedNotification, v)
+	return u
+}
+
+// UpdateEnablePushMatchedNotification sets the "enablePushMatchedNotification" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateEnablePushMatchedNotification() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldEnablePushMatchedNotification)
+	return u
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (u *StrategyUpsert) ClearEnablePushMatchedNotification() *StrategyUpsert {
+	u.SetNull(strategy.FieldEnablePushMatchedNotification)
 	return u
 }
 
@@ -1277,6 +1313,27 @@ func (u *StrategyUpsertOne) SetEnablePushNotification(v bool) *StrategyUpsertOne
 func (u *StrategyUpsertOne) UpdateEnablePushNotification() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateEnablePushNotification()
+	})
+}
+
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (u *StrategyUpsertOne) SetEnablePushMatchedNotification(v bool) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetEnablePushMatchedNotification(v)
+	})
+}
+
+// UpdateEnablePushMatchedNotification sets the "enablePushMatchedNotification" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateEnablePushMatchedNotification() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateEnablePushMatchedNotification()
+	})
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (u *StrategyUpsertOne) ClearEnablePushMatchedNotification() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearEnablePushMatchedNotification()
 	})
 }
 
@@ -1887,6 +1944,27 @@ func (u *StrategyUpsertBulk) SetEnablePushNotification(v bool) *StrategyUpsertBu
 func (u *StrategyUpsertBulk) UpdateEnablePushNotification() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateEnablePushNotification()
+	})
+}
+
+// SetEnablePushMatchedNotification sets the "enablePushMatchedNotification" field.
+func (u *StrategyUpsertBulk) SetEnablePushMatchedNotification(v bool) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetEnablePushMatchedNotification(v)
+	})
+}
+
+// UpdateEnablePushMatchedNotification sets the "enablePushMatchedNotification" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateEnablePushMatchedNotification() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateEnablePushMatchedNotification()
+	})
+}
+
+// ClearEnablePushMatchedNotification clears the value of the "enablePushMatchedNotification" field.
+func (u *StrategyUpsertBulk) ClearEnablePushMatchedNotification() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearEnablePushMatchedNotification()
 	})
 }
 
