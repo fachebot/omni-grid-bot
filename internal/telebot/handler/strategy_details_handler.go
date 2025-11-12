@@ -204,35 +204,35 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl)
 	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl)
 
-	if record.Status == strategy.StatusActive {
-		// 查询最新价格
-		lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
-		if err != nil {
-			logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
-		}
+	// 查询最新价格
+	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
+	if err != nil {
+		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
+	}
 
-		// 查询网格列表
-		grids, err := svcCtx.GridModel.FindAllByStrategyIdOrderAsc(ctx, record.GUID)
-		if err != nil {
-			logger.Errorf("[StrategyDetailsText] 查询网格列表失败, id: %s, %v", record.GUID, err)
-		}
-		grids = lo.Filter(grids, func(item *ent.Grid, idx int) bool {
-			return item.BuyClientOrderId != nil || item.SellClientOrderId != nil
-		})
+	// 查询网格列表
+	grids, err := svcCtx.GridModel.FindAllByStrategyIdOrderAsc(ctx, record.GUID)
+	if err != nil {
+		logger.Errorf("[StrategyDetailsText] 查询网格列表失败, id: %s, %v", record.GUID, err)
+	}
+	grids = lo.Filter(grids, func(item *ent.Grid, idx int) bool {
+		return item.BuyClientOrderId != nil || item.SellClientOrderId != nil
+	})
 
+	if len(grids) == 0 {
+		text += fmt.Sprintf("➖[💵] *当前价格*: $*%s*\n\n", lastPrice)
+	} else {
 		totalInvestment := decimal.Zero
-		if len(grids) > 0 {
-			for _, lvl := range grids {
-				totalInvestment = totalInvestment.Add(lvl.Quantity.Mul(lvl.Price))
-			}
-			gridList := formatGridListWithCurrentPrice(lastPrice, grids)
-			if record.Mode == strategy.ModeLong {
-				slices.Reverse(gridList)
-			}
-			text += "🟢 买入订单 | 🔴 卖出订单\n\n" + strings.Join(gridList, "\n")
-			text += fmt.Sprintf("\n\n总投资额: $%v\n", totalInvestment)
-			text += fmt.Sprintf("初始保证金: $%v\n\n", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
+		for _, lvl := range grids {
+			totalInvestment = totalInvestment.Add(lvl.Quantity.Mul(lvl.Price))
 		}
+		gridList := formatGridListWithCurrentPrice(lastPrice, grids)
+		if record.Mode == strategy.ModeLong {
+			slices.Reverse(gridList)
+		}
+		text += "🟢 买入订单 | 🔴 卖出订单\n\n" + strings.Join(gridList, "\n")
+		text += fmt.Sprintf("\n\n总投资额: $%v\n", totalInvestment)
+		text += fmt.Sprintf("初始保证金: $%v\n\n", totalInvestment.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
 	}
 
 	text += fmt.Sprintf("🕒 更新时间: [%s]\n\n⚠️ 重要提示:\n▸ *停止策略会清空之前的网格记录!*", util.FormaTime(time.Now()))
