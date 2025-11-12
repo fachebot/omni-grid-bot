@@ -136,6 +136,19 @@ func formatGridListWithCurrentPrice(lastPrice decimal.Decimal, grids []*ent.Grid
 	return gridLabels
 }
 
+func marketSymbol(record *ent.Strategy) string {
+	if record.Symbol == "" {
+		return "未设置"
+	}
+
+	switch record.Exchange {
+	case exchange.Lighter:
+		return fmt.Sprintf("[%s](https://app.lighter.xyz/trade/%s)", record.Symbol, record.Symbol)
+	default:
+		return "未设置"
+	}
+}
+
 func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) string {
 	name := StrategyName(record)
 	text := fmt.Sprintf("*%s* | 策略详情 `%s`\n\n", svcCtx.Config.AppName, name)
@@ -175,7 +188,7 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	positionSide := lo.If(record.Mode == strategy.ModeLong, "做多").Else("做空")
 	marginMode := lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓")
 	text += fmt.Sprintf("┣ 方向: %s | 杠杆: %dX | %s\n", positionSide, record.Leverage, marginMode)
-	text += fmt.Sprintf("┣ 交易标的: %s\n", lo.If(record.Symbol != "", record.Symbol).Else("未设置"))
+	text += fmt.Sprintf("┣ 交易标的: %s\n", marketSymbol(record))
 	text += fmt.Sprintf("┣ 价格区间: %s\n", lo.If(record.PriceLower.IsZero() || record.PriceUpper.IsZero(), "未设置").
 		Else(fmt.Sprintf("$%s ~ $%s", record.PriceLower, record.PriceUpper)))
 	text += fmt.Sprintf("┗ 单格投入: %s\n\n", lo.If(record.Symbol != "" && !record.InitialOrderSize.IsZero(), fmt.Sprintf("%s %s", record.InitialOrderSize, record.Symbol)).Else("未设置"))
