@@ -48,6 +48,8 @@ const (
 	FieldStopLossRatio = "stop_loss_ratio"
 	// FieldTakeProfitRatio holds the string denoting the takeprofitratio field in the database.
 	FieldTakeProfitRatio = "take_profit_ratio"
+	// FieldSlippageBps holds the string denoting the slippagebps field in the database.
+	FieldSlippageBps = "slippage_bps"
 	// FieldEnableAutoExit holds the string denoting the enableautoexit field in the database.
 	FieldEnableAutoExit = "enable_auto_exit"
 	// FieldEnablePushNotification holds the string denoting the enablepushnotification field in the database.
@@ -88,6 +90,7 @@ var Columns = []string{
 	FieldInitialOrderSize,
 	FieldStopLossRatio,
 	FieldTakeProfitRatio,
+	FieldSlippageBps,
 	FieldEnableAutoExit,
 	FieldEnablePushNotification,
 	FieldLastLowerThresholdAlertTime,
@@ -129,6 +132,8 @@ var (
 	DefaultLeverage int
 	// LeverageValidator is a validator for the "leverage" field. It is called by the builders before save.
 	LeverageValidator func(int) error
+	// SlippageBpsValidator is a validator for the "slippageBps" field. It is called by the builders before save.
+	SlippageBpsValidator func(int) error
 )
 
 // Mode defines the type for the "mode" enum field.
@@ -314,6 +319,11 @@ func ByStopLossRatio(opts ...sql.OrderTermOption) OrderOption {
 // ByTakeProfitRatio orders the results by the takeProfitRatio field.
 func ByTakeProfitRatio(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTakeProfitRatio, opts...).ToFunc()
+}
+
+// BySlippageBps orders the results by the slippageBps field.
+func BySlippageBps(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSlippageBps, opts...).ToFunc()
 }
 
 // ByEnableAutoExit orders the results by the enableAutoExit field.

@@ -15,6 +15,10 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
+const (
+	DefaultSlippageBps = 50
+)
+
 func StrategyName(record *ent.Strategy) string {
 	return record.GUID[len(record.GUID)-4:]
 }
@@ -25,8 +29,13 @@ func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.
 		return err
 	}
 
+	slippageBps := DefaultSlippageBps
+	if record.SlippageBps != nil {
+		slippageBps = *record.SlippageBps
+	}
+
 	side := lo.If(record.Mode == strategy.ModeLong, helper.LONG).Else(helper.SHORT)
-	return adapter.ClosePosition(ctx, record.Symbol, side, 50)
+	return adapter.ClosePosition(ctx, record.Symbol, side, slippageBps)
 }
 
 func GetStrategyEngine(ctx context.Context) (*engine.StrategyEngine, bool) {

@@ -266,6 +266,33 @@ func (_u *StrategyUpdate) SetNillableTakeProfitRatio(v *decimal.Decimal) *Strate
 	return _u
 }
 
+// SetSlippageBps sets the "slippageBps" field.
+func (_u *StrategyUpdate) SetSlippageBps(v int) *StrategyUpdate {
+	_u.mutation.ResetSlippageBps()
+	_u.mutation.SetSlippageBps(v)
+	return _u
+}
+
+// SetNillableSlippageBps sets the "slippageBps" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableSlippageBps(v *int) *StrategyUpdate {
+	if v != nil {
+		_u.SetSlippageBps(*v)
+	}
+	return _u
+}
+
+// AddSlippageBps adds value to the "slippageBps" field.
+func (_u *StrategyUpdate) AddSlippageBps(v int) *StrategyUpdate {
+	_u.mutation.AddSlippageBps(v)
+	return _u
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (_u *StrategyUpdate) ClearSlippageBps() *StrategyUpdate {
+	_u.mutation.ClearSlippageBps()
+	return _u
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (_u *StrategyUpdate) SetEnableAutoExit(v bool) *StrategyUpdate {
 	_u.mutation.SetEnableAutoExit(v)
@@ -473,6 +500,11 @@ func (_u *StrategyUpdate) check() error {
 			return &ValidationError{Name: "leverage", err: fmt.Errorf(`ent: validator failed for field "Strategy.leverage": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SlippageBps(); ok {
+		if err := strategy.SlippageBpsValidator(v); err != nil {
+			return &ValidationError{Name: "slippageBps", err: fmt.Errorf(`ent: validator failed for field "Strategy.slippageBps": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := strategy.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Strategy.status": %w`, err)}
@@ -549,6 +581,15 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SlippageBps(); ok {
+		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSlippageBps(); ok {
+		_spec.AddField(strategy.FieldSlippageBps, field.TypeInt, value)
+	}
+	if _u.mutation.SlippageBpsCleared() {
+		_spec.ClearField(strategy.FieldSlippageBps, field.TypeInt)
 	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
@@ -837,6 +878,33 @@ func (_u *StrategyUpdateOne) SetNillableTakeProfitRatio(v *decimal.Decimal) *Str
 	return _u
 }
 
+// SetSlippageBps sets the "slippageBps" field.
+func (_u *StrategyUpdateOne) SetSlippageBps(v int) *StrategyUpdateOne {
+	_u.mutation.ResetSlippageBps()
+	_u.mutation.SetSlippageBps(v)
+	return _u
+}
+
+// SetNillableSlippageBps sets the "slippageBps" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableSlippageBps(v *int) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetSlippageBps(*v)
+	}
+	return _u
+}
+
+// AddSlippageBps adds value to the "slippageBps" field.
+func (_u *StrategyUpdateOne) AddSlippageBps(v int) *StrategyUpdateOne {
+	_u.mutation.AddSlippageBps(v)
+	return _u
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (_u *StrategyUpdateOne) ClearSlippageBps() *StrategyUpdateOne {
+	_u.mutation.ClearSlippageBps()
+	return _u
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (_u *StrategyUpdateOne) SetEnableAutoExit(v bool) *StrategyUpdateOne {
 	_u.mutation.SetEnableAutoExit(v)
@@ -1057,6 +1125,11 @@ func (_u *StrategyUpdateOne) check() error {
 			return &ValidationError{Name: "leverage", err: fmt.Errorf(`ent: validator failed for field "Strategy.leverage": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SlippageBps(); ok {
+		if err := strategy.SlippageBpsValidator(v); err != nil {
+			return &ValidationError{Name: "slippageBps", err: fmt.Errorf(`ent: validator failed for field "Strategy.slippageBps": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := strategy.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Strategy.status": %w`, err)}
@@ -1150,6 +1223,15 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if value, ok := _u.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SlippageBps(); ok {
+		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSlippageBps(); ok {
+		_spec.AddField(strategy.FieldSlippageBps, field.TypeInt, value)
+	}
+	if _u.mutation.SlippageBpsCleared() {
+		_spec.ClearField(strategy.FieldSlippageBps, field.TypeInt)
 	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)

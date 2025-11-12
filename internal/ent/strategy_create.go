@@ -157,6 +157,20 @@ func (_c *StrategyCreate) SetTakeProfitRatio(v decimal.Decimal) *StrategyCreate 
 	return _c
 }
 
+// SetSlippageBps sets the "slippageBps" field.
+func (_c *StrategyCreate) SetSlippageBps(v int) *StrategyCreate {
+	_c.mutation.SetSlippageBps(v)
+	return _c
+}
+
+// SetNillableSlippageBps sets the "slippageBps" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableSlippageBps(v *int) *StrategyCreate {
+	if v != nil {
+		_c.SetSlippageBps(*v)
+	}
+	return _c
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (_c *StrategyCreate) SetEnableAutoExit(v bool) *StrategyCreate {
 	_c.mutation.SetEnableAutoExit(v)
@@ -367,6 +381,11 @@ func (_c *StrategyCreate) check() error {
 	if _, ok := _c.mutation.TakeProfitRatio(); !ok {
 		return &ValidationError{Name: "takeProfitRatio", err: errors.New(`ent: missing required field "Strategy.takeProfitRatio"`)}
 	}
+	if v, ok := _c.mutation.SlippageBps(); ok {
+		if err := strategy.SlippageBpsValidator(v); err != nil {
+			return &ValidationError{Name: "slippageBps", err: fmt.Errorf(`ent: validator failed for field "Strategy.slippageBps": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.EnableAutoExit(); !ok {
 		return &ValidationError{Name: "enableAutoExit", err: errors.New(`ent: missing required field "Strategy.enableAutoExit"`)}
 	}
@@ -484,6 +503,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TakeProfitRatio(); ok {
 		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
 		_node.TakeProfitRatio = value
+	}
+	if value, ok := _c.mutation.SlippageBps(); ok {
+		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
+		_node.SlippageBps = &value
 	}
 	if value, ok := _c.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
@@ -776,6 +799,30 @@ func (u *StrategyUpsert) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpsert {
 // UpdateTakeProfitRatio sets the "takeProfitRatio" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateTakeProfitRatio() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldTakeProfitRatio)
+	return u
+}
+
+// SetSlippageBps sets the "slippageBps" field.
+func (u *StrategyUpsert) SetSlippageBps(v int) *StrategyUpsert {
+	u.Set(strategy.FieldSlippageBps, v)
+	return u
+}
+
+// UpdateSlippageBps sets the "slippageBps" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateSlippageBps() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldSlippageBps)
+	return u
+}
+
+// AddSlippageBps adds v to the "slippageBps" field.
+func (u *StrategyUpsert) AddSlippageBps(v int) *StrategyUpsert {
+	u.Add(strategy.FieldSlippageBps, v)
+	return u
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (u *StrategyUpsert) ClearSlippageBps() *StrategyUpsert {
+	u.SetNull(strategy.FieldSlippageBps)
 	return u
 }
 
@@ -1174,6 +1221,34 @@ func (u *StrategyUpsertOne) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpser
 func (u *StrategyUpsertOne) UpdateTakeProfitRatio() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateTakeProfitRatio()
+	})
+}
+
+// SetSlippageBps sets the "slippageBps" field.
+func (u *StrategyUpsertOne) SetSlippageBps(v int) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetSlippageBps(v)
+	})
+}
+
+// AddSlippageBps adds v to the "slippageBps" field.
+func (u *StrategyUpsertOne) AddSlippageBps(v int) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.AddSlippageBps(v)
+	})
+}
+
+// UpdateSlippageBps sets the "slippageBps" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateSlippageBps() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateSlippageBps()
+	})
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (u *StrategyUpsertOne) ClearSlippageBps() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearSlippageBps()
 	})
 }
 
@@ -1756,6 +1831,34 @@ func (u *StrategyUpsertBulk) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpse
 func (u *StrategyUpsertBulk) UpdateTakeProfitRatio() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateTakeProfitRatio()
+	})
+}
+
+// SetSlippageBps sets the "slippageBps" field.
+func (u *StrategyUpsertBulk) SetSlippageBps(v int) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetSlippageBps(v)
+	})
+}
+
+// AddSlippageBps adds v to the "slippageBps" field.
+func (u *StrategyUpsertBulk) AddSlippageBps(v int) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.AddSlippageBps(v)
+	})
+}
+
+// UpdateSlippageBps sets the "slippageBps" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateSlippageBps() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateSlippageBps()
+	})
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (u *StrategyUpsertBulk) ClearSlippageBps() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearSlippageBps()
 	})
 }
 

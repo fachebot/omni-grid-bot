@@ -117,6 +117,24 @@ func init() {
 	strategy.DefaultLeverage = strategyDescLeverage.Default.(int)
 	// strategy.LeverageValidator is a validator for the "leverage" field. It is called by the builders before save.
 	strategy.LeverageValidator = strategyDescLeverage.Validators[0].(func(int) error)
+	// strategyDescSlippageBps is the schema descriptor for slippageBps field.
+	strategyDescSlippageBps := strategyFields[15].Descriptor()
+	// strategy.SlippageBpsValidator is a validator for the "slippageBps" field. It is called by the builders before save.
+	strategy.SlippageBpsValidator = func() func(int) error {
+		validators := strategyDescSlippageBps.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(slippageBps int) error {
+			for _, fn := range fns {
+				if err := fn(slippageBps); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	syncprogressMixin := schema.SyncProgress{}.Mixin()
 	syncprogressMixinFields0 := syncprogressMixin[0].Fields()
 	_ = syncprogressMixinFields0

@@ -3524,6 +3524,8 @@ type StrategyMutation struct {
 	initialOrderSize            *decimal.Decimal
 	stopLossRatio               *decimal.Decimal
 	takeProfitRatio             *decimal.Decimal
+	slippageBps                 *int
+	addslippageBps              *int
 	enableAutoExit              *bool
 	enablePushNotification      *bool
 	lastLowerThresholdAlertTime *time.Time
@@ -4308,6 +4310,76 @@ func (m *StrategyMutation) ResetTakeProfitRatio() {
 	m.takeProfitRatio = nil
 }
 
+// SetSlippageBps sets the "slippageBps" field.
+func (m *StrategyMutation) SetSlippageBps(i int) {
+	m.slippageBps = &i
+	m.addslippageBps = nil
+}
+
+// SlippageBps returns the value of the "slippageBps" field in the mutation.
+func (m *StrategyMutation) SlippageBps() (r int, exists bool) {
+	v := m.slippageBps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlippageBps returns the old "slippageBps" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldSlippageBps(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlippageBps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlippageBps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlippageBps: %w", err)
+	}
+	return oldValue.SlippageBps, nil
+}
+
+// AddSlippageBps adds i to the "slippageBps" field.
+func (m *StrategyMutation) AddSlippageBps(i int) {
+	if m.addslippageBps != nil {
+		*m.addslippageBps += i
+	} else {
+		m.addslippageBps = &i
+	}
+}
+
+// AddedSlippageBps returns the value that was added to the "slippageBps" field in this mutation.
+func (m *StrategyMutation) AddedSlippageBps() (r int, exists bool) {
+	v := m.addslippageBps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSlippageBps clears the value of the "slippageBps" field.
+func (m *StrategyMutation) ClearSlippageBps() {
+	m.slippageBps = nil
+	m.addslippageBps = nil
+	m.clearedFields[strategy.FieldSlippageBps] = struct{}{}
+}
+
+// SlippageBpsCleared returns if the "slippageBps" field was cleared in this mutation.
+func (m *StrategyMutation) SlippageBpsCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldSlippageBps]
+	return ok
+}
+
+// ResetSlippageBps resets all changes to the "slippageBps" field.
+func (m *StrategyMutation) ResetSlippageBps() {
+	m.slippageBps = nil
+	m.addslippageBps = nil
+	delete(m.clearedFields, strategy.FieldSlippageBps)
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (m *StrategyMutation) SetEnableAutoExit(b bool) {
 	m.enableAutoExit = &b
@@ -4656,7 +4728,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 25)
+	fields := make([]string, 0, 26)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -4707,6 +4779,9 @@ func (m *StrategyMutation) Fields() []string {
 	}
 	if m.takeProfitRatio != nil {
 		fields = append(fields, strategy.FieldTakeProfitRatio)
+	}
+	if m.slippageBps != nil {
+		fields = append(fields, strategy.FieldSlippageBps)
 	}
 	if m.enableAutoExit != nil {
 		fields = append(fields, strategy.FieldEnableAutoExit)
@@ -4774,6 +4849,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.StopLossRatio()
 	case strategy.FieldTakeProfitRatio:
 		return m.TakeProfitRatio()
+	case strategy.FieldSlippageBps:
+		return m.SlippageBps()
 	case strategy.FieldEnableAutoExit:
 		return m.EnableAutoExit()
 	case strategy.FieldEnablePushNotification:
@@ -4833,6 +4910,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStopLossRatio(ctx)
 	case strategy.FieldTakeProfitRatio:
 		return m.OldTakeProfitRatio(ctx)
+	case strategy.FieldSlippageBps:
+		return m.OldSlippageBps(ctx)
 	case strategy.FieldEnableAutoExit:
 		return m.OldEnableAutoExit(ctx)
 	case strategy.FieldEnablePushNotification:
@@ -4977,6 +5056,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTakeProfitRatio(v)
 		return nil
+	case strategy.FieldSlippageBps:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlippageBps(v)
+		return nil
 	case strategy.FieldEnableAutoExit:
 		v, ok := value.(bool)
 		if !ok {
@@ -5050,6 +5136,9 @@ func (m *StrategyMutation) AddedFields() []string {
 	if m.addleverage != nil {
 		fields = append(fields, strategy.FieldLeverage)
 	}
+	if m.addslippageBps != nil {
+		fields = append(fields, strategy.FieldSlippageBps)
+	}
 	return fields
 }
 
@@ -5064,6 +5153,8 @@ func (m *StrategyMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedGridNum()
 	case strategy.FieldLeverage:
 		return m.AddedLeverage()
+	case strategy.FieldSlippageBps:
+		return m.AddedSlippageBps()
 	}
 	return nil, false
 }
@@ -5094,6 +5185,13 @@ func (m *StrategyMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddLeverage(v)
 		return nil
+	case strategy.FieldSlippageBps:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSlippageBps(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Strategy numeric field %s", name)
 }
@@ -5102,6 +5200,9 @@ func (m *StrategyMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *StrategyMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(strategy.FieldSlippageBps) {
+		fields = append(fields, strategy.FieldSlippageBps)
+	}
 	if m.FieldCleared(strategy.FieldLastLowerThresholdAlertTime) {
 		fields = append(fields, strategy.FieldLastLowerThresholdAlertTime)
 	}
@@ -5122,6 +5223,9 @@ func (m *StrategyMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *StrategyMutation) ClearField(name string) error {
 	switch name {
+	case strategy.FieldSlippageBps:
+		m.ClearSlippageBps()
+		return nil
 	case strategy.FieldLastLowerThresholdAlertTime:
 		m.ClearLastLowerThresholdAlertTime()
 		return nil
@@ -5186,6 +5290,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldTakeProfitRatio:
 		m.ResetTakeProfitRatio()
+		return nil
+	case strategy.FieldSlippageBps:
+		m.ResetSlippageBps()
 		return nil
 	case strategy.FieldEnableAutoExit:
 		m.ResetEnableAutoExit()

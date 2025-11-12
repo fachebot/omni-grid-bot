@@ -35,6 +35,7 @@ func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strat
 		SetInitialOrderSize(args.InitialOrderSize).
 		SetStopLossRatio(args.StopLossRatio).
 		SetTakeProfitRatio(args.TakeProfitRatio).
+		SetNillableSlippageBps(args.SlippageBps).
 		SetEnableAutoExit(args.EnableAutoExit).
 		SetEnablePushNotification(args.EnablePushNotification).
 		SetNillableLastLowerThresholdAlertTime(args.LastLowerThresholdAlertTime).
@@ -129,6 +130,10 @@ func (m *StrategyModel) UpdateGridNum(ctx context.Context, id int, newValue int)
 
 func (m *StrategyModel) UpdateSymbol(ctx context.Context, id int, newValue string) error {
 	return m.client.UpdateOneID(id).SetSymbol(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateSlippageBps(ctx context.Context, id int, newValue int) error {
+	return m.client.UpdateOneID(id).SetSlippageBps(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) UpdateInitialOrderSize(ctx context.Context, id int, newValue decimal.Decimal) error {

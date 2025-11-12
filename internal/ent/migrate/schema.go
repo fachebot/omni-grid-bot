@@ -142,6 +142,7 @@ var (
 		{Name: "initial_order_size", Type: field.TypeString},
 		{Name: "stop_loss_ratio", Type: field.TypeString},
 		{Name: "take_profit_ratio", Type: field.TypeString},
+		{Name: "slippage_bps", Type: field.TypeInt, Nullable: true},
 		{Name: "enable_auto_exit", Type: field.TypeBool},
 		{Name: "enable_push_notification", Type: field.TypeBool},
 		{Name: "last_lower_threshold_alert_time", Type: field.TypeTime, Nullable: true},

@@ -125,6 +125,11 @@ func TakeProfitRatio(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldTakeProfitRatio, v))
 }
 
+// SlippageBps applies equality check predicate on the "slippageBps" field. It's identical to SlippageBpsEQ.
+func SlippageBps(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldSlippageBps, v))
+}
+
 // EnableAutoExit applies equality check predicate on the "enableAutoExit" field. It's identical to EnableAutoExitEQ.
 func EnableAutoExit(v bool) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoExit, v))
@@ -1028,6 +1033,56 @@ func TakeProfitRatioEqualFold(v decimal.Decimal) predicate.Strategy {
 func TakeProfitRatioContainsFold(v decimal.Decimal) predicate.Strategy {
 	vc := v.String()
 	return predicate.Strategy(sql.FieldContainsFold(FieldTakeProfitRatio, vc))
+}
+
+// SlippageBpsEQ applies the EQ predicate on the "slippageBps" field.
+func SlippageBpsEQ(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldSlippageBps, v))
+}
+
+// SlippageBpsNEQ applies the NEQ predicate on the "slippageBps" field.
+func SlippageBpsNEQ(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldSlippageBps, v))
+}
+
+// SlippageBpsIn applies the In predicate on the "slippageBps" field.
+func SlippageBpsIn(vs ...int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldSlippageBps, vs...))
+}
+
+// SlippageBpsNotIn applies the NotIn predicate on the "slippageBps" field.
+func SlippageBpsNotIn(vs ...int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldSlippageBps, vs...))
+}
+
+// SlippageBpsGT applies the GT predicate on the "slippageBps" field.
+func SlippageBpsGT(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldSlippageBps, v))
+}
+
+// SlippageBpsGTE applies the GTE predicate on the "slippageBps" field.
+func SlippageBpsGTE(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldSlippageBps, v))
+}
+
+// SlippageBpsLT applies the LT predicate on the "slippageBps" field.
+func SlippageBpsLT(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldSlippageBps, v))
+}
+
+// SlippageBpsLTE applies the LTE predicate on the "slippageBps" field.
+func SlippageBpsLTE(v int) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldSlippageBps, v))
+}
+
+// SlippageBpsIsNil applies the IsNil predicate on the "slippageBps" field.
+func SlippageBpsIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldSlippageBps))
+}
+
+// SlippageBpsNotNil applies the NotNil predicate on the "slippageBps" field.
+func SlippageBpsNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldSlippageBps))
 }
 
 // EnableAutoExitEQ applies the EQ predicate on the "enableAutoExit" field.

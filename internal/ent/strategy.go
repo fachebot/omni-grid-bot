@@ -52,6 +52,8 @@ type Strategy struct {
 	StopLossRatio decimal.Decimal `json:"stopLossRatio,omitempty"`
 	// TakeProfitRatio holds the value of the "takeProfitRatio" field.
 	TakeProfitRatio decimal.Decimal `json:"takeProfitRatio,omitempty"`
+	// SlippageBps holds the value of the "slippageBps" field.
+	SlippageBps *int `json:"slippageBps,omitempty"`
 	// EnableAutoExit holds the value of the "enableAutoExit" field.
 	EnableAutoExit bool `json:"enableAutoExit,omitempty"`
 	// EnablePushNotification holds the value of the "enablePushNotification" field.
@@ -80,7 +82,7 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 			values[i] = new(decimal.Decimal)
 		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification:
 			values[i] = new(sql.NullBool)
-		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage:
+		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage, strategy.FieldSlippageBps:
 			values[i] = new(sql.NullInt64)
 		case strategy.FieldGUID, strategy.FieldExchange, strategy.FieldSymbol, strategy.FieldAccount, strategy.FieldMode, strategy.FieldMarginMode, strategy.FieldQuantityMode, strategy.FieldStatus, strategy.FieldExchangeApiKey, strategy.FieldExchangeSecretKey, strategy.FieldExchangePassphrase:
 			values[i] = new(sql.NullString)
@@ -208,6 +210,13 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field takeProfitRatio", values[i])
 			} else if value != nil {
 				_m.TakeProfitRatio = *value
+			}
+		case strategy.FieldSlippageBps:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field slippageBps", values[i])
+			} else if value.Valid {
+				_m.SlippageBps = new(int)
+				*_m.SlippageBps = int(value.Int64)
 			}
 		case strategy.FieldEnableAutoExit:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -345,6 +354,11 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("takeProfitRatio=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TakeProfitRatio))
+	builder.WriteString(", ")
+	if v := _m.SlippageBps; v != nil {
+		builder.WriteString("slippageBps=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("enableAutoExit=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnableAutoExit))

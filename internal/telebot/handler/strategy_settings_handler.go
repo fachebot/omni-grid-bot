@@ -35,6 +35,7 @@ var (
 	SettingsOptionPriceUpper       SettingsOption = 8
 	SettingsOptionExchangeSettings SettingsOption = 9
 	SettingsOptionMarketSymbol     SettingsOption = 10
+	SettingsOptionSlippage         SettingsOption = 11
 )
 
 const (
@@ -109,6 +110,8 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 		return h.handlePriceLower(ctx, userId, update, record)
 	case SettingsOptionPriceUpper:
 		return h.handlePriceUpper(ctx, userId, update, record)
+	case SettingsOptionSlippage:
+		return h.handleSlippage(ctx, userId, update, record)
 	}
 
 	return nil
@@ -576,6 +579,53 @@ func (h *StrategySettingsHandler) handlePriceUpper(ctx context.Context, userId i
 	return nil
 }
 
+func (h *StrategySettingsHandler) handleSlippage(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	// 步骤1
+	if update.Callback != nil {
+		chatId := update.Callback.Message.Chat.ID
+		text := "🌳 填写市价交易的滑点百分比，清仓时将使用市价交易。\n\n🔢 例: 0.5 → 代表0.5%"
+		msg, err := h.svcCtx.Bot.Send(util.ChatId(chatId), text, defaultSendOptions())
+		if err != nil {
+			logger.Debugf("[StrategySettingsHandler] 发送消息失败, %v", err)
+			return err
+		}
+
+		route := cache.RouteInfo{Path: h.FormatPath(record.GUID, SettingsOptionSlippage), Context: update.Callback.Message}
+		h.svcCtx.MessageCache.SetRoute(chatId, msg.ID, route)
+
+		return nil
+	}
+
+	// 步骤2
+	if update.Message != nil {
+		deleteMessageAndReply(h.svcCtx.Bot, update.Message)
+
+		// 检查输入金额
+		chatId := update.Message.Chat.ID
+		d, err := decimal.NewFromString(update.Message.Text)
+		if err != nil || d.LessThan(decimal.Zero) || d.GreaterThan(decimal.NewFromInt(3)) {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效百分比数字(0 <= slippage < 3)", 3)
+			return nil
+		}
+
+		// 发送成功提示
+		text := "✅ 配置修改成功"
+		slippageBps := int(d.InexactFloat64() / 100 * 10000)
+		err = h.svcCtx.StrategyModel.UpdateSlippageBps(ctx, record.ID, slippageBps)
+		if err == nil {
+			record.SlippageBps = &slippageBps
+		} else {
+			text = "❌ 配置修改失败, 请稍后重试"
+			logger.Errorf("[StrategySettingsHandler] 更新配置[SlippageBps]失败, %v", err)
+		}
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+		return h.refreshSettingsMessage(ctx, userId, update, record)
+	}
+
+	return nil
+}
+
 func GenerateGridList(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) []decimal.Decimal {
 	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
@@ -696,6 +746,11 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 		priceUpper = format.Price(record.PriceUpper, 5)
 	}
 
+	slippageBps := DefaultSlippageBps
+	if record.SlippageBps != nil {
+		slippageBps = *record.SlippageBps
+	}
+
 	h := StrategySettingsHandler{}
 	replyMarkup := &tele.ReplyMarkup{
 		InlineKeyboard: [][]tele.InlineButton{
@@ -724,7 +779,7 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 				{Text: fmt.Sprintf("⬇️ 价格下限: %s", priceLower), Data: h.FormatPath(record.GUID, SettingsOptionPriceLower)},
 			},
 			{
-				{Text: "⚖️ 市价交易滑点: 0.5%", Data: "/"},
+				{Text: fmt.Sprintf("⚖️ 市价交易滑点: %v%%", float64(slippageBps)/10000*100.0), Data: h.FormatPath(record.GUID, SettingsOptionSlippage)},
 			},
 			{
 				{Text: "🔴 关闭成交通知", Data: "/"},

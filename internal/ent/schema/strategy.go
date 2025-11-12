@@ -37,6 +37,7 @@ func (Strategy) Fields() []ent.Field {
 		field.String("initialOrderSize").GoType(decimal.Decimal{}),
 		field.String("stopLossRatio").GoType(decimal.Decimal{}),
 		field.String("takeProfitRatio").GoType(decimal.Decimal{}),
+		field.Int("slippageBps").Min(0).Max(10000).Nillable().Optional(),
 		field.Bool("enableAutoExit"),
 		field.Bool("enablePushNotification"),
 		field.Time("lastLowerThresholdAlertTime").Nillable().Optional(),
