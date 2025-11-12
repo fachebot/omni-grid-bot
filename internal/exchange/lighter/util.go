@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	lighterclient "github.com/elliottech/lighter-go/client"
+	lighterhttp "github.com/elliottech/lighter-go/client/http"
 	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
 
@@ -33,11 +33,11 @@ func ConvertOrderStatus(status OrderStatus) order.Status {
 }
 
 func parseResultStatus(respBody []byte) error {
-	resultStatus := &lighterclient.ResultCode{}
+	resultStatus := &lighterhttp.ResultCode{}
 	if err := json.Unmarshal(respBody, resultStatus); err != nil {
 		return err
 	}
-	if resultStatus.Code != lighterclient.CodeOK {
+	if resultStatus.Code != lighterhttp.CodeOK {
 		return errors.New(resultStatus.Message)
 	}
 	return nil

@@ -1,7 +1,7 @@
 package lighter
 
 import (
-	lighterclient "github.com/elliottech/lighter-go/client"
+	lighterhttp "github.com/elliottech/lighter-go/client/http"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 
 	"github.com/shopspring/decimal"
@@ -104,7 +104,7 @@ type Account struct {
 
 // Accounts 账户列表
 type Accounts struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	Total    int        `json:"total"`
 	Accounts []*Account `json:"accounts"`
 }
@@ -130,7 +130,7 @@ type Transaction struct {
 
 // Transactions 交易列表
 type Transactions struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	Txs []*Transaction `json:"txs"`
 }
 
@@ -160,7 +160,7 @@ type OrderBookMetadata struct {
 
 // OrderBooksMetadata 订单簿元数据列表
 type OrderBooksMetadata struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	OrderBooks []*OrderBookMetadata `json:"order_books"`
 }
 
@@ -260,7 +260,7 @@ type Order struct {
 
 // Orders 订单列表
 type Orders struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	NextCursor string   `json:"next_cursor,omitempty"`
 	Orders     []*Order `json:"orders"`
 }
@@ -308,7 +308,7 @@ type OrderBookDetail struct {
 
 // OrderBookDetails 订单簿详情响应
 type OrderBookDetails struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	OrderBookDetails []OrderBookDetail `json:"order_book_details"`
 }
 
@@ -319,9 +319,16 @@ type UpdateLeverageTxReq struct {
 	MarginMode  exchange.MarginMode // 保证金模式
 }
 
+// TxHash 交易hash
+type TxHash struct {
+	lighterhttp.ResultCode
+	TxHash                   string `json:"tx_hash"`
+	PredictedExecutionTimeMs int64  `json:"predicted_execution_time_ms"`
+}
+
 // RespSendTxBatch 批量发送交易响应
 type RespSendTxBatch struct {
-	lighterclient.ResultCode
+	lighterhttp.ResultCode
 	TxHash []string `json:"tx_hash"`
 }
 

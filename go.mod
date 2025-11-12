@@ -7,7 +7,7 @@ toolchain go1.24.9
 require (
 	entgo.io/ent v0.14.5
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elliottech/lighter-go v0.0.0-20251013172959-bcc650fa7eaa
+	github.com/elliottech/lighter-go v0.0.0-20251104171447-78b9b55ebc48
 	github.com/gorilla/websocket v1.5.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -18,6 +18,19 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/telebot.v4 v4.0.0-beta.5
 	gopkg.in/yaml.v2 v2.4.0
+)
+
+require (
+	github.com/consensys/bavard v0.1.22 // indirect
+	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
+	github.com/crate-crypto/go-kzg-4844 v1.1.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
+	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
+	github.com/ethereum/go-verkle v0.2.2 // indirect
+	github.com/mmcloughlin/addchain v0.4.0 // indirect
+	github.com/supranational/blst v0.3.14 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
 require (

@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	lighterclient "github.com/elliottech/lighter-go/client"
+	lighterhttp "github.com/elliottech/lighter-go/client/http"
 	"github.com/shopspring/decimal"
 )
 
@@ -37,7 +37,7 @@ func NewClient() *Client {
 }
 
 func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (int64, error) {
-	result := &lighterclient.NextNonce{}
+	result := &lighterhttp.NextNonce{}
 	err := getAndParseL2HTTPResponse(
 		ctx,
 		c.httpClient,
@@ -55,8 +55,8 @@ func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyInd
 	return result.Nonce, nil
 }
 
-func (c *Client) GetApiKey(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (*lighterclient.AccountApiKeys, error) {
-	result := &lighterclient.AccountApiKeys{}
+func (c *Client) GetApiKey(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (*lighterhttp.AccountApiKeys, error) {
+	result := &lighterhttp.AccountApiKeys{}
 	err := getAndParseL2HTTPResponse(
 		ctx,
 		c.httpClient,
@@ -183,7 +183,7 @@ func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (
 		return "", err
 	}
 
-	res := &lighterclient.TxHash{}
+	res := &TxHash{}
 	if err := json.Unmarshal(body, res); err != nil {
 		return "", err
 	}
