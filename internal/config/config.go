@@ -38,7 +38,7 @@ func LoadFromFile(filename string) (*Config, error) {
 	}
 
 	if c.AppName == "" {
-		c.AppName = "QuantGrid"
+		c.AppName = "OmniGrid"
 	}
 
 	return &c, nil
