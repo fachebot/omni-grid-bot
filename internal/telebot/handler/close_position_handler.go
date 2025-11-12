@@ -58,6 +58,14 @@ func (h *ClosePositionHandler) handle(ctx context.Context, vars map[string]strin
 		return nil
 	}
 
+	// 测试交易所连接
+	err = testExchangeConnectivity(ctx, h.svcCtx, record)
+	if err != nil {
+		text := "❌ 连接交易平台失败，请检查交易平台配置"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
 	// 显示平仓菜单
 	_, confirm := vars["confirm"]
 	if !confirm {
