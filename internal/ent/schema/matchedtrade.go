@@ -4,12 +4,19 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"entgo.io/ent/schema/mixin"
 	"github.com/shopspring/decimal"
 )
 
 // MatchedTrade holds the schema definition for the MatchedTrade entity.
 type MatchedTrade struct {
 	ent.Schema
+}
+
+func (MatchedTrade) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
+	}
 }
 
 // Fields of the MatchedTrade.
@@ -37,8 +44,7 @@ func (MatchedTrade) Edges() []ent.Edge {
 // Indexes of the MatchedTrade.
 func (MatchedTrade) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("strategyId", "buyClientOrderId"),
-		index.Fields("strategyId", "sellClientOrderId"),
+		index.Fields("strategyId"),
 		index.Fields("strategyId", "buyClientOrderId", "sellClientOrderId").Unique(),
 	}
 }

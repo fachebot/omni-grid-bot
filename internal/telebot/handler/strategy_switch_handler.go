@@ -14,6 +14,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/telebot/pathrouter"
 	"github.com/fachebot/omni-grid-bot/internal/util"
+	"github.com/shopspring/decimal"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -142,7 +143,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	}
 
 	// 测试交易所连接
-	err := testExchangeConnectivity(ctx, h.svcCtx, record)
+	account, err := helper.GetAccountInfo(ctx, h.svcCtx, record.Exchange, record.Account)
 	if err != nil {
 		text := "❌ 连接交易平台失败，请检查交易平台配置"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
@@ -173,6 +174,12 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
+	// 检查交易金额
+	if record.InitialOrderSize.Mul(record.PriceLower).LessThan(mm.MinQuoteAmount) {
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 单笔交易金额不能小于 %s USD，请调整单笔数量和价格下限", mm.MinQuoteAmount), 3)
+		return nil
+	}
+
 	// 检查网格策略
 	result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, record.Exchange, record.ExchangeApiKey, record.Symbol)
 	if err != nil || len(result) > 1 {
@@ -180,8 +187,29 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		return nil
 	}
+
+	// 生成网格价格
+	prices, err := gridstrategy.GenerateGridPrices(record, mm.SupportedPriceDecimals)
+	if err != nil || len(prices) == 0 {
+		text := "❌ 生成网格失败，请调整价格上下区间后重试"
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
+	// 校验保证金数量
+	positionValue := decimal.Zero
+	maxPositionValue := account.AvailableBalance.Mul(decimal.NewFromInt(int64(record.Leverage)))
+	for _, price := range prices {
+		positionValue = positionValue.Add(price.Mul(record.InitialOrderSize))
+	}
+	if positionValue.GreaterThanOrEqual(maxPositionValue) {
+		text := fmt.Sprintf("❌ 账户保证金余额不足，必须大于 %s USD，请充值后重试", positionValue.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		return nil
+	}
+
 	// 初始化网格策略
-	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record)
+	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record, prices)
 	if err != nil {
 		text := "❌ 初始化网格策略失败，请检查配置后重试"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)

@@ -49,6 +49,8 @@ var (
 	// MatchedTradesColumns holds the columns for the "matched_trades" table.
 	MatchedTradesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "strategy_id", Type: field.TypeString, Size: 50},
 		{Name: "symbol", Type: field.TypeString},
 		{Name: "buy_client_order_id", Type: field.TypeInt64, Nullable: true},
@@ -68,19 +70,14 @@ var (
 		PrimaryKey: []*schema.Column{MatchedTradesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "matchedtrade_strategy_id_buy_client_order_id",
+				Name:    "matchedtrade_strategy_id",
 				Unique:  false,
-				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[3]},
-			},
-			{
-				Name:    "matchedtrade_strategy_id_sell_client_order_id",
-				Unique:  false,
-				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[7]},
+				Columns: []*schema.Column{MatchedTradesColumns[3]},
 			},
 			{
 				Name:    "matchedtrade_strategy_id_buy_client_order_id_sell_client_order_id",
 				Unique:  true,
-				Columns: []*schema.Column{MatchedTradesColumns[1], MatchedTradesColumns[3], MatchedTradesColumns[7]},
+				Columns: []*schema.Column{MatchedTradesColumns[3], MatchedTradesColumns[5], MatchedTradesColumns[9]},
 			},
 		},
 	}

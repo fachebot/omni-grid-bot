@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -20,6 +21,34 @@ type MatchedTradeCreate struct {
 	mutation *MatchedTradeMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetCreateTime sets the "create_time" field.
+func (_c *MatchedTradeCreate) SetCreateTime(v time.Time) *MatchedTradeCreate {
+	_c.mutation.SetCreateTime(v)
+	return _c
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (_c *MatchedTradeCreate) SetNillableCreateTime(v *time.Time) *MatchedTradeCreate {
+	if v != nil {
+		_c.SetCreateTime(*v)
+	}
+	return _c
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_c *MatchedTradeCreate) SetUpdateTime(v time.Time) *MatchedTradeCreate {
+	_c.mutation.SetUpdateTime(v)
+	return _c
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (_c *MatchedTradeCreate) SetNillableUpdateTime(v *time.Time) *MatchedTradeCreate {
+	if v != nil {
+		_c.SetUpdateTime(*v)
+	}
+	return _c
 }
 
 // SetStrategyId sets the "strategyId" field.
@@ -167,6 +196,7 @@ func (_c *MatchedTradeCreate) Mutation() *MatchedTradeMutation {
 
 // Save creates the MatchedTrade in the database.
 func (_c *MatchedTradeCreate) Save(ctx context.Context) (*MatchedTrade, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -192,8 +222,26 @@ func (_c *MatchedTradeCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *MatchedTradeCreate) defaults() {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		v := matchedtrade.DefaultCreateTime()
+		_c.mutation.SetCreateTime(v)
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		v := matchedtrade.DefaultUpdateTime()
+		_c.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *MatchedTradeCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "MatchedTrade.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "MatchedTrade.update_time"`)}
+	}
 	if _, ok := _c.mutation.StrategyId(); !ok {
 		return &ValidationError{Name: "strategyId", err: errors.New(`ent: missing required field "MatchedTrade.strategyId"`)}
 	}
@@ -232,6 +280,14 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 		_spec = sqlgraph.NewCreateSpec(matchedtrade.Table, sqlgraph.NewFieldSpec(matchedtrade.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
+	if value, ok := _c.mutation.CreateTime(); ok {
+		_spec.SetField(matchedtrade.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := _c.mutation.UpdateTime(); ok {
+		_spec.SetField(matchedtrade.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := _c.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)
 		_node.StrategyId = value
@@ -283,7 +339,7 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 // of the `INSERT` statement. For example:
 //
 //	client.MatchedTrade.Create().
-//		SetStrategyId(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -292,7 +348,7 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MatchedTradeUpsert) {
-//			SetStrategyId(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *MatchedTradeCreate) OnConflict(opts ...sql.ConflictOption) *MatchedTradeUpsertOne {
@@ -327,6 +383,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MatchedTradeUpsert) SetUpdateTime(v time.Time) *MatchedTradeUpsert {
+	u.Set(matchedtrade.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MatchedTradeUpsert) UpdateUpdateTime() *MatchedTradeUpsert {
+	u.SetExcluded(matchedtrade.FieldUpdateTime)
+	return u
+}
 
 // SetStrategyId sets the "strategyId" field.
 func (u *MatchedTradeUpsert) SetStrategyId(v string) *MatchedTradeUpsert {
@@ -554,6 +622,11 @@ func (u *MatchedTradeUpsert) ClearProfit() *MatchedTradeUpsert {
 //		Exec(ctx)
 func (u *MatchedTradeUpsertOne) UpdateNewValues() *MatchedTradeUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.CreateTime(); exists {
+			s.SetIgnore(matchedtrade.FieldCreateTime)
+		}
+	}))
 	return u
 }
 
@@ -582,6 +655,20 @@ func (u *MatchedTradeUpsertOne) Update(set func(*MatchedTradeUpsert)) *MatchedTr
 		set(&MatchedTradeUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MatchedTradeUpsertOne) SetUpdateTime(v time.Time) *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MatchedTradeUpsertOne) UpdateUpdateTime() *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateUpdateTime()
+	})
 }
 
 // SetStrategyId sets the "strategyId" field.
@@ -888,6 +975,7 @@ func (_c *MatchedTradeCreateBulk) Save(ctx context.Context) ([]*MatchedTrade, er
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*MatchedTradeMutation)
 				if !ok {
@@ -970,7 +1058,7 @@ func (_c *MatchedTradeCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MatchedTradeUpsert) {
-//			SetStrategyId(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *MatchedTradeCreateBulk) OnConflict(opts ...sql.ConflictOption) *MatchedTradeUpsertBulk {
@@ -1009,6 +1097,13 @@ type MatchedTradeUpsertBulk struct {
 //		Exec(ctx)
 func (u *MatchedTradeUpsertBulk) UpdateNewValues() *MatchedTradeUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.CreateTime(); exists {
+				s.SetIgnore(matchedtrade.FieldCreateTime)
+			}
+		}
+	}))
 	return u
 }
 
@@ -1037,6 +1132,20 @@ func (u *MatchedTradeUpsertBulk) Update(set func(*MatchedTradeUpsert)) *MatchedT
 		set(&MatchedTradeUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MatchedTradeUpsertBulk) SetUpdateTime(v time.Time) *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MatchedTradeUpsertBulk) UpdateUpdateTime() *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateUpdateTime()
+	})
 }
 
 // SetStrategyId sets the "strategyId" field.

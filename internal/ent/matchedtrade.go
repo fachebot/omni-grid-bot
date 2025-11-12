@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -17,6 +18,10 @@ type MatchedTrade struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// StrategyId holds the value of the "strategyId" field.
 	StrategyId string `json:"strategyId,omitempty"`
 	// Symbol holds the value of the "symbol" field.
@@ -55,6 +60,8 @@ func (*MatchedTrade) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol:
 			values[i] = new(sql.NullString)
+		case matchedtrade.FieldCreateTime, matchedtrade.FieldUpdateTime:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -76,6 +83,18 @@ func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case matchedtrade.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				_m.CreateTime = value.Time
+			}
+		case matchedtrade.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				_m.UpdateTime = value.Time
+			}
 		case matchedtrade.FieldStrategyId:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field strategyId", values[i])
@@ -187,6 +206,12 @@ func (_m *MatchedTrade) String() string {
 	var builder strings.Builder
 	builder.WriteString("MatchedTrade(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("update_time=")
+	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("strategyId=")
 	builder.WriteString(_m.StrategyId)
 	builder.WriteString(", ")

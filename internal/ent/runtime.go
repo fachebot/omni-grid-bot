@@ -44,8 +44,21 @@ func init() {
 	gridDescSymbol := gridFields[2].Descriptor()
 	// grid.SymbolValidator is a validator for the "symbol" field. It is called by the builders before save.
 	grid.SymbolValidator = gridDescSymbol.Validators[0].(func(string) error)
+	matchedtradeMixin := schema.MatchedTrade{}.Mixin()
+	matchedtradeMixinFields0 := matchedtradeMixin[0].Fields()
+	_ = matchedtradeMixinFields0
 	matchedtradeFields := schema.MatchedTrade{}.Fields()
 	_ = matchedtradeFields
+	// matchedtradeDescCreateTime is the schema descriptor for create_time field.
+	matchedtradeDescCreateTime := matchedtradeMixinFields0[0].Descriptor()
+	// matchedtrade.DefaultCreateTime holds the default value on creation for the create_time field.
+	matchedtrade.DefaultCreateTime = matchedtradeDescCreateTime.Default.(func() time.Time)
+	// matchedtradeDescUpdateTime is the schema descriptor for update_time field.
+	matchedtradeDescUpdateTime := matchedtradeMixinFields0[1].Descriptor()
+	// matchedtrade.DefaultUpdateTime holds the default value on creation for the update_time field.
+	matchedtrade.DefaultUpdateTime = matchedtradeDescUpdateTime.Default.(func() time.Time)
+	// matchedtrade.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	matchedtrade.UpdateDefaultUpdateTime = matchedtradeDescUpdateTime.UpdateDefault.(func() time.Time)
 	// matchedtradeDescStrategyId is the schema descriptor for strategyId field.
 	matchedtradeDescStrategyId := matchedtradeFields[0].Descriptor()
 	// matchedtrade.StrategyIdValidator is a validator for the "strategyId" field. It is called by the builders before save.

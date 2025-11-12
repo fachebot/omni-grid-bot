@@ -724,6 +724,13 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 				{Text: fmt.Sprintf("⬇️ 价格下限: %s", priceLower), Data: h.FormatPath(record.GUID, SettingsOptionPriceLower)},
 			},
 			{
+				{Text: "⚖️ 市价交易滑点: 0.5%", Data: "/"},
+			},
+			{
+				{Text: "🔴 关闭成交通知", Data: "/"},
+				{Text: "🔴 关闭匹配通知", Data: "/"},
+			},
+			{
 				{Text: "◀️ 返回上级", Data: StrategyDetailsHandler{}.FormatPath(record.GUID)},
 				{Text: "⏪ 返回主页", Data: "/home"},
 			},

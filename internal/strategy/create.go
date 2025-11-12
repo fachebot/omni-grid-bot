@@ -19,32 +19,7 @@ const (
 	MaxGridNumLimit = 150
 )
 
-func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
-	// 获取精度信息
-	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
-	if err != nil {
-		return err
-	}
-
-	initialOrderSize := record.InitialOrderSize.Truncate(int32(mm.SupportedSizeDecimals))
-	if initialOrderSize.LessThan(mm.MinBaseAmount) {
-		return errors.New("order size too small")
-	}
-
-	// 生成价格列表
-	var prices []decimal.Decimal
-	switch record.QuantityMode {
-	case strategy.QuantityModeGeometric:
-		prices, err = GenerateGeometricGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(mm.SupportedPriceDecimals))
-	case strategy.QuantityModeArithmetic:
-		prices, err = GenerateArithmeticGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(mm.SupportedPriceDecimals))
-	default:
-		return errors.New("invalid quantity mode")
-	}
-	if err != nil {
-		return err
-	}
-
+func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy, prices []decimal.Decimal) error {
 	// 初始交易账户
 	adapter, err := helper.NewExchangeAdapterFromStrategy(svcCtx, record)
 	if err != nil {
@@ -76,7 +51,7 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 			Account:    record.Account,
 			Level:      level,
 			Price:      price,
-			Quantity:   initialOrderSize,
+			Quantity:   record.InitialOrderSize,
 		}
 		gridLevels = append(gridLevels, item)
 	}
@@ -140,6 +115,17 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusActive)
 	})
+}
+
+func GenerateGridPrices(record *ent.Strategy, supportedPriceDecimals uint8) (prices []decimal.Decimal, err error) {
+	switch record.QuantityMode {
+	case strategy.QuantityModeGeometric:
+		return GenerateGeometricGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(supportedPriceDecimals))
+	case strategy.QuantityModeArithmetic:
+		return GenerateArithmeticGrid(record.PriceLower, record.PriceUpper, record.GridNum, int32(supportedPriceDecimals))
+	default:
+		return nil, errors.New("invalid quantity mode")
+	}
 }
 
 func calculateGeometricRatio(lower, upper decimal.Decimal, gridNum int) decimal.Decimal {

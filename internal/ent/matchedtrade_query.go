@@ -262,12 +262,12 @@ func (_q *MatchedTradeQuery) Clone() *MatchedTradeQuery {
 // Example:
 //
 //	var v []struct {
-//		StrategyId string `json:"strategyId,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MatchedTrade.Query().
-//		GroupBy(matchedtrade.FieldStrategyId).
+//		GroupBy(matchedtrade.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *MatchedTradeQuery) GroupBy(field string, fields ...string) *MatchedTradeGroupBy {
@@ -285,11 +285,11 @@ func (_q *MatchedTradeQuery) GroupBy(field string, fields ...string) *MatchedTra
 // Example:
 //
 //	var v []struct {
-//		StrategyId string `json:"strategyId,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.MatchedTrade.Query().
-//		Select(matchedtrade.FieldStrategyId).
+//		Select(matchedtrade.FieldCreateTime).
 //		Scan(ctx, &v)
 func (_q *MatchedTradeQuery) Select(fields ...string) *MatchedTradeSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

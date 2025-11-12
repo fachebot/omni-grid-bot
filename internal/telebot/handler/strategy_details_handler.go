@@ -185,9 +185,9 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 
 	// 策略信息
 	text += "📌 策略\n"
-	positionSide := lo.If(record.Mode == strategy.ModeLong, "做多").Else("做空")
+	positionSide := lo.If(record.Mode == strategy.ModeLong, "🟢做多").Else("🔴做空")
 	marginMode := lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓")
-	text += fmt.Sprintf("┣ 方向: %s | 杠杆: %dX | %s\n", positionSide, record.Leverage, marginMode)
+	text += fmt.Sprintf("┣ 方向: %s | 杠杆: **%dX** | %s\n", positionSide, record.Leverage, marginMode)
 	text += fmt.Sprintf("┣ 交易标的: %s\n", marketSymbol(record))
 	text += fmt.Sprintf("┣ 价格区间: %s\n", lo.If(record.PriceLower.IsZero() || record.PriceUpper.IsZero(), "未设置").
 		Else(fmt.Sprintf("$%s ~ $%s", record.PriceLower, record.PriceUpper)))

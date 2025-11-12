@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type MatchedTradeUpdate struct {
 // Where appends a list predicates to the MatchedTradeUpdate builder.
 func (_u *MatchedTradeUpdate) Where(ps ...predicate.MatchedTrade) *MatchedTradeUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *MatchedTradeUpdate) SetUpdateTime(v time.Time) *MatchedTradeUpdate {
+	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -278,6 +285,7 @@ func (_u *MatchedTradeUpdate) Mutation() *MatchedTradeMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *MatchedTradeUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -303,6 +311,14 @@ func (_u *MatchedTradeUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *MatchedTradeUpdate) defaults() {
+	if _, ok := _u.mutation.UpdateTime(); !ok {
+		v := matchedtrade.UpdateDefaultUpdateTime()
+		_u.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_u *MatchedTradeUpdate) check() error {
 	if v, ok := _u.mutation.StrategyId(); ok {
@@ -324,6 +340,9 @@ func (_u *MatchedTradeUpdate) sqlSave(ctx context.Context) (_node int, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(matchedtrade.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)
@@ -418,6 +437,12 @@ type MatchedTradeUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MatchedTradeMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *MatchedTradeUpdateOne) SetUpdateTime(v time.Time) *MatchedTradeUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
 }
 
 // SetStrategyId sets the "strategyId" field.
@@ -683,6 +708,7 @@ func (_u *MatchedTradeUpdateOne) Select(field string, fields ...string) *Matched
 
 // Save executes the query and returns the updated MatchedTrade entity.
 func (_u *MatchedTradeUpdateOne) Save(ctx context.Context) (*MatchedTrade, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -705,6 +731,14 @@ func (_u *MatchedTradeUpdateOne) Exec(ctx context.Context) error {
 func (_u *MatchedTradeUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MatchedTradeUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdateTime(); !ok {
+		v := matchedtrade.UpdateDefaultUpdateTime()
+		_u.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -746,6 +780,9 @@ func (_u *MatchedTradeUpdateOne) sqlSave(ctx context.Context) (_node *MatchedTra
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(matchedtrade.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)

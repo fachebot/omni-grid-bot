@@ -3,6 +3,8 @@
 package matchedtrade
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
 	"github.com/shopspring/decimal"
@@ -51,6 +53,16 @@ func IDLT(id int) predicate.MatchedTrade {
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldLTE(FieldID, id))
+}
+
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
+func UpdateTime(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldUpdateTime, v))
 }
 
 // StrategyId applies equality check predicate on the "strategyId" field. It's identical to StrategyIdEQ.
@@ -106,6 +118,86 @@ func SellOrderTimestamp(v int64) predicate.MatchedTrade {
 // Profit applies equality check predicate on the "profit" field. It's identical to ProfitEQ.
 func Profit(v float64) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldProfit, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLTE(FieldCreateTime, v))
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
+func UpdateTimeEQ(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
+func UpdateTimeNEQ(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeIn applies the In predicate on the "update_time" field.
+func UpdateTimeIn(vs ...time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNotIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeGT applies the GT predicate on the "update_time" field.
+func UpdateTimeGT(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGT(FieldUpdateTime, v))
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
+func UpdateTimeGTE(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGTE(FieldUpdateTime, v))
+}
+
+// UpdateTimeLT applies the LT predicate on the "update_time" field.
+func UpdateTimeLT(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLT(FieldUpdateTime, v))
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
+func UpdateTimeLTE(v time.Time) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // StrategyIdEQ applies the EQ predicate on the "strategyId" field.

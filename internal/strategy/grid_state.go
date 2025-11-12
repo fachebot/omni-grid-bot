@@ -15,6 +15,8 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/model"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/util"
+	"github.com/fachebot/omni-grid-bot/internal/util/format"
+	tele "gopkg.in/telebot.v4"
 )
 
 type GridStrategyState struct {
@@ -122,22 +124,29 @@ func (state *GridStrategyState) sendGridMatchedNotification(trade *ent.MatchedTr
 	switch state.strategy.Mode {
 	case strategy.ModeLong:
 		text += fmt.Sprintf("🔢 做多数量: %s %s\n", trade.BuyBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 做多价格: %s USD\n", trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount))
+		text += fmt.Sprintf("💥 做多价格: %s USD\n", format.Price(trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount), 5))
 		text += fmt.Sprintf("🔢 平多数量: %s %s\n", trade.SellBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 平多价格: %s USD\n", trade.SellQuoteAmount.Div(*trade.SellBaseAmount))
+		text += fmt.Sprintf("💥 平多价格: %s USD\n", format.Price(trade.SellQuoteAmount.Div(*trade.SellBaseAmount), 5))
 		text += fmt.Sprintf("💰 实现利润: %s USD\n", trade.SellQuoteAmount.Sub(*trade.BuyQuoteAmount))
 		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*trade.SellOrderTimestamp, 0)))
 	case strategy.ModeShort:
 		text += fmt.Sprintf("🔢 做空数量: %s %s\n", trade.SellBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 做空价格: %s USD\n", trade.SellQuoteAmount.Div(*trade.SellBaseAmount))
+		text += fmt.Sprintf("💥 做空价格: %s USD\n", format.Price(trade.SellQuoteAmount.Div(*trade.SellBaseAmount), 5))
 		text += fmt.Sprintf("🔢 平空数量: %s %s\n", trade.BuyBaseAmount.String(), state.strategy.Symbol)
-		text += fmt.Sprintf("💥 平空价格: %s USD\n", trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount))
+		text += fmt.Sprintf("💥 平空价格: %s USD\n", format.Price(trade.BuyQuoteAmount.Div(*trade.BuyBaseAmount), 5))
 		text += fmt.Sprintf("💰 实现利润: %s USD\n", trade.SellQuoteAmount.Sub(*trade.BuyQuoteAmount))
 		text += fmt.Sprintf("⏰ 配对时间: `%s`\n", util.FormaTime(time.Unix(*trade.BuyOrderTimestamp, 0)))
 	}
 
 	chatId := util.ChatId(state.strategy.Owner)
-	_, err := util.SendMarkdownMessage(state.svcCtx.Bot, chatId, text, nil)
+	replyMarkup := &tele.ReplyMarkup{
+		InlineKeyboard: [][]tele.InlineButton{
+			{
+				{Text: "查看策略", Data: fmt.Sprintf("/strategy/details/%s", trade.StrategyId)},
+			},
+		},
+	}
+	_, err := util.SendMarkdownMessage(state.svcCtx.Bot, chatId, text, replyMarkup)
 	if err != nil {
 		logger.Debugf("[GridStrategyState] 发送网格匹配通知失败, chat: %d, %v", chatId, err)
 	}
@@ -277,7 +286,6 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 					if err != nil {
 						return err
 					}
-
 				}
 
 				return nil

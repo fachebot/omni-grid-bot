@@ -1053,6 +1053,8 @@ type MatchedTradeMutation struct {
 	op                    Op
 	typ                   string
 	id                    *int
+	create_time           *time.Time
+	update_time           *time.Time
 	strategyId            *string
 	symbol                *string
 	buyClientOrderId      *int64
@@ -1171,6 +1173,78 @@ func (m *MatchedTradeMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *MatchedTradeMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *MatchedTradeMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the MatchedTrade entity.
+// If the MatchedTrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *MatchedTradeMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *MatchedTradeMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *MatchedTradeMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the MatchedTrade entity.
+// If the MatchedTrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *MatchedTradeMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // SetStrategyId sets the "strategyId" field.
@@ -1825,7 +1899,13 @@ func (m *MatchedTradeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MatchedTradeMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
+	if m.create_time != nil {
+		fields = append(fields, matchedtrade.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, matchedtrade.FieldUpdateTime)
+	}
 	if m.strategyId != nil {
 		fields = append(fields, matchedtrade.FieldStrategyId)
 	}
@@ -1867,6 +1947,10 @@ func (m *MatchedTradeMutation) Fields() []string {
 // schema.
 func (m *MatchedTradeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case matchedtrade.FieldCreateTime:
+		return m.CreateTime()
+	case matchedtrade.FieldUpdateTime:
+		return m.UpdateTime()
 	case matchedtrade.FieldStrategyId:
 		return m.StrategyId()
 	case matchedtrade.FieldSymbol:
@@ -1898,6 +1982,10 @@ func (m *MatchedTradeMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MatchedTradeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case matchedtrade.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case matchedtrade.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case matchedtrade.FieldStrategyId:
 		return m.OldStrategyId(ctx)
 	case matchedtrade.FieldSymbol:
@@ -1929,6 +2017,20 @@ func (m *MatchedTradeMutation) OldField(ctx context.Context, name string) (ent.V
 // type.
 func (m *MatchedTradeMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case matchedtrade.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case matchedtrade.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case matchedtrade.FieldStrategyId:
 		v, ok := value.(string)
 		if !ok {
@@ -2175,6 +2277,12 @@ func (m *MatchedTradeMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MatchedTradeMutation) ResetField(name string) error {
 	switch name {
+	case matchedtrade.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case matchedtrade.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case matchedtrade.FieldStrategyId:
 		m.ResetStrategyId()
 		return nil
