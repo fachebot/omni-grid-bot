@@ -251,6 +251,7 @@ func DisplayStrategyDetails(ctx context.Context, svcCtx *svc.ServiceContext, use
 		InlineKeyboard: [][]tele.InlineButton{
 			{
 				{Text: status, Data: StrategySwitchHandler{}.FormatPath(record.GUID)},
+				{Text: "💎 一键平仓", Data: ClosePositionHandler{}.FormatPath(record.GUID)},
 			},
 			{
 				{Text: "🔄 刷新界面", Data: StrategyDetailsHandler{}.FormatPath(record.GUID)},

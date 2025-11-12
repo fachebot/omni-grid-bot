@@ -6,15 +6,27 @@ import (
 
 	"github.com/fachebot/omni-grid-bot/internal/engine"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/util"
+	"github.com/samber/lo"
 	tele "gopkg.in/telebot.v4"
 )
 
 func StrategyName(record *ent.Strategy) string {
 	return record.GUID[len(record.GUID)-4:]
+}
+
+func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
+	adapter, err := helper.NewExchangeAdapterFromStrategy(svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	side := lo.If(record.Mode == strategy.ModeLong, helper.LONG).Else(helper.SHORT)
+	return adapter.ClosePosition(ctx, record.Symbol, side, 50)
 }
 
 func GetStrategyEngine(ctx context.Context) (*engine.StrategyEngine, bool) {

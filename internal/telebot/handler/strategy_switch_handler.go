@@ -14,7 +14,6 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/telebot/pathrouter"
 	"github.com/fachebot/omni-grid-bot/internal/util"
-	"github.com/samber/lo"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -97,7 +96,7 @@ func (h *StrategySwitchHandler) handle(ctx context.Context, vars map[string]stri
 					{Text: "1️⃣ 仅关闭策略", Data: h.FormatStopPath(guid, StopTypeStop)},
 				},
 				{
-					{Text: "2️⃣ 关闭并清仓", Data: h.FormatStopPath(guid, StopTypeClose)},
+					{Text: "2️⃣ 关闭并平仓", Data: h.FormatStopPath(guid, StopTypeClose)},
 				},
 			}
 
@@ -204,16 +203,6 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
-func (h *StrategySwitchHandler) closePosition(ctx context.Context, record *ent.Strategy) error {
-	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
-	if err != nil {
-		return err
-	}
-
-	side := lo.If(record.Mode == strategy.ModeLong, helper.LONG).Else(helper.SHORT)
-	return adapter.ClosePosition(ctx, record.Symbol, side, 50)
-}
-
 func (h *StrategySwitchHandler) cancelAllOrders(ctx context.Context, record *ent.Strategy) error {
 	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
 	if err != nil {
@@ -301,7 +290,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	}
 
 	// 关闭用户仓位
-	err = h.closePosition(ctx, record)
+	err = ClosePosition(ctx, h.svcCtx, record)
 	if err != nil {
 		text := fmt.Sprintf("⚠️ [%s]关闭网格 *%s* %s 仓位失败", name, record.Symbol, record.Mode)
 		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
@@ -315,6 +304,11 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	// 更新策略状态
 	err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {
 		err = model.NewGridModel(tx.Grid).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
+		err = model.NewMatchedTradeModel(tx.MatchedTrade).DeleteByStrategyId(ctx, record.GUID)
 		if err != nil {
 			return err
 		}
