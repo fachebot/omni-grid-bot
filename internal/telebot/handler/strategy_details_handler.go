@@ -213,9 +213,9 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	}
 
 	text += "💰 收益\n"
-	text += fmt.Sprintf("┣ 总利润: %s\n", realizedPnl.Add(unrealizedPnl))
-	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl)
-	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl)
+	text += fmt.Sprintf("┣ 总利润: %s\n", realizedPnl.Add(unrealizedPnl).Truncate(5))
+	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl.Truncate(5))
+	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl.Truncate(5))
 
 	// 查询最新价格
 	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
