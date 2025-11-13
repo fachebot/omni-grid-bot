@@ -128,9 +128,9 @@ func (h *MatchedTradesHandler) handle(ctx context.Context, vars map[string]strin
 			nextPage = 0
 		}
 		pageButtons = []tele.InlineButton{
-			{Text: "⬅️ 上一页", Data: StrategyListHandler{}.FormatPath(previousPage)},
-			{Text: fmt.Sprintf("%d/%d", page, totalPage), Data: StrategyListHandler{}.FormatPath(0)},
-			{Text: "➡️ 下一页", Data: StrategyListHandler{}.FormatPath(nextPage)},
+			{Text: "⬅️ 上一页", Data: h.FormatPath(record.GUID, previousPage)},
+			{Text: fmt.Sprintf("%d/%d", page, totalPage), Data: h.FormatPath(record.GUID, 0)},
+			{Text: "➡️ 下一页", Data: h.FormatPath(record.GUID, nextPage)},
 		}
 	}
 
