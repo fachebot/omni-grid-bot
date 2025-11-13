@@ -82,6 +82,7 @@ func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
 			return isFirstRecord, completedPair, err
 		}
 
+		isFirstRecord = r.BuyOrderTimestamp == nil
 		if r.SellClientOrderId != nil && r.SellOrderTimestamp != nil {
 			completedPair = r
 			r.BuyBaseAmount = &buyOrder.FilledBaseAmount
@@ -89,7 +90,6 @@ func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
 			r.BuyOrderTimestamp = &buyOrder.Timestamp
 		}
 
-		isFirstRecord = r.BuyOrderTimestamp == nil
 		return isFirstRecord, completedPair, nil
 	}
 
@@ -133,6 +133,7 @@ func (m *MatchedTradeModel) RecordAndMatchSellOrder(
 			return isFirstRecord, completedPair, err
 		}
 
+		isFirstRecord = r.BuyOrderTimestamp == nil
 		if r.BuyClientOrderId != nil && r.BuyOrderTimestamp != nil {
 			completedPair = r
 			r.SellBaseAmount = &sellOrder.FilledBaseAmount
@@ -140,7 +141,6 @@ func (m *MatchedTradeModel) RecordAndMatchSellOrder(
 			r.SellOrderTimestamp = &sellOrder.Timestamp
 		}
 
-		isFirstRecord = r.BuyOrderTimestamp == nil
 		return isFirstRecord, completedPair, nil
 	}
 
