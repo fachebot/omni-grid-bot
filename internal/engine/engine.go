@@ -18,6 +18,7 @@ import (
 
 type Strategy interface {
 	Get() *ent.Strategy
+	Update(s *ent.Strategy)
 	OnUpdate(ctx context.Context) error
 }
 
@@ -165,6 +166,18 @@ func (engine *StrategyEngine) StartStrategy(s Strategy) (err error) {
 	default:
 		return errors.New("exchange unsupported")
 	}
+}
+
+func (engine *StrategyEngine) UpdateStrategy(entStrategy *ent.Strategy) {
+	engine.mutex.Lock()
+	defer engine.mutex.Unlock()
+
+	s, ok := engine.strategyMap[entStrategy.GUID]
+	if !ok {
+		return
+	}
+
+	s.Update(entStrategy)
 }
 
 func (engine *StrategyEngine) run() {

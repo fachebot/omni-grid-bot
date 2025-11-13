@@ -21,6 +21,10 @@ func (s *GridStrategy) Get() *ent.Strategy {
 	return s.strategy
 }
 
+func (s *GridStrategy) Update(entStrategy *ent.Strategy) {
+	s.strategy = entStrategy
+}
+
 func (s *GridStrategy) OnUpdate(ctx context.Context) error {
 	state, err := LoadGridStrategyState(ctx, s.svcCtx, s.strategy)
 	if err != nil {

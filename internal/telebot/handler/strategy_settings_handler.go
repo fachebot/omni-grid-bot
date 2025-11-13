@@ -637,6 +637,13 @@ func (h *StrategySettingsHandler) handleSlippage(ctx context.Context, userId int
 			text = "❌ 配置修改失败, 请稍后重试"
 			logger.Errorf("[StrategySettingsHandler] 更新配置[SlippageBps]失败, %v", err)
 		}
+
+		// 更新缓存数据
+		strategyEngine, ok := GetStrategyEngine(ctx)
+		if ok {
+			strategyEngine.UpdateStrategy(record)
+		}
+
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
 
 		return h.refreshSettingsMessage(ctx, userId, update, record)
@@ -657,6 +664,12 @@ func (h *StrategySettingsHandler) handleEnablePushNotificatione(ctx context.Cont
 	} else {
 		text = "❌ 配置修改失败, 请稍后重试"
 		logger.Errorf("[StrategySettingsHandler] 更新配置[EnablePushNotification]失败, %v", err)
+	}
+
+	// 更新缓存数据
+	strategyEngine, ok := GetStrategyEngine(ctx)
+	if ok {
+		strategyEngine.UpdateStrategy(record)
 	}
 
 	chatId := update.Callback.Message.Chat.ID
@@ -683,6 +696,12 @@ func (h *StrategySettingsHandler) handleEnablePushMatchedNotification(ctx contex
 	} else {
 		text = "❌ 配置修改失败, 请稍后重试"
 		logger.Errorf("[StrategySettingsHandler] 更新配置[EnablePushMatchedNotification]失败, %v", err)
+	}
+
+	// 更新缓存数据
+	strategyEngine, ok := GetStrategyEngine(ctx)
+	if ok {
+		strategyEngine.UpdateStrategy(record)
 	}
 
 	chatId := update.Callback.Message.Chat.ID
