@@ -7,7 +7,7 @@ import (
 
 func InitRoutes(svcCtx *svc.ServiceContext, router *pathrouter.Router) {
 	NewClosePositionHandler(svcCtx).AddRouter(router)
-	NewCompletedTradesHandler(svcCtx).AddRouter(router)
+	NewMatchedTradesHandler(svcCtx).AddRouter(router)
 	NewCreateStrategyHandler(svcCtx).AddRouter(router)
 	NewDeleteStrategyHandler(svcCtx).AddRouter(router)
 	NewStrategyDetailsHandler(svcCtx).AddRouter(router)

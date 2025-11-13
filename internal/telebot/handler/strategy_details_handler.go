@@ -268,7 +268,7 @@ func DisplayStrategyDetails(ctx context.Context, svcCtx *svc.ServiceContext, use
 			},
 			{
 				{Text: "🔄 刷新界面", Data: StrategyDetailsHandler{}.FormatPath(record.GUID)},
-				{Text: "🗒 匹配记录", Data: CompletedTradesHandler{}.FormatPath(record.GUID)},
+				{Text: "🗒 匹配记录", Data: MatchedTradesHandler{}.FormatPath(record.GUID, 1)},
 			},
 			{
 				{Text: "⚙️ 编辑策略", Data: StrategySettingsHandler{}.FormatPath(record.GUID)},

@@ -93,6 +93,19 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 		return DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)
 	}
 
+	if update.Callback != nil && record.Status != strategy.StatusInactive {
+		allowList := []SettingsOption{
+			SettingsOptionSlippage,
+			SettingsOptionEnablePushNotification,
+			SettingsOptionEnablePushMatchedNotification,
+		}
+		if lo.IndexOf(allowList, SettingsOption(optionValue)) == -1 {
+			chatId := util.ChatId(update.Callback.Message.Chat.ID)
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chatId, "❌ 策略运行中不允许修改此参数", 3)
+			return nil
+		}
+	}
+
 	switch SettingsOption(optionValue) {
 	case SettingsOptionGridMode:
 		return h.handleGridMode(ctx, userId, update, record)

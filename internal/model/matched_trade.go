@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/matchedtrade"
 	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
@@ -40,6 +41,22 @@ func (m *MatchedTradeModel) QueryTotalProfit(ctx context.Context, strategyId str
 		return decimal.Zero, nil
 	}
 	return v[0].Sum, nil
+}
+
+func (m *MatchedTradeModel) FinAllMatchedTrades(ctx context.Context, strategyId string, offset, limit int) ([]*ent.MatchedTrade, int, error) {
+	q := m.client.Query().
+		Where(matchedtrade.StrategyIdEQ(strategyId), matchedtrade.ProfitNotNil())
+	count, err := q.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	r, err := q.Order(matchedtrade.ByUpdateTime(sql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return r, count, nil
 }
 
 func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
