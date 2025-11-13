@@ -152,6 +152,10 @@ func (state *GridStrategyState) sendOrderFilleddNotification(ord *ent.Order) {
 }
 
 func (state *GridStrategyState) sendGridMatchedNotification(completedPair *ent.MatchedTrade) {
+	if state.strategy.EnablePushMatchedNotification == nil && !*state.strategy.EnablePushMatchedNotification {
+		return
+	}
+
 	text := fmt.Sprintf("👫 交易配对通知 `%s`\n\n", strategyName(state.strategy))
 	text += fmt.Sprintf("🏦 交易平台: %s | %s %s\n", state.strategy.Exchange, state.strategy.Symbol, state.strategy.Mode)
 
@@ -190,9 +194,8 @@ func (state *GridStrategyState) handleGridMatched(completedPair *ent.MatchedTrad
 		logger.Warnf("[GridStrategyState] 更新网格利润失败, id: %d, profit: %v", completedPair.ID, profit)
 	}
 
-	if state.strategy.EnablePushMatchedNotification != nil && *state.strategy.EnablePushMatchedNotification {
-		go state.sendGridMatchedNotification(completedPair)
-	}
+	go state.sendGridMatchedNotification(completedPair)
+
 }
 
 func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order) error {
