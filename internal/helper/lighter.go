@@ -423,5 +423,9 @@ func (h *LighterOrderHelper) ClosePosition(ctx context.Context, symbol string, s
 		_, err = h.CreateMarketOrder(ctx, symbol, false, true, acceptableExecutionPrice, p.Position)
 	}
 
+	if err != nil {
+		logger.Errorf("[LighterOrderHelper] 关闭仓位失败, account: %d, symbol: %s, size: %s, %v", h.signer.GetAccountIndex(), symbol, p.Position, err)
+	}
+
 	return err
 }
