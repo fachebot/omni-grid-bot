@@ -72,7 +72,9 @@ type Strategy struct {
 	ExchangeSecretKey string `json:"exchangeSecretKey,omitempty"`
 	// ExchangePassphrase holds the value of the "exchangePassphrase" field.
 	ExchangePassphrase string `json:"exchangePassphrase,omitempty"`
-	selectValues       sql.SelectValues
+	// StartTime holds the value of the "startTime" field.
+	StartTime    *time.Time `json:"startTime,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -88,7 +90,7 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case strategy.FieldGUID, strategy.FieldExchange, strategy.FieldSymbol, strategy.FieldAccount, strategy.FieldMode, strategy.FieldMarginMode, strategy.FieldQuantityMode, strategy.FieldStatus, strategy.FieldExchangeApiKey, strategy.FieldExchangeSecretKey, strategy.FieldExchangePassphrase:
 			values[i] = new(sql.NullString)
-		case strategy.FieldCreateTime, strategy.FieldUpdateTime, strategy.FieldLastLowerThresholdAlertTime, strategy.FieldLastUpperThresholdAlertTime:
+		case strategy.FieldCreateTime, strategy.FieldUpdateTime, strategy.FieldLastLowerThresholdAlertTime, strategy.FieldLastUpperThresholdAlertTime, strategy.FieldStartTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -277,6 +279,13 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExchangePassphrase = value.String
 			}
+		case strategy.FieldStartTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field startTime", values[i])
+			} else if value.Valid {
+				_m.StartTime = new(time.Time)
+				*_m.StartTime = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -401,6 +410,11 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("exchangePassphrase=")
 	builder.WriteString(_m.ExchangePassphrase)
+	builder.WriteString(", ")
+	if v := _m.StartTime; v != nil {
+		builder.WriteString("startTime=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

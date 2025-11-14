@@ -437,6 +437,26 @@ func (_u *StrategyUpdate) SetNillableExchangePassphrase(v *string) *StrategyUpda
 	return _u
 }
 
+// SetStartTime sets the "startTime" field.
+func (_u *StrategyUpdate) SetStartTime(v time.Time) *StrategyUpdate {
+	_u.mutation.SetStartTime(v)
+	return _u
+}
+
+// SetNillableStartTime sets the "startTime" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableStartTime(v *time.Time) *StrategyUpdate {
+	if v != nil {
+		_u.SetStartTime(*v)
+	}
+	return _u
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (_u *StrategyUpdate) ClearStartTime() *StrategyUpdate {
+	_u.mutation.ClearStartTime()
+	return _u
+}
+
 // Mutation returns the StrategyMutation object of the builder.
 func (_u *StrategyUpdate) Mutation() *StrategyMutation {
 	return _u.mutation
@@ -646,6 +666,12 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartTime(); ok {
+		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)
+	}
+	if _u.mutation.StartTimeCleared() {
+		_spec.ClearField(strategy.FieldStartTime, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -1075,6 +1101,26 @@ func (_u *StrategyUpdateOne) SetNillableExchangePassphrase(v *string) *StrategyU
 	return _u
 }
 
+// SetStartTime sets the "startTime" field.
+func (_u *StrategyUpdateOne) SetStartTime(v time.Time) *StrategyUpdateOne {
+	_u.mutation.SetStartTime(v)
+	return _u
+}
+
+// SetNillableStartTime sets the "startTime" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableStartTime(v *time.Time) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetStartTime(*v)
+	}
+	return _u
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (_u *StrategyUpdateOne) ClearStartTime() *StrategyUpdateOne {
+	_u.mutation.ClearStartTime()
+	return _u
+}
+
 // Mutation returns the StrategyMutation object of the builder.
 func (_u *StrategyUpdateOne) Mutation() *StrategyMutation {
 	return _u.mutation
@@ -1314,6 +1360,12 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if value, ok := _u.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartTime(); ok {
+		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)
+	}
+	if _u.mutation.StartTimeCleared() {
+		_spec.ClearField(strategy.FieldStartTime, field.TypeTime)
 	}
 	_node = &Strategy{config: _u.config}
 	_spec.Assign = _node.assignValues

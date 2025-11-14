@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
@@ -110,6 +111,11 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 		}
 
 		if err = m.CreateBulk(ctx, gridLevels); err != nil {
+			return err
+		}
+
+		err = model.NewStrategyModel(tx.Strategy).UpdateStartTime(ctx, record.ID, time.Now())
+		if err != nil {
 			return err
 		}
 

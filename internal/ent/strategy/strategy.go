@@ -68,6 +68,8 @@ const (
 	FieldExchangeSecretKey = "exchange_secret_key"
 	// FieldExchangePassphrase holds the string denoting the exchangepassphrase field in the database.
 	FieldExchangePassphrase = "exchange_passphrase"
+	// FieldStartTime holds the string denoting the starttime field in the database.
+	FieldStartTime = "start_time"
 	// Table holds the table name of the strategy in the database.
 	Table = "strategies"
 )
@@ -102,6 +104,7 @@ var Columns = []string{
 	FieldExchangeApiKey,
 	FieldExchangeSecretKey,
 	FieldExchangePassphrase,
+	FieldStartTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -372,4 +375,9 @@ func ByExchangeSecretKey(opts ...sql.OrderTermOption) OrderOption {
 // ByExchangePassphrase orders the results by the exchangePassphrase field.
 func ByExchangePassphrase(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExchangePassphrase, opts...).ToFunc()
+}
+
+// ByStartTime orders the results by the startTime field.
+func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
 }

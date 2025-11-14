@@ -249,6 +249,20 @@ func (_c *StrategyCreate) SetExchangePassphrase(v string) *StrategyCreate {
 	return _c
 }
 
+// SetStartTime sets the "startTime" field.
+func (_c *StrategyCreate) SetStartTime(v time.Time) *StrategyCreate {
+	_c.mutation.SetStartTime(v)
+	return _c
+}
+
+// SetNillableStartTime sets the "startTime" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableStartTime(v *time.Time) *StrategyCreate {
+	if v != nil {
+		_c.SetStartTime(*v)
+	}
+	return _c
+}
+
 // Mutation returns the StrategyMutation object of the builder.
 func (_c *StrategyCreate) Mutation() *StrategyMutation {
 	return _c.mutation
@@ -557,6 +571,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
 		_node.ExchangePassphrase = value
+	}
+	if value, ok := _c.mutation.StartTime(); ok {
+		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)
+		_node.StartTime = &value
 	}
 	return _node, _spec
 }
@@ -967,6 +985,24 @@ func (u *StrategyUpsert) SetExchangePassphrase(v string) *StrategyUpsert {
 // UpdateExchangePassphrase sets the "exchangePassphrase" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateExchangePassphrase() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldExchangePassphrase)
+	return u
+}
+
+// SetStartTime sets the "startTime" field.
+func (u *StrategyUpsert) SetStartTime(v time.Time) *StrategyUpsert {
+	u.Set(strategy.FieldStartTime, v)
+	return u
+}
+
+// UpdateStartTime sets the "startTime" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateStartTime() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldStartTime)
+	return u
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (u *StrategyUpsert) ClearStartTime() *StrategyUpsert {
+	u.SetNull(strategy.FieldStartTime)
 	return u
 }
 
@@ -1432,6 +1468,27 @@ func (u *StrategyUpsertOne) SetExchangePassphrase(v string) *StrategyUpsertOne {
 func (u *StrategyUpsertOne) UpdateExchangePassphrase() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateExchangePassphrase()
+	})
+}
+
+// SetStartTime sets the "startTime" field.
+func (u *StrategyUpsertOne) SetStartTime(v time.Time) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetStartTime(v)
+	})
+}
+
+// UpdateStartTime sets the "startTime" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateStartTime() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateStartTime()
+	})
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (u *StrategyUpsertOne) ClearStartTime() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearStartTime()
 	})
 }
 
@@ -2063,6 +2120,27 @@ func (u *StrategyUpsertBulk) SetExchangePassphrase(v string) *StrategyUpsertBulk
 func (u *StrategyUpsertBulk) UpdateExchangePassphrase() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateExchangePassphrase()
+	})
+}
+
+// SetStartTime sets the "startTime" field.
+func (u *StrategyUpsertBulk) SetStartTime(v time.Time) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetStartTime(v)
+	})
+}
+
+// UpdateStartTime sets the "startTime" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateStartTime() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateStartTime()
+	})
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (u *StrategyUpsertBulk) ClearStartTime() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearStartTime()
 	})
 }
 

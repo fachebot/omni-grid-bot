@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
@@ -45,6 +46,7 @@ func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strat
 		SetExchangeApiKey(args.ExchangeApiKey).
 		SetExchangeSecretKey(args.ExchangeSecretKey).
 		SetExchangePassphrase(args.ExchangePassphrase).
+		SetNillableStartTime(args.StartTime).
 		Save(ctx)
 }
 
@@ -155,6 +157,10 @@ func (m *StrategyModel) UpdateEnablePushNotification(ctx context.Context, id int
 
 func (m *StrategyModel) UpdateEnablePushMatchedNotification(ctx context.Context, id int, newValue bool) error {
 	return m.client.UpdateOneID(id).SetEnablePushMatchedNotification(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateStartTime(ctx context.Context, id int, newValue time.Time) error {
+	return m.client.UpdateOneID(id).SetStartTime(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) Delete(ctx context.Context, id int) error {

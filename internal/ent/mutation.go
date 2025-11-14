@@ -3535,6 +3535,7 @@ type StrategyMutation struct {
 	exchangeApiKey                *string
 	exchangeSecretKey             *string
 	exchangePassphrase            *string
+	startTime                     *time.Time
 	clearedFields                 map[string]struct{}
 	done                          bool
 	oldValue                      func(context.Context) (*Strategy, error)
@@ -4744,6 +4745,55 @@ func (m *StrategyMutation) ResetExchangePassphrase() {
 	m.exchangePassphrase = nil
 }
 
+// SetStartTime sets the "startTime" field.
+func (m *StrategyMutation) SetStartTime(t time.Time) {
+	m.startTime = &t
+}
+
+// StartTime returns the value of the "startTime" field in the mutation.
+func (m *StrategyMutation) StartTime() (r time.Time, exists bool) {
+	v := m.startTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartTime returns the old "startTime" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldStartTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
+	}
+	return oldValue.StartTime, nil
+}
+
+// ClearStartTime clears the value of the "startTime" field.
+func (m *StrategyMutation) ClearStartTime() {
+	m.startTime = nil
+	m.clearedFields[strategy.FieldStartTime] = struct{}{}
+}
+
+// StartTimeCleared returns if the "startTime" field was cleared in this mutation.
+func (m *StrategyMutation) StartTimeCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldStartTime]
+	return ok
+}
+
+// ResetStartTime resets all changes to the "startTime" field.
+func (m *StrategyMutation) ResetStartTime() {
+	m.startTime = nil
+	delete(m.clearedFields, strategy.FieldStartTime)
+}
+
 // Where appends a list predicates to the StrategyMutation builder.
 func (m *StrategyMutation) Where(ps ...predicate.Strategy) {
 	m.predicates = append(m.predicates, ps...)
@@ -4778,7 +4828,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 27)
+	fields := make([]string, 0, 28)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -4860,6 +4910,9 @@ func (m *StrategyMutation) Fields() []string {
 	if m.exchangePassphrase != nil {
 		fields = append(fields, strategy.FieldExchangePassphrase)
 	}
+	if m.startTime != nil {
+		fields = append(fields, strategy.FieldStartTime)
+	}
 	return fields
 }
 
@@ -4922,6 +4975,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.ExchangeSecretKey()
 	case strategy.FieldExchangePassphrase:
 		return m.ExchangePassphrase()
+	case strategy.FieldStartTime:
+		return m.StartTime()
 	}
 	return nil, false
 }
@@ -4985,6 +5040,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldExchangeSecretKey(ctx)
 	case strategy.FieldExchangePassphrase:
 		return m.OldExchangePassphrase(ctx)
+	case strategy.FieldStartTime:
+		return m.OldStartTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown Strategy field %s", name)
 }
@@ -5183,6 +5240,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExchangePassphrase(v)
 		return nil
+	case strategy.FieldStartTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartTime(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Strategy field %s", name)
 }
@@ -5276,6 +5340,9 @@ func (m *StrategyMutation) ClearedFields() []string {
 	if m.FieldCleared(strategy.FieldLastUpperThresholdAlertTime) {
 		fields = append(fields, strategy.FieldLastUpperThresholdAlertTime)
 	}
+	if m.FieldCleared(strategy.FieldStartTime) {
+		fields = append(fields, strategy.FieldStartTime)
+	}
 	return fields
 }
 
@@ -5301,6 +5368,9 @@ func (m *StrategyMutation) ClearField(name string) error {
 		return nil
 	case strategy.FieldLastUpperThresholdAlertTime:
 		m.ClearLastUpperThresholdAlertTime()
+		return nil
+	case strategy.FieldStartTime:
+		m.ClearStartTime()
 		return nil
 	}
 	return fmt.Errorf("unknown Strategy nullable field %s", name)
@@ -5390,6 +5460,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldExchangePassphrase:
 		m.ResetExchangePassphrase()
+		return nil
+	case strategy.FieldStartTime:
+		m.ResetStartTime()
 		return nil
 	}
 	return fmt.Errorf("unknown Strategy field %s", name)

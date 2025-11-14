@@ -170,6 +170,11 @@ func ExchangePassphrase(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldExchangePassphrase, v))
 }
 
+// StartTime applies equality check predicate on the "startTime" field. It's identical to StartTimeEQ.
+func StartTime(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldStartTime, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldCreateTime, v))
@@ -1443,6 +1448,56 @@ func ExchangePassphraseEqualFold(v string) predicate.Strategy {
 // ExchangePassphraseContainsFold applies the ContainsFold predicate on the "exchangePassphrase" field.
 func ExchangePassphraseContainsFold(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldContainsFold(FieldExchangePassphrase, v))
+}
+
+// StartTimeEQ applies the EQ predicate on the "startTime" field.
+func StartTimeEQ(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldStartTime, v))
+}
+
+// StartTimeNEQ applies the NEQ predicate on the "startTime" field.
+func StartTimeNEQ(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldStartTime, v))
+}
+
+// StartTimeIn applies the In predicate on the "startTime" field.
+func StartTimeIn(vs ...time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldStartTime, vs...))
+}
+
+// StartTimeNotIn applies the NotIn predicate on the "startTime" field.
+func StartTimeNotIn(vs ...time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldStartTime, vs...))
+}
+
+// StartTimeGT applies the GT predicate on the "startTime" field.
+func StartTimeGT(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldStartTime, v))
+}
+
+// StartTimeGTE applies the GTE predicate on the "startTime" field.
+func StartTimeGTE(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldStartTime, v))
+}
+
+// StartTimeLT applies the LT predicate on the "startTime" field.
+func StartTimeLT(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldStartTime, v))
+}
+
+// StartTimeLTE applies the LTE predicate on the "startTime" field.
+func StartTimeLTE(v time.Time) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldStartTime, v))
+}
+
+// StartTimeIsNil applies the IsNil predicate on the "startTime" field.
+func StartTimeIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldStartTime))
+}
+
+// StartTimeNotNil applies the NotNil predicate on the "startTime" field.
+func StartTimeNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldStartTime))
 }
 
 // And groups predicates with the AND operator between them.

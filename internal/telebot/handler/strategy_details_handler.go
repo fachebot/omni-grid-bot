@@ -153,6 +153,20 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	name := StrategyName(record)
 	text := fmt.Sprintf("*%s* | 策略详情 `%s`\n\n", svcCtx.Config.AppName, name)
 
+	// 查询网格列表
+	grids, err := svcCtx.GridModel.FindAllByStrategyIdOrderAsc(ctx, record.GUID)
+	if err != nil {
+		logger.Errorf("[StrategyDetailsText] 查询网格列表失败, id: %s, %v", record.GUID, err)
+	}
+	grids = lo.Filter(grids, func(item *ent.Grid, idx int) bool {
+		return item.BuyClientOrderId != nil || item.SellClientOrderId != nil
+	})
+
+	totalInvestment := decimal.Zero
+	for _, lvl := range grids {
+		totalInvestment = totalInvestment.Add(lvl.Quantity.Mul(lvl.Price))
+	}
+
 	// 账户信息
 	text += "📊 账户\n"
 	exchangeAccount := lo.If(record.Exchange != "", record.Exchange).Else("未设置")
@@ -184,7 +198,11 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	text += fmt.Sprintf("┗ 可用余额: `%s` USD\n\n", availableBalance)
 
 	// 策略信息
-	text += "📌 策略\n"
+	if record.Status != strategy.StatusActive || record.StartTime == nil {
+		text += "📌 策略\n"
+	} else {
+		text += fmt.Sprintf("📌 策略(%s)\n", time.Since(*record.StartTime))
+	}
 	positionSide := lo.If(record.Mode == strategy.ModeLong, "🟢做多").Else("🔴做空")
 	marginMode := lo.If(record.MarginMode == strategy.MarginModeCross, "全仓").Else("逐仓")
 	text += fmt.Sprintf("┣ 方向: %s | 杠杆: **%dX** | %s\n", positionSide, record.Leverage, marginMode)
@@ -211,9 +229,16 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	if err != nil {
 		logger.Warnf("[StrategyDetailsText] 查询已实现利润失败, id: %s, %v", record.GUID, err)
 	}
+	pnl := realizedPnl.Add(unrealizedPnl)
 
 	text += "💰 收益\n"
-	text += fmt.Sprintf("┣ 总利润: %s\n", realizedPnl.Add(unrealizedPnl).Truncate(5))
+	if record.Status == strategy.StatusActive && record.StartTime != nil && totalInvestment.GreaterThan(decimal.Zero) {
+		days := decimal.NewFromFloat(float64(time.Since(*record.StartTime)) / float64(time.Hour*24))
+		apr := pnl.Div(totalInvestment).Div(days).Mul(decimal.NewFromInt(365)).Mul(decimal.NewFromInt(100))
+		text += fmt.Sprintf("┣ 总利润: %s(*APR %v%%*)\n", pnl.Truncate(5), apr.Truncate(4))
+	} else {
+		text += fmt.Sprintf("┣ 总利润: %s\n", pnl.Truncate(5))
+	}
 	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl.Truncate(5))
 	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl.Truncate(5))
 
@@ -223,22 +248,10 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
 	}
 
-	// 查询网格列表
-	grids, err := svcCtx.GridModel.FindAllByStrategyIdOrderAsc(ctx, record.GUID)
-	if err != nil {
-		logger.Errorf("[StrategyDetailsText] 查询网格列表失败, id: %s, %v", record.GUID, err)
-	}
-	grids = lo.Filter(grids, func(item *ent.Grid, idx int) bool {
-		return item.BuyClientOrderId != nil || item.SellClientOrderId != nil
-	})
-
+	// 显示网格挂单
 	if len(grids) == 0 {
 		text += fmt.Sprintf("➖[💵] *当前价格*: $*%s*\n\n", lastPrice)
 	} else {
-		totalInvestment := decimal.Zero
-		for _, lvl := range grids {
-			totalInvestment = totalInvestment.Add(lvl.Quantity.Mul(lvl.Price))
-		}
 		gridList := formatGridListWithCurrentPrice(lastPrice, grids)
 		if record.Mode == strategy.ModeLong {
 			slices.Reverse(gridList)

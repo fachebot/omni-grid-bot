@@ -47,6 +47,7 @@ func (Strategy) Fields() []ent.Field {
 		field.String("exchangeApiKey"),
 		field.String("exchangeSecretKey"),
 		field.String("exchangePassphrase"),
+		field.Time("startTime").Nillable().Optional(),
 	}
 }
 
