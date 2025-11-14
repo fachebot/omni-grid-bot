@@ -216,7 +216,7 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		text += "📦 持仓\n"
 		text += fmt.Sprintf("┣ 持仓数量: %s %s\n", position.Position, position.Symbol)
 		text += fmt.Sprintf("┣ 持仓价值: $%s\n", format.Price(position.PositionValue, 5))
-		text += fmt.Sprintf("┣ 强平价格: $%s\n", format.Price(position.LiquidationPrice, 5))
+		text += fmt.Sprintf("┣ 强平价格: *$%s*\n", format.Price(position.LiquidationPrice, 5))
 		text += fmt.Sprintf("┗ 平均持仓成本: $%s\n\n", format.Price(position.AvgEntryPrice, 5))
 	}
 
