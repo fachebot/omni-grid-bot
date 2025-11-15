@@ -220,16 +220,40 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		text += fmt.Sprintf("┗ 平均持仓成本: $%s\n\n", format.Price(position.AvgEntryPrice, 5))
 	}
 
-	// 收益信息
-	unrealizedPnl := decimal.Zero
-	if position != nil {
-		unrealizedPnl = position.UnrealizedPnl
+	// 查询最新价格
+	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
+	if err != nil {
+		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
 	}
+
+	// 计算未实现收益
+	unrealizedPnl := decimal.Zero
+	switch record.Mode {
+	case strategy.ModeLong:
+		size, cost, err := svcCtx.MatchedTradeModel.QueryOpeLongPositionAndCost(ctx, record.GUID)
+		if err == nil {
+			unrealizedPnl = size.Mul(lastPrice).Sub(cost)
+		} else {
+			logger.Errorf("[StrategyDetailsText] 查询未平多仓和成本失败, id: %s, %v", record.GUID, err)
+		}
+	case strategy.ModeShort:
+		size, cost, err := svcCtx.MatchedTradeModel.QueryOpenShortPositionAndCost(ctx, record.GUID)
+		if err == nil {
+			unrealizedPnl = cost.Sub(size.Mul(lastPrice))
+		} else {
+			logger.Errorf("[StrategyDetailsText] 查询未平多仓和成本失败, id: %s, %v", record.GUID, err)
+		}
+	}
+
+	// 收益信息
 	realizedPnl, err := svcCtx.MatchedTradeModel.QueryTotalProfit(ctx, record.GUID)
 	if err != nil {
 		logger.Warnf("[StrategyDetailsText] 查询已实现利润失败, id: %s, %v", record.GUID, err)
 	}
 	pnl := realizedPnl.Add(unrealizedPnl)
+	if position != nil {
+		pnl = pnl.Sub(position.TotalFundingPaidOut)
+	}
 
 	text += "💰 收益\n"
 	if record.Status == strategy.StatusActive && record.StartTime != nil && totalInvestment.GreaterThan(decimal.Zero) {
@@ -241,12 +265,6 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	}
 	text += fmt.Sprintf("┣ 已实现利润: %s\n", realizedPnl.Truncate(5))
 	text += fmt.Sprintf("┗ 未实现利润: %s\n\n", unrealizedPnl.Truncate(5))
-
-	// 查询最新价格
-	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
-	if err != nil {
-		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
-	}
 
 	// 显示网格挂单
 	if len(grids) == 0 {

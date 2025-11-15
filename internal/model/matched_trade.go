@@ -59,6 +59,48 @@ func (m *MatchedTradeModel) FinAllMatchedTrades(ctx context.Context, strategyId 
 	return r, count, nil
 }
 
+func (m *MatchedTradeModel) QueryOpeLongPositionAndCost(ctx context.Context, strategyId string) (position, cost decimal.Decimal, err error) {
+	trades, err := m.client.Query().Where(
+		matchedtrade.StrategyIdEQ(strategyId),
+		matchedtrade.BuyOrderTimestampNotNil(),
+		matchedtrade.SellOrderTimestampIsNil(),
+	).All(ctx)
+	if err != nil {
+		return position, cost, err
+	}
+
+	for _, item := range trades {
+		if item.BuyQuoteAmount == nil || item.BuyBaseAmount == nil {
+			continue
+		}
+
+		cost = cost.Add(*item.BuyQuoteAmount)
+		position = position.Add(*item.BuyBaseAmount)
+	}
+	return position, cost, nil
+}
+
+func (m *MatchedTradeModel) QueryOpenShortPositionAndCost(ctx context.Context, strategyId string) (position, cost decimal.Decimal, err error) {
+	trades, err := m.client.Query().Where(
+		matchedtrade.StrategyIdEQ(strategyId),
+		matchedtrade.SellOrderTimestampNotNil(),
+		matchedtrade.BuyOrderTimestampIsNil(),
+	).All(ctx)
+	if err != nil {
+		return position, cost, err
+	}
+
+	for _, item := range trades {
+		if item.SellQuoteAmount == nil || item.SellBaseAmount == nil {
+			continue
+		}
+
+		cost = cost.Add(*item.SellQuoteAmount)
+		position = position.Add(*item.SellBaseAmount)
+	}
+	return position, cost, nil
+}
+
 func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
 	ctx context.Context, strategyId string, buyOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
 
