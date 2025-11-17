@@ -41,7 +41,7 @@ func init() {
 
 	// 使用lumberjack进行日志轮转
 	logFile := &lumberjack.Logger{
-		Filename:   filepath.Join(logDir, "gridbot.log"),
+		Filename:   filepath.Join(logDir, "ominigrid.log"),
 		MaxSize:    10,
 		MaxBackups: 10,
 		MaxAge:     30,
