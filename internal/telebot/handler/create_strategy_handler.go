@@ -41,15 +41,18 @@ func (h *CreateStrategyHandler) handle(ctx context.Context, vars map[string]stri
 		return nil
 	}
 
+	enablePushMatchedNotification := true
 	record := ent.Strategy{
-		GUID:         guid.String(),
-		Owner:        userId,
-		Mode:         strategy.ModeLong,
-		MarginMode:   strategy.MarginModeCross,
-		Leverage:     2,
-		QuantityMode: strategy.QuantityModeArithmetic,
-		GridNum:      50,
-		Status:       strategy.StatusInactive,
+		GUID:                          guid.String(),
+		Owner:                         userId,
+		Mode:                          strategy.ModeLong,
+		MarginMode:                    strategy.MarginModeCross,
+		Leverage:                      2,
+		QuantityMode:                  strategy.QuantityModeArithmetic,
+		GridNum:                       50,
+		Status:                        strategy.StatusInactive,
+		EnablePushNotification:        true,
+		EnablePushMatchedNotification: &enablePushMatchedNotification,
 	}
 	_, err = h.svcCtx.StrategyModel.Save(ctx, record)
 	if err != nil {
