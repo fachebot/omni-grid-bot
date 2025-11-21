@@ -332,8 +332,8 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 				logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, sellClientOrderId: nil, lowerLevel: %d, buyClientOrderId: %d, %v",
 					level.ID, lowerLevel.ID, buyOrderId, err)
 			} else {
-				level.BuyClientOrderId = nil
-				lowerLevel.SellClientOrderId = &buyOrderId
+				level.SellClientOrderId = nil
+				lowerLevel.BuyClientOrderId = &buyOrderId
 			}
 		} else {
 			logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s, buyClientOrderId: %d",
