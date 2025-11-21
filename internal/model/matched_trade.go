@@ -36,7 +36,10 @@ func (m *MatchedTradeModel) Create(ctx context.Context, args ent.MatchedTrade) e
 
 func (m *MatchedTradeModel) QueryTotalProfit(ctx context.Context, strategyId string) (decimal.Decimal, error) {
 	var v []struct{ Sum decimal.Decimal }
-	err := m.client.Query().Aggregate(ent.Sum(matchedtrade.FieldProfit)).Scan(ctx, &v)
+	err := m.client.Query().
+		Where(matchedtrade.StrategyIdEQ(strategyId)).
+		Aggregate(ent.Sum(matchedtrade.FieldProfit)).
+		Scan(ctx, &v)
 	if err != nil || len(v) == 0 {
 		return decimal.Zero, nil
 	}
