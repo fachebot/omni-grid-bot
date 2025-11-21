@@ -78,11 +78,15 @@ func (m *StrategyModel) FindAllByActiveStatus(ctx context.Context, offset, limit
 		All(ctx)
 }
 
-func (m *StrategyModel) FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx context.Context, exchange, exchangeAPIKey, symbol string) ([]*ent.Strategy, error) {
+func (m *StrategyModel) FindAllByExchangeAndAccountAndSymbol(ctx context.Context, exchange, account, symbol string) ([]*ent.Strategy, error) {
+	if exchange == "" || account == "" || symbol == "" {
+		return nil, nil
+	}
+
 	ps := []predicate.Strategy{
 		strategy.ExchangeEQ(exchange),
-		strategy.ExchangeApiKeyEQ(exchangeAPIKey),
 		strategy.SymbolEQ(symbol),
+		strategy.AccountEQ(account),
 	}
 	return m.client.Query().Where(ps...).All(ctx)
 }

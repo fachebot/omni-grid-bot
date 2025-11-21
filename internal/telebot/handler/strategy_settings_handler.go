@@ -352,7 +352,7 @@ func (h *StrategySettingsHandler) handleMarketSymbol(ctx context.Context, userId
 		}
 
 		if record.ExchangeApiKey != "" {
-			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndExchangeAPIKeyAndSymbol(ctx, record.Exchange, record.ExchangeApiKey, symbol)
+			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndAccountAndSymbol(ctx, record.Exchange, record.Account, symbol)
 			if err != nil || len(result) > 0 {
 				text := "❌ 同一交易账户不能创建多个相同币种的网格策略"
 				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)

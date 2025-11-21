@@ -1,1 +1,320 @@
 package paradex
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/carlmjohnson/requests"
+	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
+	"github.com/golang-jwt/jwt/v5"
+	gocache "github.com/patrickmn/go-cache"
+	"golang.org/x/sync/singleflight"
+)
+
+const (
+	PARADEX_HTTP_URL = "https://api.prod.paradex.trade/v1"
+)
+
+type Client struct {
+	endpoint     string
+	httpClient   *http.Client
+	systemConfig *SystemConfigRes
+
+	mutex         sync.RWMutex
+	jwtTokenCache *gocache.Cache
+	sfGroup       singleflight.Group
+}
+
+func NewClient(httpClient *http.Client) *Client {
+	c := Client{
+		endpoint:      PARADEX_HTTP_URL,
+		httpClient:    httpClient,
+		jwtTokenCache: gocache.New(300, 600),
+	}
+	return &c
+}
+
+func parseExpirationTime(jwtToken string) (time.Time, error) {
+	token, _, err := jwt.NewParser().ParseUnverified(jwtToken, jwt.MapClaims{})
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	v, err := token.Claims.GetExpirationTime()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return v.Time, nil
+}
+
+func (c *Client) GetSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
+	var errRes *ErrorRes
+	var res SystemConfigRes
+	err := requests.URL(fmt.Sprintf("%s/system/config", c.endpoint)).Client(c.httpClient).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *Client) LoadSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
+	if c.systemConfig != nil {
+		return c.systemConfig, nil
+	}
+
+	systemConfig, err := c.GetSymtemConfig(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load system config: %w", err)
+	}
+
+	c.systemConfig = systemConfig
+	return systemConfig, nil
+}
+
+func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey string) (string, error) {
+	systemConfig, err := c.LoadSymtemConfig(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to load system config for JWT token generation: %w", err)
+	}
+
+	dexPrivateKeyBN := types.HexToBN(dexPrivateKey)
+	dexPublicKeyBN, _, err := caigo.Curve.PrivateToPoint(dexPrivateKeyBN)
+	if err != nil {
+		return "", fmt.Errorf("failed to derive public key from private key (invalid private key?): %w", err)
+	}
+	dexPublicKey := types.BigToHex(dexPublicKeyBN)
+
+	now := time.Now().Unix()
+	timestampStr := strconv.FormatInt(now, 10)
+	expirationStr := strconv.FormatInt(now+300, 10)
+
+	sc := caigo.StarkCurve{}
+	message := &AuthPayload{
+		Method:     "POST",
+		Path:       "/v1/auth",
+		Body:       "",
+		Timestamp:  timestampStr,
+		Expiration: expirationStr,
+	}
+	typedData, err := NewVerificationTypedData(VerificationTypeAuth, systemConfig.ChainId)
+	if err != nil {
+		return "", fmt.Errorf("failed to create verification typed data for chainId=%s: %w", systemConfig.ChainId, err)
+	}
+
+	domEnc, err := typedData.GetTypedMessageHash("StarkNetDomain", typedData.Domain, sc)
+	if err != nil {
+		return "", fmt.Errorf("failed to get domain encoded hash: %w", err)
+	}
+
+	dexAccountAddressBN := types.HexToBN(dexAccount)
+	messageHash, err := GnarkGetMessageHash(typedData, domEnc, dexAccountAddressBN, message, sc)
+	if err != nil {
+		return "", fmt.Errorf("failed to compute message hash for account=%s: %w", dexAccount, err)
+	}
+
+	r, s, err := GnarkSign(messageHash, dexPrivateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign message: %w", err)
+	}
+
+	signature, err := GetSignatureStr(r, s)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate signature string: %w", err)
+	}
+
+	var res AuthRes
+	var errRes *ErrorRes
+	err = requests.URL(fmt.Sprintf("%s/auth/%s", c.endpoint, dexPublicKey)).Client(c.httpClient).Post().
+		Header("Content-Type", "application/json").
+		Header("PARADEX-STARKNET-ACCOUNT", dexAccount).
+		Header("PARADEX-STARKNET-SIGNATURE", signature).
+		Header("PARADEX-TIMESTAMP", timestampStr).
+		Header("PARADEX-SIGNATURE-EXPIRATION", expirationStr).
+		Header("PARADEX-AUTHORIZE-ISOLATED-MARKETS", "true").
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return "", errRes
+		}
+		return "", err
+	}
+
+	return res.JwtToken, nil
+}
+
+func (c *Client) EnsureJwtToken(ctx context.Context, dexAccount, dexPrivateKey string) (string, error) {
+	c.mutex.RLock()
+	v, ok := c.jwtTokenCache.Get(dexPrivateKey)
+	c.mutex.RUnlock()
+
+	if ok {
+		if token, isString := v.(string); isString && token != "" {
+			return token, nil
+		}
+	}
+
+	cacheKey := dexPrivateKey
+	result, err, _ := c.sfGroup.Do(cacheKey, func() (any, error) {
+		c.mutex.RLock()
+		v, ok := c.jwtTokenCache.Get(dexPrivateKey)
+		c.mutex.RUnlock()
+
+		if ok {
+			if token, isString := v.(string); isString && token != "" {
+				return token, nil
+			}
+		}
+
+		jwtToken, err := c.GetJwtToken(ctx, dexAccount, dexPrivateKey)
+		if err != nil {
+			return "", fmt.Errorf("failed to get JWT token: %w", err)
+		}
+
+		expirationTime, err := parseExpirationTime(jwtToken)
+		if err != nil {
+			expirationTime = time.Now().Add(time.Second * 30)
+		}
+
+		c.mutex.Lock()
+		c.jwtTokenCache.Set(dexPrivateKey, jwtToken, expirationTime.Sub(time.Now().Add(time.Second*10)))
+		c.mutex.Unlock()
+
+		return jwtToken, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return result.(string), nil
+}
+
+func (c *Client) GetMarkets(ctx context.Context) {
+}
+
+func (c *Client) GetAccount(ctx context.Context, dexAccount, dexPrivateKey string) (*AccountInfoRes, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var errRes *ErrorRes
+	var res AccountInfoRes
+	err = requests.URL(fmt.Sprintf("%s/account", c.endpoint)).Client(c.httpClient).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *Client) GetPositions(ctx context.Context, dexAccount, dexPrivateKey string) (*PositionRes, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var res PositionRes
+	var errRes *ErrorRes
+	err = requests.URL(fmt.Sprintf("%s/positions", c.endpoint)).Client(c.httpClient).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *Client) GetOpenOrders(ctx context.Context, dexAccount, dexPrivateKey string) (*OpenOrdersRes, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var res OpenOrdersRes
+	var errRes *ErrorRes
+	err = requests.URL(fmt.Sprintf("%s/orders", c.endpoint)).Client(c.httpClient).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *Client) GetClosedOrders(ctx context.Context, dexAccount, dexPrivateKey string, startAt *time.Time, cursor string, size int) (*OrdersRes, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	params := make(url.Values)
+	params.Set("cursor", cursor)
+	//	params.Set("status", "CLOSED")
+	params.Set("page_size", strconv.Itoa(size))
+	if startAt != nil {
+		params.Set("start_at", strconv.FormatInt(startAt.UnixMilli(), 10))
+	}
+
+	var res OrdersRes
+	var errRes *ErrorRes
+	err = requests.URL(fmt.Sprintf("%s/orders-history", c.endpoint)).Client(c.httpClient).
+		Params(params).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *Client) UpsertAccountMargin(ctx context.Context, dexAccount, dexPrivateKey, market string, leverage int, marginType MarginType) {
+}
+
+func (c *Client) UpdateAccountMarketMaxSlippage(ctx context.Context, dexAccount, dexPrivateKey, market, maxSlippage string) {
+}

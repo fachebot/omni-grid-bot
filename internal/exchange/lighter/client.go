@@ -21,17 +21,16 @@ const (
 )
 
 type Client struct {
-	chainId  uint32
-	endpoint string
-
+	chainId    uint32
+	endpoint   string
 	httpClient *http.Client
 }
 
-func NewClient() *Client {
+func NewClient(httpClient *http.Client) *Client {
 	c := Client{
 		chainId:    MainnetChainId,
 		endpoint:   MainnetBaseURL,
-		httpClient: new(http.Client),
+		httpClient: httpClient,
 	}
 	return &c
 }

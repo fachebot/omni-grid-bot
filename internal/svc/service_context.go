@@ -66,18 +66,22 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 	}
 
 	// 创建LighterClient
-	lighterClient := lighter.NewClient()
-
-	// 创建Telegram Bot
 	httpClient := new(http.Client)
 	if transportProxy != nil {
 		httpClient.Transport = transportProxy
+	}
+	lighterClient := lighter.NewClient(httpClient)
+
+	// 创建Telegram Bot
+	botHttpClient := new(http.Client)
+	if transportProxy != nil {
+		botHttpClient.Transport = transportProxy
 	}
 
 	pref := tele.Settings{
 		Token:  c.TelegramBot.ApiToken,
 		Poller: &tele.LongPoller{Timeout: 5 * time.Second},
-		Client: httpClient,
+		Client: botHttpClient,
 	}
 	bot, err := tele.NewBot(pref)
 	if err != nil {
