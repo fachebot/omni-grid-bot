@@ -416,10 +416,10 @@ func (h *LighterOrderHelper) ClosePosition(ctx context.Context, symbol string, s
 
 	switch p.Sign {
 	case 1:
-		acceptableExecutionPrice := price.Sub(price.Mul(decimal.NewFromInt(10000).Mul(decimal.NewFromInt(int64(slippageBps)))))
+		acceptableExecutionPrice := price.Sub(price.Mul(decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000))))
 		_, err = h.CreateMarketOrder(ctx, symbol, true, true, acceptableExecutionPrice, p.Position)
 	case -1:
-		acceptableExecutionPrice := price.Add(price.Mul(decimal.NewFromInt(10000).Mul(decimal.NewFromInt(int64(slippageBps)))))
+		acceptableExecutionPrice := price.Add(price.Mul(decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000))))
 		_, err = h.CreateMarketOrder(ctx, symbol, false, true, acceptableExecutionPrice, p.Position)
 	}
 
