@@ -183,6 +183,19 @@ func (state *GridStrategyState) sendGridMatchedNotification(completedPair *ent.M
 	}
 }
 
+func (state *GridStrategyState) isActiveOrder(clientOrderId *int64) bool {
+	if clientOrderId == nil {
+		return false
+	}
+
+	ord, ok := state.orders[*clientOrderId]
+	if !ok {
+		return false
+	}
+
+	return ord.Status != order.StatusFilled && ord.Status != order.StatusCanceled
+}
+
 func (state *GridStrategyState) handleGridMatched(completedPair *ent.MatchedTrade) {
 	if completedPair.Profit != nil {
 		return
@@ -199,7 +212,8 @@ func (state *GridStrategyState) handleGridMatched(completedPair *ent.MatchedTrad
 }
 
 func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order) error {
-	logger.Infof("[%s %s] #%d 买单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.Price, buyOrder.FilledBaseAmount)
+	logger.Infof("[%s %s] #%d 买单成交, ID: %d, 价格: %s, 数量: %s",
+		state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.ClientOrderId, buyOrder.Price, buyOrder.FilledBaseAmount)
 
 	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
 	if err != nil {
@@ -215,7 +229,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 
 	upperLevel := getUpperLevel(state.sortedGrids, level.Level)
 	if upperLevel != nil {
-		if upperLevel.SellClientOrderId == nil {
+		if upperLevel.SellClientOrderId == nil && !state.isActiveOrder(upperLevel.BuyClientOrderId) {
 			quantity := buyOrder.FilledBaseAmount
 			if state.strategy.Mode == strategy.ModeShort {
 				quantity = upperLevel.Quantity
@@ -272,7 +286,8 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 }
 
 func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.Order) error {
-	logger.Infof("[%s %s] #%d 卖单成交, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.Price, sellOrder.FilledBaseAmount)
+	logger.Infof("[%s %s] #%d 卖单成交, ID: %d, 价格: %s, 数量: %s",
+		state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.ClientOrderId, sellOrder.Price, sellOrder.FilledBaseAmount)
 
 	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy.GUID, sellOrder)
 	if err != nil {
@@ -288,7 +303,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 
 	lowerLevel := getLowerLevel(state.sortedGrids, level.Level)
 	if lowerLevel != nil {
-		if lowerLevel.BuyClientOrderId == nil {
+		if lowerLevel.BuyClientOrderId == nil && !state.isActiveOrder(lowerLevel.SellClientOrderId) {
 			quantity := sellOrder.FilledBaseAmount
 			if state.strategy.Mode == strategy.ModeLong {
 				quantity = lowerLevel.Quantity
