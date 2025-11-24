@@ -277,6 +277,11 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 			return err
 		}
 
+		err = model.NewMatchedTradeModel(tx.MatchedTrade).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusInactive)
 	})
 	if err != nil {
