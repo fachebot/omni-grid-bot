@@ -12,6 +12,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
 
@@ -27,6 +28,7 @@ type ServiceContext struct {
 	TransportProxy    *http.Transport
 	MessageCache      *cache.MessageCache
 	LighterCache      *cache.LighterCache
+	ParadexClient     *paradex.Client
 	LighterClient     *lighter.Client
 	LighterSubscriber *lighter.LighterSubscriber
 
@@ -65,12 +67,19 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 		}
 	}
 
-	// 创建LighterClient
-	httpClient := new(http.Client)
+	// 创建ParadexClient
+	paraClient := new(http.Client)
 	if transportProxy != nil {
-		httpClient.Transport = transportProxy
+		paraClient.Transport = transportProxy
 	}
-	lighterClient := lighter.NewClient(httpClient)
+	paradexClient := paradex.NewClient(paraClient)
+
+	// 创建LighterClient
+	lighClient := new(http.Client)
+	if transportProxy != nil {
+		lighClient.Transport = transportProxy
+	}
+	lighterClient := lighter.NewClient(lighClient)
 
 	// 创建Telegram Bot
 	botHttpClient := new(http.Client)
@@ -95,6 +104,7 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 		DbClient:          client,
 		TransportProxy:    transportProxy,
 		MessageCache:      cache.NewMessageCache(),
+		ParadexClient:     paradexClient,
 		LighterCache:      cache.NewLighterCache(lighterClient),
 		LighterClient:     lighterClient,
 		LighterSubscriber: lighterSubscriber,

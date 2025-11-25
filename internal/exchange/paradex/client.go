@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -52,6 +51,24 @@ func parseExpirationTime(jwtToken string) (time.Time, error) {
 	}
 
 	return v.Time, nil
+}
+
+func (c *Client) GetMarkets(ctx context.Context) (*MarketRes, error) {
+	var res MarketRes
+	var errRes *ErrorRes
+	err := requests.URL(fmt.Sprintf("%s/markets", c.endpoint)).Client(c.httpClient).
+		Header("Content-Type", "application/json").
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
 }
 
 func (c *Client) GetSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
@@ -203,118 +220,4 @@ func (c *Client) EnsureJwtToken(ctx context.Context, dexAccount, dexPrivateKey s
 	}
 
 	return result.(string), nil
-}
-
-func (c *Client) GetMarkets(ctx context.Context) {
-}
-
-func (c *Client) GetAccount(ctx context.Context, dexAccount, dexPrivateKey string) (*AccountInfoRes, error) {
-	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	var errRes *ErrorRes
-	var res AccountInfoRes
-	err = requests.URL(fmt.Sprintf("%s/account", c.endpoint)).Client(c.httpClient).
-		Header("Content-Type", "application/json").
-		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
-		ErrorJSON(&errRes).
-		ToJSON(&res).
-		Fetch(ctx)
-	if err != nil {
-		if errRes != nil {
-			return nil, errRes
-		}
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-func (c *Client) GetPositions(ctx context.Context, dexAccount, dexPrivateKey string) (*PositionRes, error) {
-	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	var res PositionRes
-	var errRes *ErrorRes
-	err = requests.URL(fmt.Sprintf("%s/positions", c.endpoint)).Client(c.httpClient).
-		Header("Content-Type", "application/json").
-		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
-		ErrorJSON(&errRes).
-		ToJSON(&res).
-		Fetch(ctx)
-	if err != nil {
-		if errRes != nil {
-			return nil, errRes
-		}
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-func (c *Client) GetOpenOrders(ctx context.Context, dexAccount, dexPrivateKey string) (*OpenOrdersRes, error) {
-	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	var res OpenOrdersRes
-	var errRes *ErrorRes
-	err = requests.URL(fmt.Sprintf("%s/orders", c.endpoint)).Client(c.httpClient).
-		Header("Content-Type", "application/json").
-		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
-		ErrorJSON(&errRes).
-		ToJSON(&res).
-		Fetch(ctx)
-	if err != nil {
-		if errRes != nil {
-			return nil, errRes
-		}
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-func (c *Client) GetClosedOrders(ctx context.Context, dexAccount, dexPrivateKey string, startAt *time.Time, cursor string, size int) (*OrdersRes, error) {
-	jwtToken, err := c.EnsureJwtToken(ctx, dexAccount, dexPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	params := make(url.Values)
-	params.Set("cursor", cursor)
-	//	params.Set("status", "CLOSED")
-	params.Set("page_size", strconv.Itoa(size))
-	if startAt != nil {
-		params.Set("start_at", strconv.FormatInt(startAt.UnixMilli(), 10))
-	}
-
-	var res OrdersRes
-	var errRes *ErrorRes
-	err = requests.URL(fmt.Sprintf("%s/orders-history", c.endpoint)).Client(c.httpClient).
-		Params(params).
-		Header("Content-Type", "application/json").
-		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
-		ErrorJSON(&errRes).
-		ToJSON(&res).
-		Fetch(ctx)
-	if err != nil {
-		if errRes != nil {
-			return nil, errRes
-		}
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-func (c *Client) UpsertAccountMargin(ctx context.Context, dexAccount, dexPrivateKey, market string, leverage int, marginType MarginType) {
-}
-
-func (c *Client) UpdateAccountMarketMaxSlippage(ctx context.Context, dexAccount, dexPrivateKey, market, maxSlippage string) {
 }

@@ -9,6 +9,11 @@ import (
 // MarginType 保证金类型
 type MarginType string
 
+const (
+	MarginTypeCross    MarginType = "CROSS"
+	MarginTypeIsolated MarginType = "ISOLATED"
+)
+
 // VerificationType 验证类型
 type VerificationType string
 
@@ -249,4 +254,190 @@ type OrdersRes struct {
 // OpenOrdersRes 未结订单响应
 type OpenOrdersRes struct {
 	Results []*Order `json:"results"` // 订单列表
+}
+
+// ChainDetails 链详情
+type ChainDetails struct {
+	CollateralAddress    string          `json:"collateral_address"`     // 抵押品地址
+	ContractAddress      string          `json:"contract_address"`       // 合约地址
+	FeeAccountAddress    string          `json:"fee_account_address"`    // 费用账户地址
+	FeeMaker             decimal.Decimal `json:"fee_maker"`              // Maker费用
+	FeeTaker             decimal.Decimal `json:"fee_taker"`              // Taker费用
+	InsuranceFundAddress string          `json:"insurance_fund_address"` // 保险基金地址
+	LiquidationFee       decimal.Decimal `json:"liquidation_fee"`        // 清算费用
+	OracleAddress        string          `json:"oracle_address"`         // 预言机地址
+	Symbol               string          `json:"symbol"`                 // 符号
+}
+
+// Delta1CrossMarginParams Delta1交叉保证金参数
+type Delta1CrossMarginParams struct {
+	IMFBase   decimal.Decimal `json:"imf_base"`   // 初始保证金因子基础
+	IMFFactor decimal.Decimal `json:"imf_factor"` // 初始保证金因子
+	IMFShift  decimal.Decimal `json:"imf_shift"`  // 初始保证金因子偏移
+	MMFFactor decimal.Decimal `json:"mmf_factor"` // 维持保证金因子
+}
+
+// FeeConfig 费用配置
+type FeeConfig struct {
+	APIFee         FeeDetail `json:"api_fee"`         // API费用
+	InteractiveFee FeeDetail `json:"interactive_fee"` // 交互式费用
+	RPIFee         FeeDetail `json:"rpi_fee"`         // RPI费用
+}
+
+// FeeDetail 费用详情
+type FeeDetail struct {
+	MakerFee FeeRate `json:"maker_fee"` // Maker费率
+	TakerFee FeeRate `json:"taker_fee"` // Taker费率
+}
+
+// FeeRate 费率
+type FeeRate struct {
+	Fee      decimal.Decimal `json:"fee"`       // 费率
+	FeeCap   decimal.Decimal `json:"fee_cap"`   // 费率上限
+	FeeFloor decimal.Decimal `json:"fee_floor"` // 费率下限
+}
+
+// OptionCrossMarginParams 期权交叉保证金参数
+type OptionCrossMarginParams struct {
+	IMF *MarginFactors `json:"imf"` // 初始保证金因子
+	MMF *MarginFactors `json:"mmf"` // 维持保证金因子
+}
+
+// MarginFactors 保证金因子
+type MarginFactors struct {
+	LongITM           decimal.Decimal `json:"long_itm"`           // 多头实值
+	PremiumMultiplier decimal.Decimal `json:"premium_multiplier"` // 权利金乘数
+	ShortITM          decimal.Decimal `json:"short_itm"`          // 空头实值
+	ShortOTM          decimal.Decimal `json:"short_otm"`          // 空头虚值
+	ShortPutCap       decimal.Decimal `json:"short_put_cap"`      // 空头看跌上限
+}
+
+// Market 市场信息
+type Market struct {
+	AssetKind               string                  `json:"asset_kind"`                 // 资产类型: PERP, PERP_OPTION
+	BaseCurrency            string                  `json:"base_currency"`              // 市场基础货币
+	ChainDetails            ChainDetails            `json:"chain_details"`              // 链详情
+	ClampRate               decimal.Decimal         `json:"clamp_rate"`                 // 钳制率
+	Delta1CrossMarginParams Delta1CrossMarginParams `json:"delta1_cross_margin_params"` // Delta1交叉保证金参数
+	ExpiryAt                int64                   `json:"expiry_at"`                  // 市场到期时间
+	FeeConfig               FeeConfig               `json:"fee_config"`                 // 费用配置
+	FundingMultiplier       float64                 `json:"funding_multiplier"`         // 资金费率乘数
+	FundingPeriodHours      float64                 `json:"funding_period_hours"`       // 资金费率周期(小时)
+	InterestRate            decimal.Decimal         `json:"interest_rate"`              // 利率
+	IVBandsWidth            decimal.Decimal         `json:"iv_bands_width"`             // IV带宽
+	MarketKind              string                  `json:"market_kind"`                // 市场保证金模式: cross, isolated, isolated_margin
+	MaxFundingRate          decimal.Decimal         `json:"max_funding_rate"`           // 最大资金费率
+	MaxFundingRateChange    decimal.Decimal         `json:"max_funding_rate_change"`    // 最大资金费率变化
+	MaxOpenOrders           int                     `json:"max_open_orders"`            // 最大挂单数
+	MaxOrderSize            decimal.Decimal         `json:"max_order_size"`             // 最大订单大小(基础货币)
+	MaxSlippage             decimal.Decimal         `json:"max_slippage"`               // 默认最大滑点
+	MaxTobSpread            decimal.Decimal         `json:"max_tob_spread"`             // 最大TOB价差
+	MinNotional             decimal.Decimal         `json:"min_notional"`               // 最小订单名义价值(USD)
+	OpenAt                  int64                   `json:"open_at"`                    // 市场开放时间(毫秒)
+	OptionCrossMarginParams OptionCrossMarginParams `json:"option_cross_margin_params"` // 期权交叉保证金参数
+	OptionType              string                  `json:"option_type"`                // 期权类型: PUT, CALL
+	OracleEwmaFactor        decimal.Decimal         `json:"oracle_ewma_factor"`         // 预言机EWMA因子
+	OrderSizeIncrement      decimal.Decimal         `json:"order_size_increment"`       // 订单大小最小增量
+	PositionLimit           decimal.Decimal         `json:"position_limit"`             // 持仓限制(基础货币)
+	PriceBandsWidth         decimal.Decimal         `json:"price_bands_width"`          // 价格带宽
+	PriceFeedID             string                  `json:"price_feed_id"`              // 价格源ID
+	PriceTickSize           decimal.Decimal         `json:"price_tick_size"`            // 最小价格变动单位(USD)
+	QuoteCurrency           string                  `json:"quote_currency"`             // 报价货币
+	SettlementCurrency      string                  `json:"settlement_currency"`        // 结算货币
+	StrikePrice             decimal.Decimal         `json:"strike_price"`               // 行权价格
+	Symbol                  string                  `json:"symbol"`                     // 市场符号
+	Tags                    []string                `json:"tags"`                       // 市场标签
+}
+
+// MarketRes 市场响应
+type MarketRes struct {
+	Results []*Market `json:"results"`
+}
+
+// Discord Discord账户信息
+type Discord struct {
+	ID       string `json:"id"`        // Discord ID
+	ImageURL string `json:"image_url"` // 头像URL
+	Username string `json:"username"`  // 用户名
+}
+
+// Twitter Twitter账户信息
+type Twitter struct {
+	ID       string `json:"id"`        // Twitter ID
+	ImageURL string `json:"image_url"` // 头像URL
+	Username string `json:"username"`  // 用户名
+}
+
+// NFT NFT信息
+type NFT struct {
+	CollectionAddress string   `json:"collection_address"` // 集合地址
+	CollectionName    string   `json:"collection_name"`    // 集合名称
+	Description       string   `json:"description"`        // 描述
+	ID                string   `json:"id"`                 // NFT ID
+	ImageURL          string   `json:"image_url"`          // 图片URL
+	Name              string   `json:"name"`               // NFT名称
+	Price             NFTPrice `json:"price"`              // 价格信息
+}
+
+// NFTPrice NFT价格信息
+type NFTPrice struct {
+	Currency string          `json:"currency"` // 货币类型
+	Decimals int             `json:"decimals"` // 小数位数
+	Value    decimal.Decimal `json:"value"`    // 价格值
+}
+
+// Notifications 通知设置
+type Notifications struct {
+	Announcements bool `json:"announcements"` // 公告通知
+	FillSound     bool `json:"fill_sound"`    // 成交声音
+	Fills         bool `json:"fills"`         // 成交通知
+	Orders        bool `json:"orders"`        // 订单通知
+	Transfers     bool `json:"transfers"`     // 转账通知
+}
+
+// Referral 推荐计划信息
+type Referral struct {
+	CommissionRate       decimal.Decimal `json:"commission_rate"`         // 推荐人佣金比例
+	CommissionVolumeCap  decimal.Decimal `json:"commission_volume_cap"`   // 佣金交易量上限
+	DiscountRate         decimal.Decimal `json:"discount_rate"`           // 被推荐人折扣比例
+	DiscountVolumeCap    decimal.Decimal `json:"discount_volume_cap"`     // 折扣交易量上限
+	MinimumVolume        decimal.Decimal `json:"minimum_volume"`          // 参与计划所需最小交易量
+	Name                 string          `json:"name"`                    // 推荐计划名称
+	PointsBonusRate      decimal.Decimal `json:"points_bonus_rate"`       // 被推荐人积分奖励比例
+	PointsBonusVolumeCap decimal.Decimal `json:"points_bonus_volume_cap"` // 积分奖励交易量上限
+	ReferralType         string          `json:"referral_type"`           // 推荐类型
+}
+
+// ShareRate 分成比例信息
+type ShareRate struct {
+	LastUpdatedAt int64           `json:"last_updated_at"` // 最后更新时间(毫秒时间戳)
+	ShareRate     decimal.Decimal `json:"share_rate"`      // 分成比例
+}
+
+// UserProfile 用户配置信息
+type UserProfile struct {
+	Discord             *Discord          `json:"discord"`               // Discord信息
+	IsUsernamePrivate   bool              `json:"is_username_private"`   // 用户名是否私有
+	MarketMaxSlippage   map[string]string `json:"market_max_slippage"`   // 市场最大滑点配置
+	MarketedBy          string            `json:"marketed_by"`           // 营销来源
+	NFTs                []*NFT            `json:"nfts"`                  // NFT列表
+	Notifications       Notifications     `json:"notifications"`         // 通知设置
+	Referral            Referral          `json:"referral"`              // 推荐计划信息
+	ReferralCode        string            `json:"referral_code"`         // 推荐码
+	ReferredBy          string            `json:"referred_by"`           // 推荐人
+	SizeCurrencyDisplay string            `json:"size_currency_display"` // 数量货币显示方式
+	TapShareRate        ShareRate         `json:"tap_share_rate"`        // TAP分成比例
+	TapStatus           string            `json:"tap_status"`            // TAP联盟状态: NONE, ACTIVE, INACTIVE
+	Twitter             *Twitter          `json:"twitter"`               // Twitter信息
+	TwitterFollowing    map[string]bool   `json:"twitter_following"`     // Twitter关注列表
+	Username            string            `json:"username"`              // 用户名
+	XPShareRate         ShareRate         `json:"xp_share_rate"`         // XP分成比例
+}
+
+// MarginConfig 杠杆配置
+type MarginConfig struct {
+	Account    string `json:"account"`     // 账户ID
+	Leverage   int    `json:"leverage"`    // 杠杆倍数
+	MarginType string `json:"margin_type"` // 保证金类型: CROSS(全仓)/ISOLATED(逐仓)
+	Market     string `json:"market"`      // 市场符号
 }
