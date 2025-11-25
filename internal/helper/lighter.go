@@ -305,6 +305,7 @@ exit:
 		logger.Debugf("[LighterOrderHelper] 查询用户非活跃订单开始, account: %d, cursor: %s, limit: %d", h.signer.GetAccountIndex(), cursor, limit)
 		orders, err := h.signer.GetAccountInactiveOrders(ctx, cursor, limit)
 		if err != nil {
+			logger.Debugf("[LighterOrderHelper] 查询用户非活跃订单失败, account: %d, cursor: %s, limit: %d, %v", h.signer.GetAccountIndex(), cursor, limit, err)
 			return err
 		}
 		logger.Debugf("[LighterOrderHelper] 查询用户非活跃订单结束, account: %d, cursor: %s, limit: %d", h.signer.GetAccountIndex(), cursor, limit)
@@ -343,7 +344,7 @@ exit:
 				Exchange:          exchange.Lighter,
 				Account:           account,
 				Symbol:            symbol,
-				OrderId:           item.OrderIndex,
+				OrderId:           strconv.FormatInt(item.OrderIndex, 10),
 				ClientOrderId:     item.ClientOrderIndex,
 				Side:              lo.If(item.IsAsk, order.SideSell).Else(order.SideBuy),
 				Price:             item.Price,

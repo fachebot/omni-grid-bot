@@ -89,7 +89,7 @@ var (
 		{Name: "exchange", Type: field.TypeString},
 		{Name: "account", Type: field.TypeString},
 		{Name: "symbol", Type: field.TypeString},
-		{Name: "order_id", Type: field.TypeInt64},
+		{Name: "order_id", Type: field.TypeString},
 		{Name: "client_order_id", Type: field.TypeInt64},
 		{Name: "side", Type: field.TypeEnum, Enums: []string{"buy", "sell"}},
 		{Name: "price", Type: field.TypeString},

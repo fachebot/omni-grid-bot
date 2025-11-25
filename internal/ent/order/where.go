@@ -81,7 +81,7 @@ func Symbol(v string) predicate.Order {
 }
 
 // OrderId applies equality check predicate on the "orderId" field. It's identical to OrderIdEQ.
-func OrderId(v int64) predicate.Order {
+func OrderId(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderId, v))
 }
 
@@ -391,43 +391,68 @@ func SymbolContainsFold(v string) predicate.Order {
 }
 
 // OrderIdEQ applies the EQ predicate on the "orderId" field.
-func OrderIdEQ(v int64) predicate.Order {
+func OrderIdEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderId, v))
 }
 
 // OrderIdNEQ applies the NEQ predicate on the "orderId" field.
-func OrderIdNEQ(v int64) predicate.Order {
+func OrderIdNEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldNEQ(FieldOrderId, v))
 }
 
 // OrderIdIn applies the In predicate on the "orderId" field.
-func OrderIdIn(vs ...int64) predicate.Order {
+func OrderIdIn(vs ...string) predicate.Order {
 	return predicate.Order(sql.FieldIn(FieldOrderId, vs...))
 }
 
 // OrderIdNotIn applies the NotIn predicate on the "orderId" field.
-func OrderIdNotIn(vs ...int64) predicate.Order {
+func OrderIdNotIn(vs ...string) predicate.Order {
 	return predicate.Order(sql.FieldNotIn(FieldOrderId, vs...))
 }
 
 // OrderIdGT applies the GT predicate on the "orderId" field.
-func OrderIdGT(v int64) predicate.Order {
+func OrderIdGT(v string) predicate.Order {
 	return predicate.Order(sql.FieldGT(FieldOrderId, v))
 }
 
 // OrderIdGTE applies the GTE predicate on the "orderId" field.
-func OrderIdGTE(v int64) predicate.Order {
+func OrderIdGTE(v string) predicate.Order {
 	return predicate.Order(sql.FieldGTE(FieldOrderId, v))
 }
 
 // OrderIdLT applies the LT predicate on the "orderId" field.
-func OrderIdLT(v int64) predicate.Order {
+func OrderIdLT(v string) predicate.Order {
 	return predicate.Order(sql.FieldLT(FieldOrderId, v))
 }
 
 // OrderIdLTE applies the LTE predicate on the "orderId" field.
-func OrderIdLTE(v int64) predicate.Order {
+func OrderIdLTE(v string) predicate.Order {
 	return predicate.Order(sql.FieldLTE(FieldOrderId, v))
+}
+
+// OrderIdContains applies the Contains predicate on the "orderId" field.
+func OrderIdContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldOrderId, v))
+}
+
+// OrderIdHasPrefix applies the HasPrefix predicate on the "orderId" field.
+func OrderIdHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldOrderId, v))
+}
+
+// OrderIdHasSuffix applies the HasSuffix predicate on the "orderId" field.
+func OrderIdHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldOrderId, v))
+}
+
+// OrderIdEqualFold applies the EqualFold predicate on the "orderId" field.
+func OrderIdEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldOrderId, v))
+}
+
+// OrderIdContainsFold applies the ContainsFold predicate on the "orderId" field.
+func OrderIdContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldOrderId, v))
 }
 
 // ClientOrderIdEQ applies the EQ predicate on the "clientOrderId" field.

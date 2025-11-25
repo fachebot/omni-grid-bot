@@ -23,7 +23,7 @@ const (
 
 type Order struct {
 	Symbol            string
-	OrderID           int64
+	OrderID           string
 	ClientOrderID     int64
 	Side              order.Side
 	Price             decimal.Decimal

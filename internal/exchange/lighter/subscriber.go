@@ -281,7 +281,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 					for _, ord := range marketOrders {
 						userOrders.Orders = append(userOrders.Orders, &exchange.Order{
 							Symbol:            marketIndex,
-							OrderID:           ord.OrderIndex,
+							OrderID:           strconv.FormatInt(ord.OrderIndex, 10),
 							ClientOrderID:     ord.ClientOrderIndex,
 							Side:              lo.If(ord.IsAsk, order.SideSell).Else(order.SideBuy),
 							Price:             ord.Price,

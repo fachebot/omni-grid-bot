@@ -25,7 +25,7 @@ func (Order) Fields() []ent.Field {
 		field.String("exchange"),
 		field.String("account"),
 		field.String("symbol"),
-		field.Int64("orderId"),
+		field.String("orderId"),
 		field.Int64("clientOrderId"),
 		field.Enum("side").Values("buy", "sell"),
 		field.String("price").GoType(decimal.Decimal{}),

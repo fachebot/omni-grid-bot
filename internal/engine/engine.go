@@ -253,9 +253,9 @@ func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, new
 				continue
 			}
 
-			err = adapter.SyncInactiveOrders(engine.ctx)
+			err = adapter.SyncUserOrders(engine.ctx)
 			if err != nil {
-				logger.Errorf("[StrategyEngine] 同步非活跃订单失败, account: %s, %v", userOrders.Account, err)
+				logger.Errorf("[StrategyEngine] 同步用户订单失败, account: %s, %v", userOrders.Account, err)
 				continue
 			}
 
@@ -264,12 +264,12 @@ func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, new
 		}
 
 		if !synchronized {
-			logger.Errorf("[StrategyEngine] 无法完成同步非活跃订单, account: %s", userOrders.Account)
+			logger.Errorf("[StrategyEngine] 无法完成同步用户订单, account: %s", userOrders.Account)
 			return errors.New("synchronization failed")
 		}
 	}
 
-	// 更新非活跃订单
+	// 更新新订单数据
 	err := util.Tx(engine.ctx, engine.svcCtx.DbClient, func(tx *ent.Tx) error {
 		for _, item := range newOrders {
 			err := engine.svcCtx.OrderModel.Upsert(engine.ctx, item)

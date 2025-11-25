@@ -2379,8 +2379,7 @@ type OrderMutation struct {
 	exchange          *string
 	account           *string
 	symbol            *string
-	orderId           *int64
-	addorderId        *int64
+	orderId           *string
 	clientOrderId     *int64
 	addclientOrderId  *int64
 	side              *order.Side
@@ -2676,13 +2675,12 @@ func (m *OrderMutation) ResetSymbol() {
 }
 
 // SetOrderId sets the "orderId" field.
-func (m *OrderMutation) SetOrderId(i int64) {
-	m.orderId = &i
-	m.addorderId = nil
+func (m *OrderMutation) SetOrderId(s string) {
+	m.orderId = &s
 }
 
 // OrderId returns the value of the "orderId" field in the mutation.
-func (m *OrderMutation) OrderId() (r int64, exists bool) {
+func (m *OrderMutation) OrderId() (r string, exists bool) {
 	v := m.orderId
 	if v == nil {
 		return
@@ -2693,7 +2691,7 @@ func (m *OrderMutation) OrderId() (r int64, exists bool) {
 // OldOrderId returns the old "orderId" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldOrderId(ctx context.Context) (v int64, err error) {
+func (m *OrderMutation) OldOrderId(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOrderId is only allowed on UpdateOne operations")
 	}
@@ -2707,28 +2705,9 @@ func (m *OrderMutation) OldOrderId(ctx context.Context) (v int64, err error) {
 	return oldValue.OrderId, nil
 }
 
-// AddOrderId adds i to the "orderId" field.
-func (m *OrderMutation) AddOrderId(i int64) {
-	if m.addorderId != nil {
-		*m.addorderId += i
-	} else {
-		m.addorderId = &i
-	}
-}
-
-// AddedOrderId returns the value that was added to the "orderId" field in this mutation.
-func (m *OrderMutation) AddedOrderId() (r int64, exists bool) {
-	v := m.addorderId
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetOrderId resets all changes to the "orderId" field.
 func (m *OrderMutation) ResetOrderId() {
 	m.orderId = nil
-	m.addorderId = nil
 }
 
 // SetClientOrderId sets the "clientOrderId" field.
@@ -3254,7 +3233,7 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		m.SetSymbol(v)
 		return nil
 	case order.FieldOrderId:
-		v, ok := value.(int64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3324,9 +3303,6 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *OrderMutation) AddedFields() []string {
 	var fields []string
-	if m.addorderId != nil {
-		fields = append(fields, order.FieldOrderId)
-	}
 	if m.addclientOrderId != nil {
 		fields = append(fields, order.FieldClientOrderId)
 	}
@@ -3341,8 +3317,6 @@ func (m *OrderMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case order.FieldOrderId:
-		return m.AddedOrderId()
 	case order.FieldClientOrderId:
 		return m.AddedClientOrderId()
 	case order.FieldTimestamp:
@@ -3356,13 +3330,6 @@ func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OrderMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case order.FieldOrderId:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddOrderId(v)
-		return nil
 	case order.FieldClientOrderId:
 		v, ok := value.(int64)
 		if !ok {

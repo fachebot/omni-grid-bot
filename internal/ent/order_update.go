@@ -78,23 +78,16 @@ func (_u *OrderUpdate) SetNillableSymbol(v *string) *OrderUpdate {
 }
 
 // SetOrderId sets the "orderId" field.
-func (_u *OrderUpdate) SetOrderId(v int64) *OrderUpdate {
-	_u.mutation.ResetOrderId()
+func (_u *OrderUpdate) SetOrderId(v string) *OrderUpdate {
 	_u.mutation.SetOrderId(v)
 	return _u
 }
 
 // SetNillableOrderId sets the "orderId" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableOrderId(v *int64) *OrderUpdate {
+func (_u *OrderUpdate) SetNillableOrderId(v *string) *OrderUpdate {
 	if v != nil {
 		_u.SetOrderId(*v)
 	}
-	return _u
-}
-
-// AddOrderId adds value to the "orderId" field.
-func (_u *OrderUpdate) AddOrderId(v int64) *OrderUpdate {
-	_u.mutation.AddOrderId(v)
 	return _u
 }
 
@@ -305,10 +298,7 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(order.FieldSymbol, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.OrderId(); ok {
-		_spec.SetField(order.FieldOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedOrderId(); ok {
-		_spec.AddField(order.FieldOrderId, field.TypeInt64, value)
+		_spec.SetField(order.FieldOrderId, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ClientOrderId(); ok {
 		_spec.SetField(order.FieldClientOrderId, field.TypeInt64, value)
@@ -409,23 +399,16 @@ func (_u *OrderUpdateOne) SetNillableSymbol(v *string) *OrderUpdateOne {
 }
 
 // SetOrderId sets the "orderId" field.
-func (_u *OrderUpdateOne) SetOrderId(v int64) *OrderUpdateOne {
-	_u.mutation.ResetOrderId()
+func (_u *OrderUpdateOne) SetOrderId(v string) *OrderUpdateOne {
 	_u.mutation.SetOrderId(v)
 	return _u
 }
 
 // SetNillableOrderId sets the "orderId" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableOrderId(v *int64) *OrderUpdateOne {
+func (_u *OrderUpdateOne) SetNillableOrderId(v *string) *OrderUpdateOne {
 	if v != nil {
 		_u.SetOrderId(*v)
 	}
-	return _u
-}
-
-// AddOrderId adds value to the "orderId" field.
-func (_u *OrderUpdateOne) AddOrderId(v int64) *OrderUpdateOne {
-	_u.mutation.AddOrderId(v)
 	return _u
 }
 
@@ -666,10 +649,7 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 		_spec.SetField(order.FieldSymbol, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.OrderId(); ok {
-		_spec.SetField(order.FieldOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedOrderId(); ok {
-		_spec.AddField(order.FieldOrderId, field.TypeInt64, value)
+		_spec.SetField(order.FieldOrderId, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ClientOrderId(); ok {
 		_spec.SetField(order.FieldClientOrderId, field.TypeInt64, value)

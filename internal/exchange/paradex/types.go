@@ -246,8 +246,8 @@ type Order struct {
 
 // OrdersRes 订单响应
 type OrdersRes struct {
-	Next    *string  `json:"next"`    // 获取下一组记录的指针(如果没有更多记录则为null)
-	Prev    *string  `json:"prev"`    // 获取上一组记录的指针(如果没有更多记录则为null)
+	Next    string   `json:"next"`    // 获取下一组记录的指针(如果没有更多记录则为null)
+	Prev    string   `json:"prev"`    // 获取上一组记录的指针(如果没有更多记录则为null)
 	Results []*Order `json:"results"` // 订单列表
 }
 
@@ -440,4 +440,71 @@ type MarginConfig struct {
 	Leverage   int    `json:"leverage"`    // 杠杆倍数
 	MarginType string `json:"margin_type"` // 保证金类型: CROSS(全仓)/ISOLATED(逐仓)
 	Market     string `json:"market"`      // 市场符号
+}
+
+// FillType 成交类型
+type FillType string
+
+const (
+	FillTypeFill         FillType = "FILL"
+	FillTypeLiquidation  FillType = "LIQUIDATION"
+	FillTypeTransfer     FillType = "TRANSFER"
+	FillTypeSettleMarket FillType = "SETTLE_MARKET"
+	FillTypeRPI          FillType = "RPI"
+	FillTypeBlockTrade   FillType = "BLOCK_TRADE"
+)
+
+// FillFlag 成交标志
+type FillFlag string
+
+const (
+	FillFlagInteractive FillFlag = "interactive"
+	FillFlagRPI         FillFlag = "rpi"
+	FillFlagFastfill    FillFlag = "fastfill"
+)
+
+// Liquidity 流动性类型
+type Liquidity string
+
+const (
+	LiquidityTaker Liquidity = "TAKER"
+	LiquidityMaker Liquidity = "MAKER"
+)
+
+// Side 订单方向
+type Side string
+
+const (
+	SideBuy  Side = "BUY"
+	SideSell Side = "SELL"
+)
+
+// Fill 成交记录
+type Fill struct {
+	Account         string          `json:"account"`          // 产生成交的账户
+	ClientID        string          `json:"client_id"`        // 客户端分配的唯一订单ID
+	CreatedAt       int64           `json:"created_at"`       // 成交时间(毫秒时间戳)
+	Fee             decimal.Decimal `json:"fee"`              // 用户支付的手续费
+	FeeCurrency     string          `json:"fee_currency"`     // 手续费币种
+	FillType        FillType        `json:"fill_type"`        // 成交类型
+	Flags           []FillFlag      `json:"flags"`            // 成交标志,指示特殊属性
+	ID              string          `json:"id"`               // 每个FillType的唯一字符串ID
+	Liquidity       Liquidity       `json:"liquidity"`        // Maker或Taker
+	Market          string          `json:"market"`           // 市场名称
+	OrderID         string          `json:"order_id"`         // 订单ID
+	OrderbookSeqNo  int64           `json:"orderbook_seq_no"` // 交易执行后的订单簿序列号
+	Price           decimal.Decimal `json:"price"`            // 订单成交价格
+	RealizedFunding decimal.Decimal `json:"realized_funding"` // 成交的已实现资金费用
+	RealizedPnl     decimal.Decimal `json:"realized_pnl"`     // 成交的已实现盈亏
+	RemainingSize   decimal.Decimal `json:"remaining_size"`   // 订单剩余数量
+	Side            Side            `json:"side"`             // Taker方向
+	Size            decimal.Decimal `json:"size"`             // 成交数量
+	UnderlyingPrice decimal.Decimal `json:"underlying_price"` // 标的资产价格(现货价格)
+}
+
+// FillRes 成交记录响应
+type FillRes struct {
+	Next    string  `json:"next"`    // 获取下一组记录的指针(如果没有更多记录则为null)
+	Prev    string  `json:"prev"`    // 获取上一组记录的指针(如果没有更多记录则为null)
+	Results []*Fill `json:"results"` // 成交记录列表
 }

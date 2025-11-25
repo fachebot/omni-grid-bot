@@ -98,7 +98,7 @@ func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol st
 	return 0, errors.New("route not found")
 }
 
-func (adapter *ExchangeAdapter) SyncInactiveOrders(ctx context.Context) error {
+func (adapter *ExchangeAdapter) SyncUserOrders(ctx context.Context) error {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).SyncInactiveOrders(ctx)
 	}

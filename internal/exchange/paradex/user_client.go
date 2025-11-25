@@ -21,6 +21,10 @@ func NewUserClient(client *Client, dexAccount, dexPrivateKey string) *UserClient
 	return &UserClient{client: client, dexAccount: dexAccount, dexPrivateKey: dexPrivateKey}
 }
 
+func (c *UserClient) DexAccount() string {
+	return c.dexAccount
+}
+
 func (c *UserClient) GetAccount(ctx context.Context) (*AccountInfoRes, error) {
 	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
 	if err != nil {
@@ -93,14 +97,17 @@ func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) 
 	return &res, nil
 }
 
-func (c *UserClient) GetUserOrder(ctx context.Context, clientId int64) (*OrdersRes, error) {
+func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int) (*OrdersRes, error) {
 	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
 	params := make(url.Values)
-	params.Set("client_id", strconv.FormatInt(clientId, 10))
+	if cursor != "" {
+		params.Set("cursor", cursor)
+	}
+	params.Set("page_size", strconv.Itoa(size))
 
 	var res OrdersRes
 	var errRes *ErrorRes
@@ -121,22 +128,24 @@ func (c *UserClient) GetUserOrder(ctx context.Context, clientId int64) (*OrdersR
 	return &res, nil
 }
 
-func (c *UserClient) GetUserOrders(ctx context.Context, startAt *time.Time, cursor string, size int) (*OrdersRes, error) {
+func (c *UserClient) ListFills(ctx context.Context, startAt *time.Time, cursor string, size int) (*FillRes, error) {
 	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
 	params := make(url.Values)
-	params.Set("cursor", cursor)
+	if cursor != "" {
+		params.Set("cursor", cursor)
+	}
 	params.Set("page_size", strconv.Itoa(size))
 	if startAt != nil {
 		params.Set("start_at", strconv.FormatInt(startAt.UnixMilli(), 10))
 	}
 
-	var res OrdersRes
+	var res FillRes
 	var errRes *ErrorRes
-	err = requests.URL(fmt.Sprintf("%s/orders-history", c.client.endpoint)).Client(c.client.httpClient).
+	err = requests.URL(fmt.Sprintf("%s/fills", c.client.endpoint)).Client(c.client.httpClient).
 		Params(params).
 		Header("Content-Type", "application/json").
 		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).

@@ -70,7 +70,7 @@ func (_c *OrderCreate) SetSymbol(v string) *OrderCreate {
 }
 
 // SetOrderId sets the "orderId" field.
-func (_c *OrderCreate) SetOrderId(v int64) *OrderCreate {
+func (_c *OrderCreate) SetOrderId(v string) *OrderCreate {
 	_c.mutation.SetOrderId(v)
 	return _c
 }
@@ -270,7 +270,7 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_node.Symbol = value
 	}
 	if value, ok := _c.mutation.OrderId(); ok {
-		_spec.SetField(order.FieldOrderId, field.TypeInt64, value)
+		_spec.SetField(order.FieldOrderId, field.TypeString, value)
 		_node.OrderId = value
 	}
 	if value, ok := _c.mutation.ClientOrderId(); ok {
@@ -406,7 +406,7 @@ func (u *OrderUpsert) UpdateSymbol() *OrderUpsert {
 }
 
 // SetOrderId sets the "orderId" field.
-func (u *OrderUpsert) SetOrderId(v int64) *OrderUpsert {
+func (u *OrderUpsert) SetOrderId(v string) *OrderUpsert {
 	u.Set(order.FieldOrderId, v)
 	return u
 }
@@ -414,12 +414,6 @@ func (u *OrderUpsert) SetOrderId(v int64) *OrderUpsert {
 // UpdateOrderId sets the "orderId" field to the value that was provided on create.
 func (u *OrderUpsert) UpdateOrderId() *OrderUpsert {
 	u.SetExcluded(order.FieldOrderId)
-	return u
-}
-
-// AddOrderId adds v to the "orderId" field.
-func (u *OrderUpsert) AddOrderId(v int64) *OrderUpsert {
-	u.Add(order.FieldOrderId, v)
 	return u
 }
 
@@ -633,16 +627,9 @@ func (u *OrderUpsertOne) UpdateSymbol() *OrderUpsertOne {
 }
 
 // SetOrderId sets the "orderId" field.
-func (u *OrderUpsertOne) SetOrderId(v int64) *OrderUpsertOne {
+func (u *OrderUpsertOne) SetOrderId(v string) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetOrderId(v)
-	})
-}
-
-// AddOrderId adds v to the "orderId" field.
-func (u *OrderUpsertOne) AddOrderId(v int64) *OrderUpsertOne {
-	return u.Update(func(s *OrderUpsert) {
-		s.AddOrderId(v)
 	})
 }
 
@@ -1047,16 +1034,9 @@ func (u *OrderUpsertBulk) UpdateSymbol() *OrderUpsertBulk {
 }
 
 // SetOrderId sets the "orderId" field.
-func (u *OrderUpsertBulk) SetOrderId(v int64) *OrderUpsertBulk {
+func (u *OrderUpsertBulk) SetOrderId(v string) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetOrderId(v)
-	})
-}
-
-// AddOrderId adds v to the "orderId" field.
-func (u *OrderUpsertBulk) AddOrderId(v int64) *OrderUpsertBulk {
-	return u.Update(func(s *OrderUpsert) {
-		s.AddOrderId(v)
 	})
 }
 

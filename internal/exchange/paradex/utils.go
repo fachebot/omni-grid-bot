@@ -9,7 +9,25 @@ import (
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/fr"
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
+	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
+
+func ConvertOrderStatus(ord *Order) order.Status {
+	if ord.CancelReason != "" {
+		return order.StatusCanceled
+	}
+
+	switch ord.Status {
+	case OrderStatusNew, OrderStatusUntriggered:
+		return order.StatusPending
+	case OrderStatusOpen:
+		return order.StatusOpen
+	case OrderStatusClosed:
+		return order.StatusFilled
+	default:
+		return order.StatusPending
+	}
+}
 
 func GetSignatureStr(r, s *big.Int) (string, error) {
 	signature := []string{r.String(), s.String()}
