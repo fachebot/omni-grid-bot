@@ -39,7 +39,7 @@ type LighterSubscriber struct {
 	mutex    sync.Mutex
 	accounts map[int64]*Signer
 
-	userOrdersChannel chan exchange.UserOrders
+	userOrdersChan chan exchange.UserOrders
 }
 
 func NewLighterSubscriber(proxy config.Sock5Proxy) *LighterSubscriber {
@@ -69,10 +69,10 @@ func (subscriber *LighterSubscriber) Stop() {
 	close(subscriber.stopChan)
 	subscriber.stopChan = nil
 
-	if subscriber.userOrdersChannel != nil {
-		close(subscriber.userOrdersChannel)
+	if subscriber.userOrdersChan != nil {
+		close(subscriber.userOrdersChan)
 	}
-	subscriber.userOrdersChannel = nil
+	subscriber.userOrdersChan = nil
 
 	logger.Infof("[LighterSubscriber] 服务已经停止")
 }
@@ -82,7 +82,7 @@ func (subscriber *LighterSubscriber) Start() {
 		return
 	}
 
-	subscriber.stopChan = make(chan struct{})
+	subscriber.stopChan = make(chan struct{}, 1)
 
 	if subscriber.conn == nil {
 		logger.Infof("[LighterSubscriber] 开始运行服务")
@@ -97,10 +97,10 @@ func (subscriber *LighterSubscriber) WaitUntilConnected() {
 }
 
 func (subscriber *LighterSubscriber) GetAccountOrdersChan() <-chan exchange.UserOrders {
-	if subscriber.userOrdersChannel == nil {
-		subscriber.userOrdersChannel = make(chan exchange.UserOrders, 1024)
+	if subscriber.userOrdersChan == nil {
+		subscriber.userOrdersChan = make(chan exchange.UserOrders, 1024)
 	}
-	return subscriber.userOrdersChannel
+	return subscriber.userOrdersChan
 }
 
 func (subscriber *LighterSubscriber) SubscribeAccountOrders(signer *Signer) error {
@@ -268,7 +268,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 				continue
 			}
 
-			if subscriber.userOrdersChannel != nil {
+			if subscriber.userOrdersChan != nil {
 				_, ok := processedAccounts[accountIndex]
 				userOrders := exchange.UserOrders{
 					Exchange:   exchange.Lighter,
@@ -295,7 +295,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 				}
 
 				logger.Debugf("[LighterSubscriber] 分发 UserOders 数据, account: %d, isSnapshot: %v", accountIndex, userOrders.IsSnapshot)
-				subscriber.userOrdersChannel <- userOrders
+				subscriber.userOrdersChan <- userOrders
 			}
 
 			processedAccounts[accountIndex] = struct{}{}

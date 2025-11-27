@@ -2,7 +2,10 @@ package paradex
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
+	"strings"
+	"time"
 
 	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
@@ -91,4 +94,75 @@ func ComputeAddress(config SystemConfigRes, publicKey string) string {
 	}
 	addressHash, _ := caigo.Curve.ComputeHashOnElements(address)
 	return types.BigToHex(addressHash)
+}
+
+func ParseUsdPerpMarket(market string) (string, error) {
+	parts := strings.Split(market, "-")
+	if len(parts) < 3 {
+		return "", fmt.Errorf("invalid market format: %s", market)
+	}
+
+	baseCurrency := parts[0]
+	quoteCurrency := parts[1]
+	contractType := parts[2]
+
+	if strings.ToUpper(quoteCurrency) != "USD" {
+		return "", fmt.Errorf("not a USD trading pair: %s", market)
+	}
+
+	if !strings.HasSuffix(strings.ToUpper(contractType), "PERP") {
+		return "", fmt.Errorf("not a perpetual market: %s", market)
+	}
+
+	return baseCurrency, nil
+}
+
+func FormatUsdPerpMarket(baseCurrency string) string {
+	return fmt.Sprintf("%s-USD-PERP", strings.ToUpper(baseCurrency))
+}
+
+func PopulateOrderSignature(req *CreateOrderReq, config SystemConfigRes, dexAccount string, dexPrivateKey string) error {
+	sc := caigo.StarkCurve{}
+	typedData, err := NewVerificationTypedData("Order", config.ChainId)
+	if err != nil {
+		return fmt.Errorf("failed to create verification typed data for chainId=%s: %w", config.ChainId, err)
+	}
+
+	domEnc, err := typedData.GetTypedMessageHash("StarkNetDomain", typedData.Domain, sc)
+	if err != nil {
+		return fmt.Errorf("failed to get domain encoded hash: %w", err)
+	}
+
+	timestamp := time.Now().UnixMilli()
+	orderPayload := &OrderPayload{
+		Timestamp: timestamp,
+		Market:    req.Market,
+		Side:      string(req.Side),
+		OrderType: string(req.Type),
+		Size:      req.Size.String(),
+		Price:     "0",
+	}
+
+	if req.Price != "" {
+		orderPayload.Price = req.Price
+	}
+
+	dexAccountBN := types.HexToBN(dexAccount)
+	messageHash, err := GnarkGetMessageHash(typedData, domEnc, dexAccountBN, orderPayload, sc)
+	if err != nil {
+		return fmt.Errorf("failed to compute message hash for account=%s: %w", dexAccount, err)
+	}
+
+	r, s, err := GnarkSign(messageHash, dexPrivateKey)
+	if err != nil {
+		return fmt.Errorf("failed to sign message: %w", err)
+	}
+
+	req.SignatureTimestamp = timestamp
+	req.Signature, err = GetSignatureStr(r, s)
+	if err != nil {
+		return fmt.Errorf("failed to generate signature string: %w", err)
+	}
+
+	return nil
 }

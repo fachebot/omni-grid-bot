@@ -130,7 +130,7 @@ func (state *GridStrategyState) sendOrderFilleddNotification(ord *ent.Order) {
 
 	text := fmt.Sprintf("✅ 订单成交通知 `%s`\n\n", strategyName(state.strategy))
 	text += fmt.Sprintf("🏦 交易平台: %s | %s %s\n", state.strategy.Exchange, state.strategy.Symbol, state.strategy.Mode)
-	text += fmt.Sprintf("🆔 订单ID: `%d`\n", ord.OrderId)
+	text += fmt.Sprintf("🆔 订单ID: `%s`\n", ord.OrderId)
 
 	switch ord.Side {
 	case order.SideBuy:

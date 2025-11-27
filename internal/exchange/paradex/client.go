@@ -71,6 +71,24 @@ func (c *Client) GetMarkets(ctx context.Context) (*MarketRes, error) {
 	return &res, nil
 }
 
+func (c *Client) GetMarketSummary(ctx context.Context, market string) (*MarketSummaryRes, error) {
+	var errRes *ErrorRes
+	var res MarketSummaryRes
+	err := requests.URL(fmt.Sprintf("%s/markets/summary?market=%s", c.endpoint, market)).Client(c.httpClient).
+		Header("Content-Type", "application/json").
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 func (c *Client) GetSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
 	var errRes *ErrorRes
 	var res SystemConfigRes

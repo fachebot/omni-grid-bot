@@ -25,8 +25,12 @@ func (c *UserClient) DexAccount() string {
 	return c.dexAccount
 }
 
+func (c *UserClient) EnsureJwtToken(ctx context.Context) (string, error) {
+	return c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+}
+
 func (c *UserClient) GetAccount(ctx context.Context) (*AccountInfoRes, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +53,32 @@ func (c *UserClient) GetAccount(ctx context.Context) (*AccountInfoRes, error) {
 	return &res, nil
 }
 
+func (c *UserClient) GetAccountSummaries(ctx context.Context) (AccountSummaries, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var errRes *ErrorRes
+	var res AccountSummaries
+	err = requests.URL(fmt.Sprintf("%s/account/summary", c.client.endpoint)).Client(c.client.httpClient).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (c *UserClient) GetPositions(ctx context.Context) (*PositionRes, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +102,7 @@ func (c *UserClient) GetPositions(ctx context.Context) (*PositionRes, error) {
 }
 
 func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +126,7 @@ func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) 
 }
 
 func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int) (*OrdersRes, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +156,32 @@ func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int)
 	return &res, nil
 }
 
+func (c *UserClient) GetMarginConfig(ctx context.Context) (*AccounttMarginConfig, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var errRes *ErrorRes
+	var res AccounttMarginConfig
+	err = requests.URL(fmt.Sprintf("%s/account/margin", c.client.endpoint)).Client(c.client.httpClient).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 func (c *UserClient) ListFills(ctx context.Context, startAt *time.Time, cursor string, size int) (*FillRes, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,8 +214,8 @@ func (c *UserClient) ListFills(ctx context.Context, startAt *time.Time, cursor s
 	return &res, nil
 }
 
-func (c *UserClient) UpsertAccountMargin(ctx context.Context, dexAccount, dexPrivateKey, market string, leverage int, marginType MarginType) (*MarginConfig, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+func (c *UserClient) UpsertAccountMargin(ctx context.Context, market string, leverage uint, marginType MarginType) (*MarginConfig, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -192,8 +244,8 @@ func (c *UserClient) UpsertAccountMargin(ctx context.Context, dexAccount, dexPri
 	return &res, nil
 }
 
-func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, dexAccount, dexPrivateKey, market string, maxSlippageBps int) (*UserProfile, error) {
-	jwtToken, err := c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
+func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, market string, maxSlippageBps int) (*UserProfile, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -219,4 +271,62 @@ func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, dexAcco
 	}
 
 	return &res, nil
+}
+
+func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*CreateOrderReq) (*CreateBatchOrdersRes, error) {
+	jwtToken, err := c.EnsureJwtToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range batchOrders {
+		if item.Signature != "" {
+			continue
+		}
+
+		err = PopulateOrderSignature(item, *c.client.systemConfig, c.dexAccount, c.dexPrivateKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var errRes *ErrorRes
+	var res CreateBatchOrdersRes
+	err = requests.URL(fmt.Sprintf("%s/orders/batch", c.client.endpoint)).Client(c.client.httpClient).Post().
+		BodyJSON(batchOrders).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *UserClient) CancelAllOpenOrders(ctx context.Context, market string) error {
+	jwtToken, err := c.EnsureJwtToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	var errRes *ErrorRes
+	err = requests.URL(fmt.Sprintf("%s/orders?market=%s", c.client.endpoint, market)).Client(c.client.httpClient).Delete().
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		Fetch(ctx)
+	if err != nil {
+		if errRes != nil {
+			return errRes
+		}
+		return err
+	}
+
+	return nil
 }

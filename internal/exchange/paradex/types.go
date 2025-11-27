@@ -1,6 +1,7 @@
 package paradex
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/shopspring/decimal"
@@ -78,18 +79,36 @@ type OnboardingReq struct {
 
 // AccountInfoRes 账户信息响应
 type AccountInfoRes struct {
-	Account                      string `json:"account"`                        // 账户地址
-	AccountValue                 string `json:"account_value"`                  // 账户价值
-	FreeCollateral               string `json:"free_collateral"`                // 可用抵押品
-	InitialMarginRequirement     string `json:"initial_margin_requirement"`     // 初始保证金要求
-	MaintenanceMarginRequirement string `json:"maintenance_margin_requirement"` // 维持保证金要求
-	MarginCushion                string `json:"margin_cushion"`                 // 保证金缓冲
-	SeqNo                        int64  `json:"seq_no"`                         // 唯一递增序号
-	SettlementAsset              string `json:"settlement_asset"`               // 结算资产
-	Status                       string `json:"status"`                         // 账户状态
-	TotalCollateral              string `json:"total_collateral"`               // 总抵押品
-	UpdatedAt                    int64  `json:"updated_at"`                     // 更新时间(毫秒时间戳)
+	Account                      string          `json:"account"`                        // 账户地址
+	AccountValue                 decimal.Decimal `json:"account_value"`                  // 账户价值
+	FreeCollateral               decimal.Decimal `json:"free_collateral"`                // 可用抵押品
+	InitialMarginRequirement     decimal.Decimal `json:"initial_margin_requirement"`     // 初始保证金要求
+	MaintenanceMarginRequirement decimal.Decimal `json:"maintenance_margin_requirement"` // 维持保证金要求
+	MarginCushion                string          `json:"margin_cushion"`                 // 保证金缓冲
+	SeqNo                        int64           `json:"seq_no"`                         // 唯一递增序号
+	SettlementAsset              string          `json:"settlement_asset"`               // 结算资产
+	Status                       string          `json:"status"`                         // 账户状态
+	TotalCollateral              decimal.Decimal `json:"total_collateral"`               // 总抵押品
+	UpdatedAt                    int64           `json:"updated_at"`                     // 更新时间(毫秒时间戳)
 }
+
+// AccountSummary 用户账户摘要信息
+type AccountSummary struct {
+	Account                      string          `json:"account"`                        // 用户StarkNet账户地址
+	AccountValue                 decimal.Decimal `json:"account_value"`                  // 当前账户价值[含未实现盈亏]
+	FreeCollateral               decimal.Decimal `json:"free_collateral"`                // 可用自由保证金(超出初始保证金要求的账户价值)
+	InitialMarginRequirement     decimal.Decimal `json:"initial_margin_requirement"`     // 开仓现有头寸所需金额
+	MaintenanceMarginRequirement decimal.Decimal `json:"maintenance_margin_requirement"` // 维持现有头寸所需金额
+	MarginCushion                decimal.Decimal `json:"margin_cushion"`                 // 超出维持保证金要求的账户价值
+	SeqNo                        int64           `json:"seq_no"`                         // 唯一递增编号(用于去重)
+	SettlementAsset              string          `json:"settlement_asset"`               // 账户结算资产
+	Status                       string          `json:"status"`                         // 账户状态(如ACTIVE, LIQUIDATION)
+	TotalCollateral              decimal.Decimal `json:"total_collateral"`               // 用户总保证金
+	UpdatedAt                    int64           `json:"updated_at"`                     // 账户最后更新时间
+}
+
+// AccountSummaries 账户摘要列表
+type AccountSummaries []*AccountSummary
 
 // PositionSide 持仓方向
 type PositionSide string
@@ -139,6 +158,15 @@ type PositionRes struct {
 	Results []*Position `json:"results"` // 持仓列表
 }
 
+// STPType 自成交预防类型
+type STPType string
+
+const (
+	STPExpireMaker STPType = "EXPIRE_MAKER" // 使Maker订单过期
+	STPExpireTaker STPType = "EXPIRE_TAKER" // 使Taker订单过期
+	STPExpireBoth  STPType = "EXPIRE_BOTH"  // 使双方订单都过期
+)
+
 // OrderFlag 订单标志
 type OrderFlag string
 
@@ -153,10 +181,10 @@ const (
 type OrderInstruction string
 
 const (
-	OrderInstructionGTC      OrderInstruction = "GTC"       // Good Till Cancel - 取消前有效
-	OrderInstructionPostOnly OrderInstruction = "POST_ONLY" // Post Only - 只做挂单方
-	OrderInstructionIOC      OrderInstruction = "IOC"       // Immediate or Cancel - 立即成交或取消
-	OrderInstructionRPI      OrderInstruction = "RPI"       // Reduce Position Immediately - 立即减仓
+	InstructionGTC      OrderInstruction = "GTC"       // 成交或取消
+	InstructionPOSTONLY OrderInstruction = "POST_ONLY" // 只做Maker
+	InstructionIOC      OrderInstruction = "IOC"       // 立即成交或取消
+	InstructionRPI      OrderInstruction = "RPI"       // 保留挂单
 )
 
 // OrderSide 订单方向
@@ -354,6 +382,43 @@ type MarketRes struct {
 	Results []*Market `json:"results"`
 }
 
+// Greeks 希腊值
+type Greeks struct {
+	Delta decimal.Decimal `json:"delta"` // Delta值
+	Gamma decimal.Decimal `json:"gamma"` // Gamma值
+	Rho   decimal.Decimal `json:"rho"`   // Rho值
+	Vanna decimal.Decimal `json:"vanna"` // Vanna值
+	Vega  decimal.Decimal `json:"vega"`  // Vega值
+	Volga decimal.Decimal `json:"volga"` // Volga值
+}
+
+// MarketSummary 市场概要信息
+type MarketSummary struct {
+	Ask                decimal.Decimal `json:"ask"`                   // 最佳卖单价
+	AskIv              decimal.Decimal `json:"ask_iv"`                // 卖单隐含波动率（期权）
+	Bid                decimal.Decimal `json:"bid"`                   // 最佳买单价
+	BidIv              decimal.Decimal `json:"bid_iv"`                // 买单隐含波动率（期权）
+	CreatedAt          int64           `json:"created_at"`            // 市场概要创建时间
+	FundingRate        decimal.Decimal `json:"funding_rate"`          // 原始资金费率（对应实际资金周期）
+	FutureFundingRate  decimal.Decimal `json:"future_funding_rate"`   // 期权平滑后的期货资金费率
+	Greeks             Greeks          `json:"greeks"`                // 希腊值（Delta、Gamma、Vega等）
+	LastIv             decimal.Decimal `json:"last_iv"`               // 最后成交价隐含波动率（期权）
+	LastTradedPrice    decimal.Decimal `json:"last_traded_price"`     // 最后成交价格
+	MarkIv             decimal.Decimal `json:"mark_iv"`               // 标记价格隐含波动率（期权）
+	MarkPrice          decimal.Decimal `json:"mark_price"`            // 标记价格
+	OpenInterest       decimal.Decimal `json:"open_interest"`         // 未平仓合约量（基础货币）
+	PriceChangeRate24h decimal.Decimal `json:"price_change_rate_24h"` // 24小时价格变化率
+	Symbol             string          `json:"symbol"`                // 市场交易对符号
+	TotalVolume        decimal.Decimal `json:"total_volume"`          // 生命周期总交易量（USD）
+	UnderlyingPrice    decimal.Decimal `json:"underlying_price"`      // 标的资产价格（现货价格）
+	Volume24h          decimal.Decimal `json:"volume_24h"`            // 24小时交易量（USD）
+}
+
+// MarketSummaryRes 市场概要响应
+type MarketSummaryRes struct {
+	Results []*MarketSummary `json:"results"` // 市场概要结果列表
+}
+
 // Discord Discord账户信息
 type Discord struct {
 	ID       string `json:"id"`        // Discord ID
@@ -471,14 +536,6 @@ const (
 	LiquidityMaker Liquidity = "MAKER"
 )
 
-// Side 订单方向
-type Side string
-
-const (
-	SideBuy  Side = "BUY"
-	SideSell Side = "SELL"
-)
-
 // Fill 成交记录
 type Fill struct {
 	Account         string          `json:"account"`          // 产生成交的账户
@@ -497,7 +554,7 @@ type Fill struct {
 	RealizedFunding decimal.Decimal `json:"realized_funding"` // 成交的已实现资金费用
 	RealizedPnl     decimal.Decimal `json:"realized_pnl"`     // 成交的已实现盈亏
 	RemainingSize   decimal.Decimal `json:"remaining_size"`   // 订单剩余数量
-	Side            Side            `json:"side"`             // Taker方向
+	Side            OrderSide       `json:"side"`             // Taker方向
 	Size            decimal.Decimal `json:"size"`             // 成交数量
 	UnderlyingPrice decimal.Decimal `json:"underlying_price"` // 标的资产价格(现货价格)
 }
@@ -507,4 +564,161 @@ type FillRes struct {
 	Next    string  `json:"next"`    // 获取下一组记录的指针(如果没有更多记录则为null)
 	Prev    string  `json:"prev"`    // 获取上一组记录的指针(如果没有更多记录则为null)
 	Results []*Fill `json:"results"` // 成交记录列表
+}
+
+// MarketConfig 市场配置信息
+type MarkettMarginConfig struct {
+	IsolatedMarginLeverage int        `json:"isolated_margin_leverage"` // 隔离保证金杠杆，可为空
+	Leverage               int        `json:"leverage"`                 // 杠杆值，可为空
+	MarginType             MarginType `json:"margin_type"`              // 保证金类型(CROSS/ISOLATED)，可为空
+	Market                 string     `json:"market"`                   // 市场交易对符号，可为空
+}
+
+// AccountConfig 账户配置信息
+type AccounttMarginConfig struct {
+	Account           string                 `json:"account"`            // 账户ID，可为空
+	Configs           []*MarkettMarginConfig `json:"configs"`            // 各市场保证金配置列表，可为空
+	MarginMethodology string                 `json:"margin_methodology"` // 保证金计算方法(cross_margin/portfolio_margin)，可为空
+}
+
+// CreateOrderReq 创建订单请求
+type CreateOrderReq struct {
+	Instruction        OrderInstruction `json:"instruction"`                    // 订单指令，GTC、IOC、RPI 或 POST_ONLY，如果为空则默认为 GTC
+	Market             string           `json:"market"`                         // 订单创建的市场
+	Price              string           `json:"price"`                          // 订单价格
+	Side               OrderSide        `json:"side"`                           // 订单方向，BUY 或 SELL
+	Signature          string           `json:"signature"`                      // 订单签名，格式为 "[r,s]"，由账户的 paradex 私钥签名
+	SignatureTimestamp int64            `json:"signature_timestamp"`            // 订单创建的 Unix 时间戳（毫秒），用于签名验证
+	Size               decimal.Decimal  `json:"size"`                           // 订单数量
+	Type               OrderType        `json:"type"`                           // 订单类型
+	ClientID           *string          `json:"client_id,omitempty"`            // 客户端分配的唯一订单 ID，长度不超过 64 个字符
+	Flags              []OrderFlag      `json:"flags"`                          // 订单标志，允许的标志：REDUCE_ONLY
+	MaxSlippagePrice   *decimal.Decimal `json:"max_slippage_price,omitempty"`   // 市价单的最大滑点价格，如果大于价格带，则使用价格带
+	OnBehalfOfAccount  *string          `json:"on_behalf_of_account,omitempty"` // 对应的隔离保证金账户 ID，仅适用于隔离保证金订单
+	RecvWindow         *int64           `json:"recv_window,omitempty"`          // 订单接收窗口（毫秒），从签名时间戳起在此时间内被 API 接收则创建订单，最小为 10 毫秒
+	SignedImpactPrice  *decimal.Decimal `json:"signed_impact_price,omitempty"`  // [已弃用] 市价单的签名影响价格（base64 编码）
+	Stp                *STPType         `json:"stp,omitempty"`                  // 自成交预防，EXPIRE_MAKER、EXPIRE_TAKER 或 EXPIRE_BOTH，如果为空则默认为 EXPIRE_TAKER
+	TriggerPrice       string           `json:"trigger_price"`                  // 止损单的触发价格
+}
+
+// CreateOrderErrorType 错误类型枚举
+type CreateOrderErrorType string
+
+const (
+	ValidationError                     CreateOrderErrorType = "VALIDATION_ERROR"
+	BindingError                        CreateOrderErrorType = "BINDING_ERROR"
+	InternalError                       CreateOrderErrorType = "INTERNAL_ERROR"
+	NotFound                            CreateOrderErrorType = "NOT_FOUND"
+	ServiceUnavailable                  CreateOrderErrorType = "SERVICE_UNAVAILABLE"
+	InvalidRequestParameter             CreateOrderErrorType = "INVALID_REQUEST_PARAMETER"
+	OrderIDNotFound                     CreateOrderErrorType = "ORDER_ID_NOT_FOUND"
+	OrderIsClosed                       CreateOrderErrorType = "ORDER_IS_CLOSED"
+	OrderIsNotOpen                      CreateOrderErrorType = "ORDER_IS_NOT_OPEN"
+	InvalidOrderSize                    CreateOrderErrorType = "INVALID_ORDER_SIZE"
+	ClientOrderIDNotFound               CreateOrderErrorType = "CLIENT_ORDER_ID_NOT_FOUND"
+	DuplicatedClientID                  CreateOrderErrorType = "DUPLICATED_CLIENT_ID"
+	InvalidPricePrecision               CreateOrderErrorType = "INVALID_PRICE_PRECISION"
+	InvalidSymbol                       CreateOrderErrorType = "INVALID_SYMBOL"
+	InvalidToken                        CreateOrderErrorType = "INVALID_TOKEN"
+	InvalidEthereumAddress              CreateOrderErrorType = "INVALID_ETHEREUM_ADDRESS"
+	InvalidEthereumSignature            CreateOrderErrorType = "INVALID_ETHEREUM_SIGNATURE"
+	InvalidStarknetAddress              CreateOrderErrorType = "INVALID_STARKNET_ADDRESS"
+	InvalidStarknetSignature            CreateOrderErrorType = "INVALID_STARKNET_SIGNATURE"
+	StarknetSignatureVerificationFailed CreateOrderErrorType = "STARKNET_SIGNATURE_VERIFICATION_FAILED"
+	BadStarknetRequest                  CreateOrderErrorType = "BAD_STARKNET_REQUEST"
+	EthereumSignerMismatch              CreateOrderErrorType = "ETHEREUM_SIGNER_MISMATCH"
+	EthereumHashMismatch                CreateOrderErrorType = "ETHEREUM_HASH_MISMATCH"
+	NotOnboarded                        CreateOrderErrorType = "NOT_ONBOARDED"
+	InvalidTimestamp                    CreateOrderErrorType = "INVALID_TIMESTAMP"
+	InvalidBlockExpiration              CreateOrderErrorType = "INVALID_BLOCK_EXPIRATION"
+	AccountNotFound                     CreateOrderErrorType = "ACCOUNT_NOT_FOUND"
+	InvalidOrderSignature               CreateOrderErrorType = "INVALID_ORDER_SIGNATURE"
+	PublicKeyInvalid                    CreateOrderErrorType = "PUBLIC_KEY_INVALID"
+	UnauthorizedEthereumAddress         CreateOrderErrorType = "UNAUTHORIZED_ETHEREUM_ADDRESS"
+	UnauthorizedError                   CreateOrderErrorType = "UNAUTHORIZED_ERROR"
+	EthereumAddressAlreadyOnboarded     CreateOrderErrorType = "ETHEREUM_ADDRESS_ALREADY_ONBOARDED"
+	MarketNotFound                      CreateOrderErrorType = "MARKET_NOT_FOUND"
+	AllowlistEntryNotFound              CreateOrderErrorType = "ALLOWLIST_ENTRY_NOT_FOUND"
+	UsernameInUse                       CreateOrderErrorType = "USERNAME_IN_USE"
+	GeoIPBlock                          CreateOrderErrorType = "GEO_IP_BLOCK"
+	EthereumAddressBlocked              CreateOrderErrorType = "ETHEREUM_ADDRESS_BLOCKED"
+	ProgramNotFound                     CreateOrderErrorType = "PROGRAM_NOT_FOUND"
+	ProgramNotSupported                 CreateOrderErrorType = "PROGRAM_NOT_SUPPORTED"
+	InvalidDashboard                    CreateOrderErrorType = "INVALID_DASHBOARD"
+	MarketNotOpen                       CreateOrderErrorType = "MARKET_NOT_OPEN"
+	InvalidReferralCode                 CreateOrderErrorType = "INVALID_REFERRAL_CODE"
+	RequestNotAllowed                   CreateOrderErrorType = "REQUEST_NOT_ALLOWED"
+	ParentAddressAlreadyOnboarded       CreateOrderErrorType = "PARENT_ADDRESS_ALREADY_ONBOARDED"
+	InvalidParentAccount                CreateOrderErrorType = "INVALID_PARENT_ACCOUNT"
+	InvalidVaultOperatorChain           CreateOrderErrorType = "INVALID_VAULT_OPERATOR_CHAIN"
+	VaultOperatorAlreadyOnboarded       CreateOrderErrorType = "VAULT_OPERATOR_ALREADY_ONBOARDED"
+	VaultNameInUse                      CreateOrderErrorType = "VAULT_NAME_IN_USE"
+	VaultNotFound                       CreateOrderErrorType = "VAULT_NOT_FOUND"
+	VaultStrategyNotFound               CreateOrderErrorType = "VAULT_STRATEGY_NOT_FOUND"
+	VaultLimitReached                   CreateOrderErrorType = "VAULT_LIMIT_REACHED"
+	BatchSizeOutOfRange                 CreateOrderErrorType = "BATCH_SIZE_OUT_OF_RANGE"
+	IsolatedMarketAccountMismatch       CreateOrderErrorType = "ISOLATED_MARKET_ACCOUNT_MISMATCH"
+	NoAccessToMarket                    CreateOrderErrorType = "NO_ACCESS_TO_MARKET"
+	PointsSummaryNotFound               CreateOrderErrorType = "POINTS_SUMMARY_NOT_FOUND"
+	AlgoIDNotFound                      CreateOrderErrorType = "ALGO_ID_NOT_FOUND"
+	InvalidDerivationPath               CreateOrderErrorType = "INVALID_DERIVATION_PATH"
+	ProfileStatsNotFound                CreateOrderErrorType = "PROFILE_STATS_NOT_FOUND"
+	InvalidChain                        CreateOrderErrorType = "INVALID_CHAIN"
+	InvalidLayerswapSwap                CreateOrderErrorType = "INVALID_LAYERSWAP_SWAP"
+	InvalidRhinofiRequest               CreateOrderErrorType = "INVALID_RHINOFI_REQUEST"
+	InvalidRhinofiQuote                 CreateOrderErrorType = "INVALID_RHINOFI_QUOTE"
+	InvalidRhinofiQuoteCommit           CreateOrderErrorType = "INVALID_RHINOFI_QUOTE_COMMIT"
+	SocialUsernameInUse                 CreateOrderErrorType = "SOCIAL_USERNAME_IN_USE"
+	InvalidOauthRequest                 CreateOrderErrorType = "INVALID_OAUTH_REQUEST"
+	RpiAccountNotWhitelisted            CreateOrderErrorType = "RPI_ACCOUNT_NOT_WHITELISTED"
+	InvalidMarketingCode                CreateOrderErrorType = "INVALID_MARKETING_CODE"
+	InvalidJoinWaitlistRequest          CreateOrderErrorType = "INVALID_JOIN_WAITLIST_REQUEST"
+	TransactionNotFound                 CreateOrderErrorType = "TRANSACTION_NOT_FOUND"
+	OfferNotFound                       CreateOrderErrorType = "OFFER_NOT_FOUND"
+	MarketMarginRestricted              CreateOrderErrorType = "MARKET_MARGIN_RESTRICTED"
+	NotUnique                           CreateOrderErrorType = "NOT_UNIQUE"
+	AccountAlreadyReferred              CreateOrderErrorType = "ACCOUNT_ALREADY_REFERRED"
+	OnboardingPeriodExpired             CreateOrderErrorType = "ONBOARDING_PERIOD_EXPIRED"
+	OnboardingRateLimited               CreateOrderErrorType = "ONBOARDING_RATE_LIMITED"
+	SubaccountsLimitExceeded            CreateOrderErrorType = "SUBACCOUNTS_LIMIT_EXCEEDED"
+	InsufficientMinChainBalance         CreateOrderErrorType = "INSUFFICIENT_MIN_CHAIN_BALANCE"
+	InvalidSubkey                       CreateOrderErrorType = "INVALID_SUBKEY"
+	TokenLimitReached                   CreateOrderErrorType = "TOKEN_LIMIT_REACHED"
+	InvalidTokenScope                   CreateOrderErrorType = "INVALID_TOKEN_SCOPE"
+	InsufficientTransferrableXP         CreateOrderErrorType = "INSUFFICIENT_TRANSFERRABLE_XP"
+	TransferLimitReached                CreateOrderErrorType = "TRANSFER_LIMIT_REACHED"
+)
+
+// CreateOrderError 错误信息
+type CreateOrderError struct {
+	Code    CreateOrderErrorType `json:"error"`   // 错误类型枚举值
+	Message string               `json:"message"` // 错误消息
+}
+
+func (err CreateOrderError) Error() string {
+	return fmt.Sprintf("code: %s, message: %s", err.Code, err.Message)
+}
+
+// CreateBatchOrdersRes 创建批量订单响应
+type CreateBatchOrdersRes struct {
+	Orders []*Order            `json:"orders"` // 订单列表
+	Errors []*CreateOrderError `json:"errors"` // 错误列表
+}
+
+// JsonRpcMessage JSON-RPC消息
+type JsonRpcMessage struct {
+	Jsonrpc string          `json:"jsonrpc"`
+	Id      int64           `json:"id"`
+	Method  string          `json:"method,omitempty"`
+	Params  json.RawMessage `json:"params,omitempty"`
+	Error   json.RawMessage `json:"error,omitempty"`
+	Result  json.RawMessage `json:"result,omitempty"`
+	UsIn    int64           `json:"usIn,omitempty"`
+	UsDiff  int64           `json:"usDiff,omitempty"`
+}
+
+// SubscriptionPayload 订阅消息
+type SubscriptionPayload struct {
+	Channel string          `json:"channel"`
+	Data    json.RawMessage `json:"data"`
 }

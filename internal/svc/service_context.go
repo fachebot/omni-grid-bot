@@ -28,6 +28,7 @@ type ServiceContext struct {
 	TransportProxy    *http.Transport
 	MessageCache      *cache.MessageCache
 	LighterCache      *cache.LighterCache
+	ParadexCache      *cache.ParadexCache
 	ParadexClient     *paradex.Client
 	LighterClient     *lighter.Client
 	LighterSubscriber *lighter.LighterSubscriber
@@ -106,6 +107,7 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 		MessageCache:      cache.NewMessageCache(),
 		ParadexClient:     paradexClient,
 		LighterCache:      cache.NewLighterCache(lighterClient),
+		ParadexCache:      cache.NewParadexCache(paradexClient),
 		LighterClient:     lighterClient,
 		LighterSubscriber: lighterSubscriber,
 

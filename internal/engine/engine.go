@@ -9,6 +9,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
@@ -29,19 +30,25 @@ type StrategyEngine struct {
 
 	svcCtx            *svc.ServiceContext
 	lighterSubscriber *lighter.LighterSubscriber
+	paradexSubscriber *paradex.ParadexSubscriber
 
 	mutex           sync.RWMutex
 	strategyMap     map[string]Strategy
 	userStrategyMap map[string][]string
 }
 
-func NewStrategyEngine(svcCtx *svc.ServiceContext, lighterSubscriber *lighter.LighterSubscriber) *StrategyEngine {
+func NewStrategyEngine(
+	svcCtx *svc.ServiceContext,
+	lighterSubscriber *lighter.LighterSubscriber,
+	paradexSubscriber *paradex.ParadexSubscriber,
+) *StrategyEngine {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &StrategyEngine{
 		ctx:               ctx,
 		cancel:            cancel,
 		svcCtx:            svcCtx,
 		lighterSubscriber: lighterSubscriber,
+		paradexSubscriber: paradexSubscriber,
 		strategyMap:       make(map[string]Strategy),
 		userStrategyMap:   make(map[string][]string),
 	}
@@ -181,15 +188,27 @@ func (engine *StrategyEngine) UpdateStrategy(entStrategy *ent.Strategy) {
 }
 
 func (engine *StrategyEngine) run() {
-	lightUserOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
+	lighterUserOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
+	paradexUserOrdersChan := engine.paradexSubscriber.GetAccountOrdersChan()
 
 	for {
 		select {
 		case <-engine.ctx.Done():
 			engine.stopChan <- struct{}{}
 			return
-		case data := <-lightUserOrdersChan:
-			orders, err := engine.parseLightOrders(data.Account, data.Orders)
+		case data := <-lighterUserOrdersChan:
+			orders, err := engine.parseLighterOrders(data)
+			if err != nil {
+				continue
+			}
+
+			// 处理用户订单，错误时重新同步订单数据
+			err = engine.handleUserOrders(data, orders)
+			if err != nil {
+				engine.resubscribe(data.Account)
+			}
+		case data := <-paradexUserOrdersChan:
+			orders, err := engine.toEntOrders(data)
 			if err != nil {
 				continue
 			}
@@ -225,6 +244,24 @@ func (engine *StrategyEngine) resubscribe(account string) {
 			err = engine.lighterSubscriber.SubscribeAccountOrders(signer)
 			if err != nil {
 				logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
+			}
+
+			return
+		case exchange.Paradex:
+			userClient, err := helper.GetParadexClient(engine.svcCtx, s.Get())
+			if err != nil {
+				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", s.Get().Account, err)
+			}
+
+			account := userClient.DexAccount()
+			err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient)
+			if err != nil {
+				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
+			}
+
+			err = engine.paradexSubscriber.SubscribeAccountOrders(userClient)
+			if err != nil {
+				logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %s, %v", account, err)
 			}
 
 			return
@@ -312,25 +349,13 @@ func (engine *StrategyEngine) userStrategyList(account string) []Strategy {
 	return userStrategyList
 }
 
-func (engine *StrategyEngine) parseLightOrders(account string, orders []*exchange.Order) ([]ent.Order, error) {
+func (engine *StrategyEngine) toEntOrders(userOrders exchange.UserOrders) ([]ent.Order, error) {
 	newOrders := make([]ent.Order, 0)
-	for _, ord := range orders {
-		marketIndex, err := strconv.ParseInt(ord.Symbol, 10, 64)
-		if err != nil {
-			logger.Fatalf("[StrategyEngine] 解析市场ID失败, account: %s, symbol: %s", account, ord.Symbol)
-			return nil, err
-		}
-
-		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, uint8(marketIndex))
-		if err != nil {
-			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d", account, marketIndex)
-			return nil, err
-		}
-
+	for _, ord := range userOrders.Orders {
 		args := ent.Order{
-			Exchange:          exchange.Lighter,
-			Account:           account,
-			Symbol:            symbol,
+			Exchange:          userOrders.Exchange,
+			Account:           userOrders.Account,
+			Symbol:            ord.Symbol,
 			Side:              ord.Side,
 			Price:             ord.Price,
 			OrderId:           ord.OrderID,
@@ -345,6 +370,26 @@ func (engine *StrategyEngine) parseLightOrders(account string, orders []*exchang
 	}
 
 	return newOrders, nil
+}
+
+func (engine *StrategyEngine) parseLighterOrders(userOrders exchange.UserOrders) ([]ent.Order, error) {
+	for _, ord := range userOrders.Orders {
+		marketIndex, err := strconv.ParseInt(ord.Symbol, 10, 64)
+		if err != nil {
+			logger.Fatalf("[StrategyEngine] 解析市场ID失败, account: %s, symbol: %s", userOrders.Account, ord.Symbol)
+			return nil, err
+		}
+
+		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, uint8(marketIndex))
+		if err != nil {
+			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d", userOrders.Account, marketIndex)
+			return nil, err
+		}
+
+		ord.Symbol = symbol
+	}
+
+	return engine.toEntOrders(userOrders)
 }
 
 func (engine *StrategyEngine) handleUserOrders(userOrders exchange.UserOrders, newOrders []ent.Order) error {

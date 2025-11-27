@@ -11,6 +11,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/engine"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
@@ -77,11 +78,15 @@ func main() {
 	lighterSubscriber.Start()
 	lighterSubscriber.WaitUntilConnected()
 
+	// 启动Paradex订阅器
+	paradexSubscriber := paradex.NewParadexSubscriber(c.Sock5Proxy)
+	paradexSubscriber.Start()
+
 	// 创建服务上下文
 	svcCtx := svc.NewServiceContext(c, lighterSubscriber)
 
 	// 启动网格策略引擎
-	strategyEngine := engine.NewStrategyEngine(svcCtx, lighterSubscriber)
+	strategyEngine := engine.NewStrategyEngine(svcCtx, lighterSubscriber, paradexSubscriber)
 	strategyEngine.Start()
 
 	// 启动所有网络
@@ -101,6 +106,7 @@ func main() {
 
 	strategyEngine.Stop()
 	lighterSubscriber.Stop()
+	paradexSubscriber.Stop()
 	botService.Stop()
 
 	svcCtx.Close()

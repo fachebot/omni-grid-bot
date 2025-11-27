@@ -178,7 +178,7 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	var position *exchange.Position
 	var availableBalance decimal.Decimal
 	if record.Exchange != "" && record.Account != "" {
-		account, err := helper.GetAccountInfo(ctx, svcCtx, record.Exchange, record.Account)
+		account, err := helper.GetAccountInfo(ctx, svcCtx, record)
 		if err == nil {
 			availableBalance = account.AvailableBalance
 			position, _ = lo.Find(account.Positions, func(item *exchange.Position) bool {
@@ -211,19 +211,19 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		Else(fmt.Sprintf("$%s ~ $%s", record.PriceLower, record.PriceUpper)))
 	text += fmt.Sprintf("┗ 单格投入: %s\n\n", lo.If(record.Symbol != "" && !record.InitialOrderSize.IsZero(), fmt.Sprintf("%s %s", record.InitialOrderSize, record.Symbol)).Else("未设置"))
 
-	// 持仓信息
-	if position != nil {
-		text += "📦 持仓\n"
-		text += fmt.Sprintf("┣ 持仓数量: %s %s\n", position.Position, position.Symbol)
-		text += fmt.Sprintf("┣ 持仓价值: $%s\n", format.Price(position.PositionValue, 5))
-		text += fmt.Sprintf("┣ 强平价格: *$%s*\n", format.Price(position.LiquidationPrice, 5))
-		text += fmt.Sprintf("┗ 平均持仓成本: $%s\n\n", format.Price(position.AvgEntryPrice, 5))
-	}
-
 	// 查询最新价格
 	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
 		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
+	}
+
+	// 持仓信息
+	if position != nil {
+		text += "📦 持仓\n"
+		text += fmt.Sprintf("┣ 持仓数量: %s %s\n", position.Position, position.Symbol)
+		text += fmt.Sprintf("┣ 持仓价值: $%s\n", format.Price(position.Position.Mul(lastPrice), 5))
+		text += fmt.Sprintf("┣ 强平价格: *$%s*\n", format.Price(position.LiquidationPrice, 5))
+		text += fmt.Sprintf("┗ 平均持仓成本: $%s\n\n", format.Price(position.AvgEntryPrice, 5))
 	}
 
 	// 计算未实现收益

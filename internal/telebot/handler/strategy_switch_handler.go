@@ -143,7 +143,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	}
 
 	// 测试交易所连接
-	account, err := helper.GetAccountInfo(ctx, h.svcCtx, record.Exchange, record.Account)
+	account, err := helper.GetAccountInfo(ctx, h.svcCtx, record)
 	if err != nil {
 		text := "❌ 连接交易平台失败，请检查交易平台配置"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)

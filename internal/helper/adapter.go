@@ -50,22 +50,6 @@ func (adapter *ExchangeAdapter) UpdateLeverage(ctx context.Context, symbol strin
 	return errors.New("route not found")
 }
 
-func (adapter *ExchangeAdapter) CancelOrderBatch(ctx context.Context, orders []CancelOrderParams) error {
-	if adapter.Account.Signer != nil {
-		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CancelOrderBatch(ctx, orders)
-	}
-
-	return errors.New("route not found")
-}
-
-func (adapter *ExchangeAdapter) CancelOrder(ctx context.Context, symbol string, orderId int64) error {
-	if adapter.Account.Signer != nil {
-		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CancelOrder(ctx, symbol, orderId)
-	}
-
-	return errors.New("route not found")
-}
-
 func (adapter *ExchangeAdapter) CancalAllOrders(ctx context.Context, symbol string) error {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CancalAllOrders(ctx, symbol)
