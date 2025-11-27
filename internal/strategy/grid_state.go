@@ -103,6 +103,27 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 }
 
 func (state *GridStrategyState) Rebalance() error {
+	// 检查订单状态
+	for idx := range state.sortedGrids {
+		lvl := state.sortedGrids[idx]
+		if lvl.BuyClientOrderId != nil {
+			ord, ok := state.orders[*lvl.BuyClientOrderId]
+			if ok && ord.Status == order.StatusCanceled {
+				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
+					state.strategy.GUID, state.strategy.Symbol, *lvl.BuyClientOrderId)
+			}
+		}
+
+		if lvl.SellClientOrderId != nil {
+			ord, ok := state.orders[*lvl.SellClientOrderId]
+			if ok && ord.Status == order.StatusCanceled {
+				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
+					state.strategy.GUID, state.strategy.Symbol, *lvl.SellClientOrderId)
+			}
+		}
+	}
+
+	// 执行网格再平衡
 	for idx := range state.sortedGrids {
 		err := state.checkAndRebalanceLevel(idx)
 		if err != nil {
