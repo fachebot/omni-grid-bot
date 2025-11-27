@@ -164,16 +164,7 @@ func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int)
 		return nil, err
 	}
 
-	for _, item := range res.Results {
-		if item.AvgFillPrice == "" || !item.Price.IsZero() {
-			continue
-		}
-
-		avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
-		if err == nil {
-			item.Price = avgFillPrice
-		}
-	}
+	c.processOrderPrices(res.Results)
 
 	return &res, nil
 }
@@ -295,6 +286,78 @@ func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, market 
 	return &res, nil
 }
 
+func (c *UserClient) processOrderPrices(orders []*Order) {
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+
+		if order.AvgFillPrice == "" || !order.Price.IsZero() {
+			continue
+		}
+
+		avgFillPrice, err := decimal.NewFromString(order.AvgFillPrice)
+		if err == nil {
+			order.Price = avgFillPrice
+		}
+	}
+}
+
+func (c *UserClient) sendSingleBatch(ctx context.Context, batch []*CreateOrderReq, jwtToken string) (*CreateBatchOrdersRes, error) {
+	var errRes *ErrorRes
+	var res CreateBatchOrdersRes
+
+	err := requests.
+		URL(fmt.Sprintf("%s/orders/batch", c.client.endpoint)).
+		Client(c.client.httpClient).
+		Post().
+		BodyJSON(batch).
+		Header("Content-Type", "application/json").
+		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+		ErrorJSON(&errRes).
+		ToJSON(&res).
+		Fetch(ctx)
+
+	if err != nil {
+		if errRes != nil {
+			return nil, errRes
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (c *UserClient) sendBatchOrdersInChunks(ctx context.Context, orders []*CreateOrderReq, jwtToken string) ([]*Order, []*CreateOrderError, error) {
+	const maxBatchSize = 10
+
+	var allOrders []*Order
+	var allErrors []*CreateOrderError
+
+	// 按批次处理订单
+	for i := 0; i < len(orders); i += maxBatchSize {
+		// 计算当前批次的结束位置
+		end := min(i+maxBatchSize, len(orders))
+
+		// 发送当前批次
+		batchOrders, err := c.sendSingleBatch(ctx, orders[i:end], jwtToken)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		for _, err := range batchOrders.Errors {
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+
+		allOrders = append(allOrders, batchOrders.Orders...)
+		allErrors = append(allErrors, batchOrders.Errors...)
+	}
+
+	return allOrders, allErrors, nil
+}
+
 func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*CreateOrderReq) (*CreateBatchOrdersRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -305,41 +368,20 @@ func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*Creat
 		if item.Signature != "" {
 			continue
 		}
-
 		err = PopulateOrderSignature(item, *c.client.systemConfig, c.dexAccount, c.dexPrivateKey)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var errRes *ErrorRes
-	var res CreateBatchOrdersRes
-	err = requests.URL(fmt.Sprintf("%s/orders/batch", c.client.endpoint)).Client(c.client.httpClient).Post().
-		BodyJSON(batchOrders).
-		Header("Content-Type", "application/json").
-		Header("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
-		ErrorJSON(&errRes).
-		ToJSON(&res).
-		Fetch(ctx)
+	allOrders, allErrors, err := c.sendBatchOrdersInChunks(ctx, batchOrders, jwtToken)
 	if err != nil {
-		if errRes != nil {
-			return nil, errRes
-		}
 		return nil, err
 	}
 
-	for _, item := range res.Orders {
-		if item.AvgFillPrice == "" || !item.Price.IsZero() {
-			continue
-		}
+	c.processOrderPrices(allOrders)
 
-		avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
-		if err == nil {
-			item.Price = avgFillPrice
-		}
-	}
-
-	return &res, nil
+	return &CreateBatchOrdersRes{Orders: allOrders, Errors: allErrors}, nil
 }
 
 func (c *UserClient) CancelAllOpenOrders(ctx context.Context, market string) error {
