@@ -122,6 +122,17 @@ func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) 
 		return nil, err
 	}
 
+	for _, item := range res.Results {
+		if item.AvgFillPrice == "" || !item.Price.IsZero() {
+			continue
+		}
+
+		avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
+		if err == nil {
+			item.Price = avgFillPrice
+		}
+	}
+
 	return &res, nil
 }
 
@@ -151,6 +162,17 @@ func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int)
 			return nil, errRes
 		}
 		return nil, err
+	}
+
+	for _, item := range res.Results {
+		if item.AvgFillPrice == "" || !item.Price.IsZero() {
+			continue
+		}
+
+		avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
+		if err == nil {
+			item.Price = avgFillPrice
+		}
 	}
 
 	return &res, nil
@@ -304,6 +326,17 @@ func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*Creat
 			return nil, errRes
 		}
 		return nil, err
+	}
+
+	for _, item := range res.Orders {
+		if item.AvgFillPrice == "" || !item.Price.IsZero() {
+			continue
+		}
+
+		avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
+		if err == nil {
+			item.Price = avgFillPrice
+		}
 	}
 
 	return &res, nil
