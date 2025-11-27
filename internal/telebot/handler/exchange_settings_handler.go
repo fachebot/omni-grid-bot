@@ -64,6 +64,8 @@ func (h *ExchangeSettingsHandler) handle(ctx context.Context, vars map[string]st
 	switch record.Exchange {
 	case exchange.Lighter:
 		return NewExchangeSettingsLighterHandler(h.svcCtx).handle(ctx, vars, userId, update)
+	case exchange.Paradex:
+		return NewExchangeSettingsParadexHandler(h.svcCtx).handle(ctx, vars, userId, update)
 	}
 
 	return nil

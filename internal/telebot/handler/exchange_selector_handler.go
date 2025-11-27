@@ -63,6 +63,9 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 				{
 					{Text: exchange.Lighter, Data: h.FormatPath(guid, exchange.Lighter)},
 				},
+				{
+					{Text: exchange.Paradex, Data: h.FormatPath(guid, exchange.Paradex)},
+				},
 			},
 		}
 
@@ -115,6 +118,8 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 	switch value {
 	case exchange.Lighter:
 		return NewExchangeSettingsLighterHandler(h.svcCtx).handle(ctx, vars, userId, update)
+	case exchange.Paradex:
+		return NewExchangeSettingsParadexHandler(h.svcCtx).handle(ctx, vars, userId, update)
 	}
 
 	return nil

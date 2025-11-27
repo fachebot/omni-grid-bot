@@ -127,6 +127,10 @@ func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey stri
 	}
 
 	dexPrivateKeyBN := types.HexToBN(dexPrivateKey)
+	if dexPrivateKeyBN == nil {
+		return "", fmt.Errorf("invalid private key")
+	}
+
 	dexPublicKeyBN, _, err := caigo.Curve.PrivateToPoint(dexPrivateKeyBN)
 	if err != nil {
 		return "", fmt.Errorf("failed to derive public key from private key (invalid private key?): %w", err)
@@ -156,6 +160,10 @@ func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey stri
 	}
 
 	dexAccountAddressBN := types.HexToBN(dexAccount)
+	if dexAccountAddressBN == nil {
+		return "", fmt.Errorf("invalid public key")
+	}
+
 	messageHash, err := GnarkGetMessageHash(typedData, domEnc, dexAccountAddressBN, message, sc)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute message hash for account=%s: %w", dexAccount, err)

@@ -65,11 +65,20 @@ func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err erro
 	return r, s, nil
 }
 
-func ComputeAddress(config SystemConfigRes, publicKey string) string {
+func ComputeAddress(config SystemConfigRes, publicKey string) (string, error) {
 	publicKeyBN := types.HexToBN(publicKey)
+	if publicKeyBN == nil {
+		return "", fmt.Errorf("invalid public key")
+	}
 
 	paraclearAccountHashBN := types.HexToBN(config.ParaclearAccountHash)
+	if paraclearAccountHashBN == nil {
+		return "", fmt.Errorf("invalid paraclear_account_hash")
+	}
 	paraclearAccountProxyHashBN := types.HexToBN(config.ParaclearAccountProxyHash)
+	if paraclearAccountProxyHashBN == nil {
+		return "", fmt.Errorf("invalid paraclear_account_proxy_hash")
+	}
 
 	zero := big.NewInt(0)
 	initializeBN := types.GetSelectorFromName("initialize")
@@ -92,8 +101,13 @@ func ComputeAddress(config SystemConfigRes, publicKey string) string {
 		paraclearAccountProxyHashBN,
 		constructorCalldataHash,
 	}
-	addressHash, _ := caigo.Curve.ComputeHashOnElements(address)
-	return types.BigToHex(addressHash)
+
+	addressHash, err := caigo.Curve.ComputeHashOnElements(address)
+	if err != nil {
+		return "", err
+	}
+
+	return types.BigToHex(addressHash), nil
 }
 
 func ParseUsdPerpMarket(market string) (string, error) {
@@ -148,6 +162,9 @@ func PopulateOrderSignature(req *CreateOrderReq, config SystemConfigRes, dexAcco
 	}
 
 	dexAccountBN := types.HexToBN(dexAccount)
+	if dexAccountBN == nil {
+		return fmt.Errorf("invalid private key")
+	}
 	messageHash, err := GnarkGetMessageHash(typedData, domEnc, dexAccountBN, orderPayload, sc)
 	if err != nil {
 		return fmt.Errorf("failed to compute message hash for account=%s: %w", dexAccount, err)

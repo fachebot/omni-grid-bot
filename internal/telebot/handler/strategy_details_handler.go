@@ -174,7 +174,11 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	text += "📊 账户\n"
 	exchangeAccount := lo.If(record.Exchange != "", record.Exchange).Else("未设置")
 	if record.Exchange != "" && record.Account != "" {
-		exchangeAccount += "#" + record.Account
+		if len(record.Account) < 10 {
+			exchangeAccount += "#" + record.Account
+		} else {
+			exchangeAccount += "#" + record.Account[:6] + "..." + record.Account[len(record.Account)-4:]
+		}
 	}
 	text += fmt.Sprintf("┣ 交易平台: *%s*\n", exchangeAccount)
 
@@ -215,9 +219,12 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 	text += fmt.Sprintf("┗ 单格投入: %s\n\n", lo.If(record.Symbol != "" && !record.InitialOrderSize.IsZero(), fmt.Sprintf("%s %s", record.InitialOrderSize, record.Symbol)).Else("未设置"))
 
 	// 查询最新价格
-	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
-	if err != nil {
-		logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
+	lastPrice := decimal.Zero
+	if record.Exchange != "" && record.Symbol != "" {
+		lastPrice, err = helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
+		if err != nil {
+			logger.Debugf("[StrategyDetailsText] 查询最新价格失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
+		}
 	}
 
 	// 持仓信息
