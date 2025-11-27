@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"time"
 
@@ -146,70 +147,39 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 		return err
 	}
 
-	// 查询成交记录
-	var startAt *time.Time
-	if syncProgress.Timestamp != 0 {
-		ts := time.UnixMilli(syncProgress.Timestamp + 1)
-		startAt = &ts
-	}
-
+	// 同步所有订单
 	cursor := ""
-	const limit = 100
-	userFills := make([]*paradex.Fill, 0)
-
+	const limit = 1000
+	userOrders := make([]*paradex.Order, 0)
 	for {
-		logger.Debugf("[ParadexOrderHelper] 查询用户成交记录开始, account: %s, cursor: %s, limit: %d", account, cursor, limit)
-		fillsRes, err := h.userClient.ListFills(ctx, startAt, cursor, limit)
+		logger.Debugf("[ParadexOrderHelper] 查询用户订单记录开始, account: %s, cursor: %s, limit: %d", account, cursor, limit)
+		userOrdersRes, err := h.userClient.GetUserOrders(ctx, cursor, limit)
 		if err != nil {
-			logger.Debugf("[ParadexOrderHelper] 查询用户成交记录失败, account: %s, cursor: %s, limit: %d, %v", account, cursor, limit, err)
+			logger.Debugf("[ParadexOrderHelper] 查询用户订单记录失败, account: %s, cursor: %s, limit: %d, %v", account, cursor, limit, err)
 			return err
 		}
-		logger.Debugf("[ParadexOrderHelper] 查询用户成交记录结束, account: %s, cursor: %s, limit: %d", account, cursor, limit)
+		logger.Debugf("[ParadexOrderHelper] 查询用户订单记录结束, account: %s, cursor: %s, limit: %d", account, cursor, limit)
 
-		cursor = fillsRes.Next
-		userFills = append(userFills, fillsRes.Results...)
+		cursor = userOrdersRes.Next
+		userOrders = append(userOrders, userOrdersRes.Results...)
 		if cursor == "" {
 			break
 		}
 	}
 
-	// 记录订单ID
-	orderIdSet := make(map[string]struct{})
-	for _, fill := range userFills {
-		orderIdSet[fill.OrderID] = struct{}{}
-	}
-
-	// 同步所有订单
-	userOrders := make([]*paradex.Order, 0)
-	if len(orderIdSet) > 0 {
-		for {
-			logger.Debugf("[ParadexOrderHelper] 查询用户订单记录开始, account: %s, cursor: %s, limit: %d", account, cursor, limit)
-			userOrdersRes, err := h.userClient.GetUserOrders(ctx, cursor, limit)
-			if err != nil {
-				logger.Debugf("[ParadexOrderHelper] 查询用户订单记录失败, account: %s, cursor: %s, limit: %d, %v", account, cursor, limit, err)
-				return err
-			}
-			logger.Debugf("[ParadexOrderHelper] 查询用户订单记录结束, account: %s, cursor: %s, limit: %d", account, cursor, limit)
-
-			for idx, ord := range userOrdersRes.Results {
-				if len(orderIdSet) == 0 {
-					userOrdersRes.Results = userOrdersRes.Results[:idx]
-					break
-				}
-
-				delete(orderIdSet, ord.ID)
-
-				if len(orderIdSet) == 0 {
-					userOrdersRes.Results = userOrdersRes.Results[:idx+1]
-					break
-				}
-			}
-
-			cursor = userOrdersRes.Next
-			userOrders = append(userOrders, userOrdersRes.Results...)
-			if cursor == "" || len(orderIdSet) == 0 {
-				break
-			}
+	// 本地排序订单
+	slices.SortFunc(userOrders, func(a, b *paradex.Order) int {
+		if a.LastUpdatedAt > b.LastUpdatedAt {
+			return -1
+		} else if a.LastUpdatedAt == b.LastUpdatedAt {
+			return 0
+		}
+		return 1
+	})
+	for idx, item := range userOrders {
+		if item.LastUpdatedAt <= syncProgress.Timestamp {
+			userOrders = userOrders[:idx]
+			break
 		}
 	}
 
@@ -259,8 +229,8 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 			}
 		}
 
-		if len(userFills) > 0 {
-			ts := userFills[0].CreatedAt
+		if len(userOrders) > 0 {
+			ts := userOrders[0].LastUpdatedAt
 			err = h.svcCtx.SyncProgressModel.UpdateTimestampByAccount(ctx, exchange.Paradex, account, ts)
 			if err != nil {
 				return err
