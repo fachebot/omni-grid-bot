@@ -7,12 +7,14 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/shopspring/decimal"
 )
 
 type AmbiguousAccount struct {
-	Signer *lighter.Signer
+	Signer     *lighter.Signer
+	ParaClient *paradex.UserClient
 }
 
 type ExchangeAdapter struct {
@@ -34,6 +36,12 @@ func NewExchangeAdapterFromStrategy(svcCtx *svc.ServiceContext, s *ent.Strategy)
 			return nil, err
 		}
 		account.Signer = signer
+	case exchange.Paradex:
+		userClient, err := GetParadexClient(svcCtx, s)
+		if err != nil {
+			return nil, err
+		}
+		account.ParaClient = userClient
 	default:
 		return nil, errors.New("exchange unsupported")
 	}

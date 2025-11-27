@@ -10,6 +10,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
@@ -144,6 +145,8 @@ func marketSymbol(record *ent.Strategy) string {
 	switch record.Exchange {
 	case exchange.Lighter:
 		return fmt.Sprintf("[%s](https://app.lighter.xyz/trade/%s)", record.Symbol, record.Symbol)
+	case exchange.Paradex:
+		return fmt.Sprintf("[%s](https://app.paradex.trade/trade/%s)", record.Symbol, paradex.FormatUsdPerpMarket(record.Symbol))
 	default:
 		return "未设置"
 	}

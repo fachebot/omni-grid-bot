@@ -2,14 +2,12 @@ package strategy
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
-	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
@@ -63,16 +61,9 @@ func getLowerLevel(sortedGrids []*ent.Grid, level int) *ent.Grid {
 
 func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *ent.Strategy) (*GridStrategyState, error) {
 	// 初始交易账户
-	account := helper.AmbiguousAccount{}
-	switch s.Exchange {
-	case exchange.Lighter:
-		signer, err := helper.GetLighterClient(svcCtx, s)
-		if err != nil {
-			return nil, err
-		}
-		account.Signer = signer
-	default:
-		return nil, errors.New("exchange unsupported")
+	adapter, err := helper.NewExchangeAdapterFromStrategy(svcCtx, s)
+	if err != nil {
+		return nil, err
 	}
 
 	// 查询网格列表
@@ -100,7 +91,7 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 		ctx:         ctx,
 		svcCtx:      svcCtx,
 		strategy:    s,
-		account:     account,
+		account:     adapter.Account,
 		sortedGrids: sortedGrids,
 		orders:      make(map[int64]*ent.Order),
 	}

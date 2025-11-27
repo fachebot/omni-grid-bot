@@ -126,6 +126,16 @@ func (engine *StrategyEngine) StopStrategy(id string) {
 			if err != nil {
 				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
 			}
+		case exchange.Paradex:
+			userClient, err := helper.GetParadexClient(engine.svcCtx, record)
+			if err != nil {
+				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
+			}
+
+			err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient)
+			if err != nil {
+				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
+			}
 		}
 	}
 }
@@ -168,6 +178,18 @@ func (engine *StrategyEngine) StartStrategy(s Strategy) (err error) {
 		err = engine.lighterSubscriber.SubscribeAccountOrders(signer)
 		if err != nil {
 			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
+		}
+		return err
+	case exchange.Paradex:
+		userClient, err := helper.GetParadexClient(engine.svcCtx, record)
+		if err != nil {
+			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
+			return err
+		}
+
+		err = engine.paradexSubscriber.SubscribeAccountOrders(userClient)
+		if err != nil {
+			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
 		}
 		return err
 	default:
