@@ -29,6 +29,8 @@ type ServiceContext struct {
 	MessageCache      *cache.MessageCache
 	LighterCache      *cache.LighterCache
 	ParadexCache      *cache.ParadexCache
+	RecentOrdersCache *cache.RecentOrdersCache
+
 	ParadexClient     *paradex.Client
 	LighterClient     *lighter.Client
 	LighterSubscriber *lighter.LighterSubscriber
@@ -100,14 +102,17 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 	logger.Infof("[TeleBot] BotID: %d, Username: %s", bot.Me.ID, bot.Me.Username)
 
 	svcCtx := &ServiceContext{
-		Config:            c,
-		Bot:               bot,
-		DbClient:          client,
-		TransportProxy:    transportProxy,
+		Config:         c,
+		Bot:            bot,
+		DbClient:       client,
+		TransportProxy: transportProxy,
+
 		MessageCache:      cache.NewMessageCache(),
-		ParadexClient:     paradexClient,
 		LighterCache:      cache.NewLighterCache(lighterClient),
 		ParadexCache:      cache.NewParadexCache(paradexClient),
+		RecentOrdersCache: cache.NewRecentOrdersCache(),
+
+		ParadexClient:     paradexClient,
 		LighterClient:     lighterClient,
 		LighterSubscriber: lighterSubscriber,
 

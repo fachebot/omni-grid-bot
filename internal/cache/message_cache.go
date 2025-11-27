@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/patrickmn/go-cache"
 	gocache "github.com/patrickmn/go-cache"
 	tele "gopkg.in/telebot.v4"
 )
@@ -38,5 +37,5 @@ func (router *MessageCache) GetRoute(chatId int64, messageId int) (RouteInfo, bo
 
 func (router *MessageCache) SetRoute(chatId int64, messageId int, route RouteInfo) {
 	key := fmt.Sprintf("%d:%d", chatId, messageId)
-	router.cache.Set(key, route, cache.DefaultExpiration)
+	router.cache.Set(key, route, gocache.DefaultExpiration)
 }

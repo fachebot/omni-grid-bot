@@ -103,9 +103,8 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 }
 
 func (state *GridStrategyState) Rebalance() error {
-	activeOrders := make(map[int64]struct{})
 	for idx := range state.sortedGrids {
-		err := state.checkAndRebalanceLevel(idx, activeOrders)
+		err := state.checkAndRebalanceLevel(idx)
 		if err != nil {
 			return err
 		}
@@ -179,22 +178,17 @@ func (state *GridStrategyState) sendGridMatchedNotification(completedPair *ent.M
 	}
 }
 
-func (state *GridStrategyState) isActiveOrder(clientOrderId *int64, activeOrders map[int64]struct{}) bool {
+func (state *GridStrategyState) isActiveOrder(clientOrderId *int64) bool {
 	if clientOrderId == nil {
 		return false
 	}
 
-	_, ok := activeOrders[*clientOrderId]
-	if ok {
-		return true
-	}
-
 	ord, ok := state.orders[*clientOrderId]
-	if !ok {
-		return false
+	if ok {
+		return ord.Status != order.StatusFilled && ord.Status != order.StatusCanceled
 	}
 
-	return ord.Status != order.StatusFilled && ord.Status != order.StatusCanceled
+	return state.svcCtx.RecentOrdersCache.Has(state.strategy.Exchange, state.strategy.Account, *clientOrderId)
 }
 
 func (state *GridStrategyState) handleMatched(completedPair *ent.MatchedTrade) {
@@ -212,7 +206,7 @@ func (state *GridStrategyState) handleMatched(completedPair *ent.MatchedTrade) {
 
 }
 
-func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order, activeOrders map[int64]struct{}) error {
+func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order) error {
 	logger.Infof("[%s %s] #%d 买单成交, ID: %d, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.ClientOrderId, buyOrder.Price, buyOrder.FilledBaseAmount)
 
@@ -230,7 +224,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 
 	upperLevel := getUpperLevel(state.sortedGrids, level.Level)
 	if upperLevel != nil {
-		if upperLevel.SellClientOrderId == nil && !state.isActiveOrder(upperLevel.BuyClientOrderId, activeOrders) {
+		if upperLevel.SellClientOrderId == nil && !state.isActiveOrder(upperLevel.BuyClientOrderId) {
 			quantity := buyOrder.FilledBaseAmount
 			if state.strategy.Mode == strategy.ModeShort {
 				quantity = upperLevel.Quantity
@@ -276,7 +270,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 			} else {
 				level.BuyClientOrderId = nil
 				upperLevel.SellClientOrderId = &sellOrderId
-				activeOrders[sellOrderId] = struct{}{}
+				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, sellOrderId)
 			}
 		} else {
 			logger.Infof("[%s %s] #%d 取消下单卖单, 价格: %s, 数量: %s, sellClientOrderId: %d, buyClientOrderId: %d",
@@ -287,7 +281,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 	return nil
 }
 
-func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.Order, activeOrders map[int64]struct{}) error {
+func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.Order) error {
 	logger.Infof("[%s %s] #%d 卖单成交, ID: %d, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.ClientOrderId, sellOrder.Price, sellOrder.FilledBaseAmount)
 
@@ -305,7 +299,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 
 	lowerLevel := getLowerLevel(state.sortedGrids, level.Level)
 	if lowerLevel != nil {
-		if lowerLevel.BuyClientOrderId == nil && !state.isActiveOrder(lowerLevel.SellClientOrderId, activeOrders) {
+		if lowerLevel.BuyClientOrderId == nil && !state.isActiveOrder(lowerLevel.SellClientOrderId) {
 			quantity := sellOrder.FilledBaseAmount
 			if state.strategy.Mode == strategy.ModeLong {
 				quantity = lowerLevel.Quantity
@@ -351,7 +345,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 			} else {
 				level.SellClientOrderId = nil
 				lowerLevel.BuyClientOrderId = &buyOrderId
-				activeOrders[buyOrderId] = struct{}{}
+				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, buyOrderId)
 			}
 		} else {
 			logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s, buyClientOrderId: %d, sellClientOrderId: %d",
@@ -362,7 +356,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 	return nil
 }
 
-func (state *GridStrategyState) checkAndRebalanceLevel(idx int, activeOrders map[int64]struct{}) error {
+func (state *GridStrategyState) checkAndRebalanceLevel(idx int) error {
 	// 查询关联订单
 	var buyOrder *ent.Order
 	var sellOrder *ent.Order
@@ -384,14 +378,14 @@ func (state *GridStrategyState) checkAndRebalanceLevel(idx int, activeOrders map
 
 	// 处理买入订单
 	if buyOrder != nil && buyOrder.Status == order.StatusFilled {
-		if err := state.handleBuyOrder(level, buyOrder, activeOrders); err != nil {
+		if err := state.handleBuyOrder(level, buyOrder); err != nil {
 			return err
 		}
 	}
 
 	// 处理卖出订单
 	if sellOrder != nil && sellOrder.Status == order.StatusFilled {
-		if err := state.handleSellOrder(level, sellOrder, activeOrders); err != nil {
+		if err := state.handleSellOrder(level, sellOrder); err != nil {
 			return err
 		}
 	}
