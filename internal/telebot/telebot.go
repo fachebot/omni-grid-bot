@@ -95,7 +95,7 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 	if chat.Type == tele.ChatPrivate {
 		// 处理文本消息
 		if update.Message != nil {
-			if strings.HasPrefix(update.Message.Text, "/start ") {
+			if strings.HasPrefix(update.Message.Text, "/start") {
 				if update.Message.Payload == "" {
 					err := b.handleHome(update)
 					if err != nil {

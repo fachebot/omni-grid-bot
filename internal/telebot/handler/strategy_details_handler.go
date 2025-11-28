@@ -295,6 +295,8 @@ func DisplayStrategyDetails(ctx context.Context, svcCtx *svc.ServiceContext, use
 				{Text: "🗑 删除策略", Data: DeleteStrategyHandler{}.FormatPath(record.GUID)},
 			},
 			{
+
+				{Text: "🚫 关闭页面", Data: DeleteMessageHandler{}.FormatPath()},
 				{Text: "◀️ 返回列表", Data: StrategyListHandler{}.FormatPath(1)},
 			},
 		},

@@ -6,6 +6,7 @@ import (
 )
 
 func InitRoutes(svcCtx *svc.ServiceContext, router *pathrouter.Router) {
+	NewDeleteMessageHandler(svcCtx).AddRouter(router)
 	NewClosePositionHandler(svcCtx).AddRouter(router)
 	NewMatchedTradesHandler(svcCtx).AddRouter(router)
 	NewCreateStrategyHandler(svcCtx).AddRouter(router)
