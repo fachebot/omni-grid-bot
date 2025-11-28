@@ -44,20 +44,7 @@ func (h *StrategyDetailsHandler) handle(ctx context.Context, vars map[string]str
 		return nil
 	}
 
-	record, err := h.svcCtx.StrategyModel.FindOneByGUID(ctx, guid)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)
-		}
-		logger.Errorf("[StrategyDetailsHandler] 查询策略信息失败, id: %s, %v", guid, err)
-		return nil
-	}
-
-	if record.Owner != userId {
-		return DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)
-	}
-
-	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
+	return DisplayStrategyDetailsWithStrategyGUID(ctx, h.svcCtx, userId, update, guid)
 }
 
 func formatGridLevelDisplay(lvl *ent.Grid) string {
@@ -318,4 +305,21 @@ func DisplayStrategyDetails(ctx context.Context, svcCtx *svc.ServiceContext, use
 		logger.Debugf("[DisplayStrategyDetails] 生成UI失败, %v", err)
 	}
 	return nil
+}
+
+func DisplayStrategyDetailsWithStrategyGUID(ctx context.Context, svcCtx *svc.ServiceContext, userId int64, update tele.Update, guid string) error {
+	record, err := svcCtx.StrategyModel.FindOneByGUID(ctx, guid)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return DisplayStrategyList(ctx, svcCtx, userId, update, 1)
+		}
+		logger.Errorf("[StrategyDetailsHandler] 查询策略信息失败, id: %s, %v", guid, err)
+		return nil
+	}
+
+	if record.Owner != userId {
+		return DisplayStrategyList(ctx, svcCtx, userId, update, 1)
+	}
+
+	return DisplayStrategyDetails(ctx, svcCtx, userId, update, record)
 }

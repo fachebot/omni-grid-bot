@@ -2,6 +2,7 @@ package telebot
 
 import (
 	"context"
+	"strings"
 
 	"github.com/fachebot/omni-grid-bot/internal/engine"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
@@ -85,21 +86,28 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 		return nil
 	}
 
+	ctx := context.WithValue(b.ctx, handler.ContextKeyEngine, b.strategyEngine)
+
 	logger.Debugf("[TeleBot] 收到新消息, chat: %d, username: <%s>, title: %s, type: %s",
 		chat.ID, chat.Username, chat.Title, chat.Type)
-
-	ctx := context.WithValue(b.ctx, "engine", b.strategyEngine)
 
 	// 私聊消息
 	if chat.Type == tele.ChatPrivate {
 		// 处理文本消息
 		if update.Message != nil {
-			if update.Message.Text == "/start" {
-				err := b.handleHome(update)
-				if err != nil {
-					logger.Debugf("[TeleBot] 处理主页失败, %v", err)
+			if strings.HasPrefix(update.Message.Text, "/start ") {
+				if update.Message.Payload == "" {
+					err := b.handleHome(update)
+					if err != nil {
+						logger.Debugf("[TeleBot] 处理主页失败, %v", err)
+					}
+					return nil
 				}
-				return nil
+
+				util.DeleteMessages(b.svcCtx.Bot, []*tele.Message{update.Message}, 0)
+
+				return handler.DisplayStrategyDetailsWithStrategyGUID(
+					ctx, b.svcCtx, chat.ID, update, update.Message.Payload)
 			}
 
 			if update.Message.ReplyTo != nil {

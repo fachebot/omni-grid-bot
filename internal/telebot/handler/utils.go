@@ -19,6 +19,12 @@ const (
 	DefaultSlippageBps = 50
 )
 
+type ContextKey string
+
+const (
+	ContextKeyEngine ContextKey = "engine"
+)
+
 func StrategyName(record *ent.Strategy) string {
 	return record.GUID[len(record.GUID)-4:]
 }
@@ -39,7 +45,7 @@ func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.
 }
 
 func GetStrategyEngine(ctx context.Context) (*engine.StrategyEngine, bool) {
-	v := ctx.Value("engine")
+	v := ctx.Value(ContextKeyEngine)
 	if v == nil {
 		return nil, false
 	}

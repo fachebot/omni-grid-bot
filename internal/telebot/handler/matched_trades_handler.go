@@ -104,11 +104,11 @@ func (h *MatchedTradesHandler) handle(ctx context.Context, vars map[string]strin
 
 		switch record.Mode {
 		case strategy.ModeLong:
-			date := util.FormaDate(time.Unix(*trade.SellOrderTimestamp, 0))
+			date := util.FormaDate(time.UnixMilli(*trade.SellOrderTimestamp))
 			s := fmt.Sprintf("*%s* 🟢 开多 %s %s, 价格 %s, 平多价格 %s, 利润 %v USD", date, trade.BuyBaseAmount, trade.Symbol, buyPrice, sellPrice, *trade.Profit)
 			items = append(items, s)
 		case strategy.ModeShort:
-			date := util.FormaDate(time.Unix(*trade.BuyOrderTimestamp, 0))
+			date := util.FormaDate(time.UnixMilli(*trade.BuyOrderTimestamp))
 			s := fmt.Sprintf("*%s* 🔴 开空 %s %s, 价格 %s, 平空价格 %s, 利润 %v USD", date, trade.SellBaseAmount, trade.Symbol, sellPrice, buyPrice, *trade.Profit)
 			items = append(items, s)
 		}
