@@ -352,7 +352,7 @@ exit:
 				FilledBaseAmount:  item.FilledBaseAmount,
 				FilledQuoteAmount: item.FilledQuoteAmount,
 				Status:            lighter.ConvertOrderStatus(item.Status),
-				Timestamp:         item.Timestamp,
+				Timestamp:         item.Timestamp * 1000, // 转化为毫秒数
 			}
 			err = h.svcCtx.OrderModel.Upsert(ctx, args)
 			if err != nil {

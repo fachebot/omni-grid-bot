@@ -288,7 +288,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 							BaseAmount:        ord.InitialBaseAmount,
 							FilledBaseAmount:  ord.FilledBaseAmount,
 							FilledQuoteAmount: ord.FilledQuoteAmount,
-							Timestamp:         ord.Timestamp,
+							Timestamp:         ord.Timestamp * 1000, // 转化为毫秒数
 							Status:            ConvertOrderStatus(ord.Status),
 						})
 					}
