@@ -111,7 +111,7 @@ func GetParadexAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, reco
 	}
 
 	for _, item := range positions.Results {
-		if item.Size.LessThanOrEqual(decimal.Zero) {
+		if item.Size.IsZero() {
 			continue
 		}
 

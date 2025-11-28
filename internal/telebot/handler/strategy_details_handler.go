@@ -188,17 +188,9 @@ func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record
 		account, err := helper.GetAccountInfo(ctx, svcCtx, record)
 		if err == nil {
 			availableBalance = account.AvailableBalance
+			positionSide := lo.If(record.Mode == strategy.ModeLong, exchange.PositionSideLong).Else(exchange.PositionSideShort)
 			position, _ = lo.Find(account.Positions, func(item *exchange.Position) bool {
-				if record.Symbol != item.Symbol {
-					return false
-				}
-				if record.Mode != strategy.ModeLong && item.Side == exchange.PositionSideLong {
-					return false
-				}
-				if record.Mode == strategy.ModeShort && item.Side == exchange.PositionSideShort {
-					return false
-				}
-				return true
+				return record.Symbol == item.Symbol && item.Side == positionSide
 			})
 		}
 	}
