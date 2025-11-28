@@ -7,6 +7,7 @@ import (
 
 	"github.com/fachebot/omni-grid-bot/internal/cache"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
@@ -62,6 +63,14 @@ func (h *ExchangeSettingsLighterHandler) handle(ctx context.Context, vars map[st
 	}
 
 	if record.Owner != userId {
+		return nil
+	}
+
+	if record.Status != strategy.StatusInactive {
+		chat, ok := util.GetChat(update)
+		if ok {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "❌ 策略运行中不允许修改此参数", 3)
+		}
 		return nil
 	}
 
