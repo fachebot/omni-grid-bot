@@ -153,7 +153,7 @@ func (state *GridStrategyState) sendOrderFilleddNotification(ord *ent.Order) {
 		return
 	}
 
-	link := fmt.Sprintf("[%s](https://t.me/%s?start=%s)\n\n",
+	link := fmt.Sprintf("[%s](https://t.me/%s?start=%s)",
 		strategyName(state.strategy), state.svcCtx.Bot.Me.Username, state.strategy.GUID)
 
 	text := fmt.Sprintf("✅ %s %s 订单成交 %s\n\n",
@@ -190,7 +190,7 @@ func (state *GridStrategyState) sendGridMatchedNotification(completedPair *ent.M
 		return
 	}
 
-	link := fmt.Sprintf("[%s](https://t.me/%s?start=%s)\n\n",
+	link := fmt.Sprintf("[%s](https://t.me/%s?start=%s)",
 		strategyName(state.strategy), state.svcCtx.Bot.Me.Username, state.strategy.GUID)
 
 	text := fmt.Sprintf("👫 %s %s 交易配对 %s\n\n",
