@@ -87,7 +87,7 @@ func (subscriber *ParadexSubscriber) SubscribeAccountOrders(userClient *UserClie
 
 	_, err, _ := subscriber.sf.Do(account, func() (any, error) {
 		subscriber.mutex.Lock()
-		if _, exists := subscriber.userConns[account]; exists {
+		if _, ok := subscriber.userConns[account]; ok {
 			subscriber.mutex.Unlock()
 			return nil, nil
 		}
@@ -114,20 +114,24 @@ func (subscriber *ParadexSubscriber) SubscribeAccountOrders(userClient *UserClie
 }
 
 func (subscriber *ParadexSubscriber) UnsubscribeAccountOrders(userClient *UserClient) error {
-	subscriber.mutex.Lock()
+	account := userClient.DexAccount()
 
-	ws, ok := subscriber.userConns[userClient.DexAccount()]
-	if !ok {
+	_, err, _ := subscriber.sf.Do(account, func() (any, error) {
+		subscriber.mutex.Lock()
+		ws, ok := subscriber.userConns[userClient.DexAccount()]
+		if !ok {
+			subscriber.mutex.Unlock()
+			return nil, nil
+		}
+		delete(subscriber.userConns, userClient.DexAccount())
 		subscriber.mutex.Unlock()
-		return nil
-	}
 
-	ws.Stop()
-	delete(subscriber.userConns, userClient.DexAccount())
+		ws.Stop()
 
-	subscriber.mutex.Unlock()
+		return nil, nil
+	})
 
-	return nil
+	return err
 }
 
 func (subscriber *ParadexSubscriber) run() {

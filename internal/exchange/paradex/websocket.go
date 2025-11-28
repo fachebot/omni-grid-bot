@@ -71,7 +71,6 @@ func (ws *ParadexWS) Stop() {
 	logger.Infof("[ParadexWS-%s] 准备停止服务", ws.userClient.DexAccount())
 
 	ws.cancel()
-
 	if ws.conn != nil {
 		ws.conn.Close()
 	}
@@ -171,10 +170,6 @@ func (ws *ParadexWS) readMessages() {
 	defer ws.conn.Close()
 	account := ws.userClient.DexAccount()
 
-	ctx, cancel := context.WithCancel(ws.ctx)
-	defer cancel()
-	go ws.heartbeat(ctx)
-
 	jwtToken, err := ws.userClient.EnsureJwtToken(ws.ctx)
 	if err != nil {
 		logger.Errorf("[ParadexWS-%s] 用户鉴权失败, %v", account, err)
@@ -182,6 +177,7 @@ func (ws *ParadexWS) readMessages() {
 		return
 	}
 
+	// 用户鉴权
 	message := fmt.Sprintf(`{"jsonrpc":"2.0","method":"auth","params":{"bearer":"%s"},"id":1}`, jwtToken)
 	err = ws.conn.WriteMessage(websocket.TextMessage, []byte(message))
 	if err != nil {
@@ -190,6 +186,7 @@ func (ws *ParadexWS) readMessages() {
 		return
 	}
 
+	// 订阅订单
 	message = `{"jsonrpc":"2.0","method":"subscribe","params":{"channel":"orders.ALL"},"id":1}`
 	err = ws.conn.WriteMessage(websocket.TextMessage, []byte(message))
 	if err != nil {
@@ -198,7 +195,21 @@ func (ws *ParadexWS) readMessages() {
 		return
 	}
 
-	isFirstOrder := true
+	// 定时心跳
+	ctx, cancel := context.WithCancel(ws.ctx)
+	defer cancel()
+	go ws.heartbeat(ctx)
+
+	// 手动触发
+	userOrders := exchange.UserOrders{
+		Exchange:   exchange.Paradex,
+		Account:    account,
+		Orders:     []*exchange.Order{},
+		IsSnapshot: true,
+	}
+	ws.userOrdersChan <- userOrders
+
+	// 消息循环
 	for {
 		_, data, err := ws.conn.ReadMessage()
 		if err != nil {
@@ -277,10 +288,8 @@ func (ws *ParadexWS) readMessages() {
 							Status:            ConvertOrderStatus(&ord),
 						},
 					},
-					IsSnapshot: isFirstOrder,
 				}
 
-				isFirstOrder = false
 				ws.userOrdersChan <- userOrders
 			}
 		}

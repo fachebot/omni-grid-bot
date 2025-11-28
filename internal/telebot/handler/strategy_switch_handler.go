@@ -257,6 +257,9 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 		return nil
 	}
 
+	// 停止网格策略
+	strategyEngine.StopStrategy(record.GUID)
+
 	// 取消用户订单
 	name := StrategyName(record)
 	err := h.cancelAllOrders(ctx, record)
@@ -266,9 +269,6 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
 	}
-
-	// 停止网格策略
-	strategyEngine.StopStrategy(record.GUID)
 
 	// 更新策略状态
 	err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {
@@ -322,6 +322,9 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
 	}
 
+	// 停止网格策略
+	strategyEngine.StopStrategy(record.GUID)
+
 	// 关闭用户仓位
 	err = ClosePosition(ctx, h.svcCtx, record)
 	if err != nil {
@@ -330,9 +333,6 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 		logger.Errorf("[StrategySwitchHandler] 关闭网格仓位失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
 	}
-
-	// 停止网格策略
-	strategyEngine.StopStrategy(record.GUID)
 
 	// 更新策略状态
 	err = util.Tx(ctx, h.svcCtx.DbClient, func(tx *ent.Tx) error {

@@ -294,8 +294,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, sellOrderId)
 			}
 		} else {
-			logger.Infof("[%s %s] #%d 取消下单卖单, 价格: %s, 数量: %s, sellClientOrderId: %d, buyClientOrderId: %d",
-				state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, upperLevel.Quantity, *upperLevel.SellClientOrderId, *upperLevel.BuyClientOrderId)
+			logger.Infof("[%s %s] #%d 取消下单卖单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, upperLevel.Quantity)
 		}
 	}
 
@@ -369,8 +368,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, buyOrderId)
 			}
 		} else {
-			logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s, buyClientOrderId: %d, sellClientOrderId: %d",
-				state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, lowerLevel.Quantity, *lowerLevel.BuyClientOrderId, *lowerLevel.SellClientOrderId)
+			logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, lowerLevel.Quantity)
 		}
 	}
 

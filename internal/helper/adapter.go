@@ -55,12 +55,20 @@ func (adapter *ExchangeAdapter) UpdateLeverage(ctx context.Context, symbol strin
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).UpdateLeverage(ctx, symbol, leverage, marginMode)
 	}
 
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).UpdateLeverage(ctx, symbol, leverage, marginMode)
+	}
+
 	return errors.New("route not found")
 }
 
 func (adapter *ExchangeAdapter) CancalAllOrders(ctx context.Context, symbol string) error {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CancalAllOrders(ctx, symbol)
+	}
+
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CancalAllOrders(ctx, symbol)
 	}
 
 	return errors.New("route not found")
@@ -71,12 +79,20 @@ func (adapter *ExchangeAdapter) CreateOrderBatch(ctx context.Context, limitOrder
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateOrderBatch(ctx, limitOrders, marketOrders)
 	}
 
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateOrderBatch(ctx, limitOrders, marketOrders)
+	}
+
 	return nil, nil, errors.New("route not found")
 }
 
 func (adapter *ExchangeAdapter) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (int64, error) {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
+	}
+
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
 	}
 
 	return 0, errors.New("route not found")
@@ -87,6 +103,10 @@ func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol st
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
 	}
 
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
+	}
+
 	return 0, errors.New("route not found")
 }
 
@@ -95,12 +115,20 @@ func (adapter *ExchangeAdapter) SyncUserOrders(ctx context.Context) error {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).SyncInactiveOrders(ctx)
 	}
 
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).SyncUserOrders(ctx)
+	}
+
 	return errors.New("route not found")
 }
 
 func (adapter *ExchangeAdapter) ClosePosition(ctx context.Context, symbol string, side Side, slippageBps int) error {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).ClosePosition(ctx, symbol, side, slippageBps)
+	}
+
+	if adapter.Account.ParaClient != nil {
+		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).ClosePosition(ctx, symbol, side, slippageBps)
 	}
 
 	return errors.New("route not found")

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	MaxGridNumLimit = 150
+	MaxGridNumLimit = 50
 )
 
 func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy, prices []decimal.Decimal) error {
@@ -57,49 +57,10 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 		gridLevels = append(gridLevels, item)
 	}
 
-	// 创建网格仓位
-	indexMap := make(map[int]int, 0)
-	orderParamsList := make([]helper.CreateLimitOrderParams, 0)
-	switch record.Mode {
-	case strategy.ModeLong:
-		for idx := 0; idx < len(gridLevels)-1; idx++ {
-			indexMap[len(orderParamsList)] = idx
-			orderParamsList = append(orderParamsList, helper.CreateLimitOrderParams{
-				Symbol:     record.Symbol,
-				IsAsk:      false,
-				ReduceOnly: false,
-				Price:      gridLevels[idx].Price,
-				Size:       gridLevels[idx].Quantity,
-			})
-
-		}
-	case strategy.ModeShort:
-		for idx := len(gridLevels) - 1; idx > 0; idx-- {
-			indexMap[len(orderParamsList)] = idx
-			orderParamsList = append(orderParamsList, helper.CreateLimitOrderParams{
-				Symbol:     record.Symbol,
-				IsAsk:      true,
-				ReduceOnly: false,
-				Price:      gridLevels[idx].Price,
-				Size:       gridLevels[idx].Quantity,
-			})
-		}
-	default:
-		return errors.New("invalid grid mode")
-	}
-	orderIds, _, err := adapter.CreateOrderBatch(ctx, orderParamsList, nil)
+	// 初始网格仓位
+	err = InitGridPosition(ctx, svcCtx, adapter, record, gridLevels)
 	if err != nil {
 		return err
-	}
-
-	// 更新订单ID
-	for idx := range orderIds {
-		switch record.Mode {
-		case strategy.ModeLong:
-			gridLevels[indexMap[idx]].BuyClientOrderId = &orderIds[idx]
-		case strategy.ModeShort:
-			gridLevels[indexMap[idx]].SellClientOrderId = &orderIds[idx]
-		}
 	}
 
 	// 更新策略状态
@@ -121,6 +82,103 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusActive)
 	})
+}
+
+func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *helper.ExchangeAdapter, record *ent.Strategy, gridLevels []ent.Grid) error {
+	// 获取最新价格
+	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
+	if err != nil {
+		return err
+	}
+
+	slippageBps := 50
+	if record.SlippageBps != nil {
+		slippageBps = *record.SlippageBps
+	}
+
+	// 创建网格仓位
+	limitOrderIndexMap := make(map[int]int)
+	marketOrderIndexMap := make(map[int]int)
+	limitOrders := make([]helper.CreateLimitOrderParams, 0)
+	marketOrders := make([]helper.CreateMarketOrderParams, 0)
+	longMarketPrice := lastPrice.Add(
+		lastPrice.Mul(decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000))))
+	shortMarketPrice := lastPrice.Sub(
+		lastPrice.Mul(decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000))))
+
+	switch record.Mode {
+	case strategy.ModeLong:
+		for idx := 0; idx < len(gridLevels)-1; idx++ {
+			if gridLevels[idx].Price.LessThan(lastPrice) {
+				limitOrderIndexMap[len(limitOrders)] = idx
+				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
+					Symbol:     record.Symbol,
+					IsAsk:      false,
+					ReduceOnly: false,
+					Price:      gridLevels[idx].Price,
+					Size:       gridLevels[idx].Quantity,
+				})
+			} else {
+				marketOrderIndexMap[len(marketOrders)] = idx
+				marketOrders = append(marketOrders, helper.CreateMarketOrderParams{
+					Symbol:                   record.Symbol,
+					IsAsk:                    false,
+					ReduceOnly:               false,
+					AcceptableExecutionPrice: longMarketPrice,
+					Size:                     gridLevels[idx].Quantity,
+				})
+			}
+		}
+	case strategy.ModeShort:
+		for idx := len(gridLevels) - 1; idx > 0; idx-- {
+			if gridLevels[idx].Price.GreaterThan(lastPrice) {
+				limitOrderIndexMap[len(limitOrders)] = idx
+				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
+					Symbol:     record.Symbol,
+					IsAsk:      true,
+					ReduceOnly: false,
+					Price:      gridLevels[idx].Price,
+					Size:       gridLevels[idx].Quantity,
+				})
+			} else {
+				marketOrderIndexMap[len(marketOrders)] = idx
+				marketOrders = append(marketOrders, helper.CreateMarketOrderParams{
+					Symbol:                   record.Symbol,
+					IsAsk:                    true,
+					ReduceOnly:               false,
+					AcceptableExecutionPrice: shortMarketPrice,
+					Size:                     gridLevels[idx].Quantity,
+				})
+			}
+
+		}
+	default:
+		return errors.New("invalid grid mode")
+	}
+	limitOrderIds, marketOrderIds, err := adapter.CreateOrderBatch(ctx, limitOrders, marketOrders)
+	if err != nil {
+		return err
+	}
+
+	// 更新订单CLientID
+	for idx := range limitOrderIds {
+		switch record.Mode {
+		case strategy.ModeLong:
+			gridLevels[limitOrderIndexMap[idx]].BuyClientOrderId = &limitOrderIds[idx]
+		case strategy.ModeShort:
+			gridLevels[limitOrderIndexMap[idx]].SellClientOrderId = &limitOrderIds[idx]
+		}
+	}
+	for idx := range marketOrderIds {
+		switch record.Mode {
+		case strategy.ModeLong:
+			gridLevels[marketOrderIndexMap[idx]].BuyClientOrderId = &marketOrderIds[idx]
+		case strategy.ModeShort:
+			gridLevels[marketOrderIndexMap[idx]].SellClientOrderId = &marketOrderIds[idx]
+		}
+	}
+
+	return nil
 }
 
 func GenerateGridPrices(record *ent.Strategy, supportedPriceDecimals uint8) (prices []decimal.Decimal, err error) {
