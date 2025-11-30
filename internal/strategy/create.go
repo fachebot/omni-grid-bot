@@ -109,7 +109,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 	switch record.Mode {
 	case strategy.ModeLong:
 		for idx := 0; idx < len(gridLevels)-1; idx++ {
-			if gridLevels[idx].Price.LessThan(lastPrice) {
+			if record.Exchange == exchange.Lighter || gridLevels[idx].Price.LessThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
@@ -131,7 +131,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 		}
 	case strategy.ModeShort:
 		for idx := len(gridLevels) - 1; idx > 0; idx-- {
-			if gridLevels[idx].Price.GreaterThan(lastPrice) {
+			if record.Exchange == exchange.Lighter || gridLevels[idx].Price.GreaterThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
