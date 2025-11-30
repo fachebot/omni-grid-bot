@@ -44,6 +44,15 @@ func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.
 	return adapter.ClosePosition(ctx, record.Symbol, side, slippageBps)
 }
 
+func CancelAllOrders(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
+	adapter, err := helper.NewExchangeAdapterFromStrategy(svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	return adapter.CancalAllOrders(ctx, record.Symbol)
+}
+
 func GetStrategyEngine(ctx context.Context) (*engine.StrategyEngine, bool) {
 	v := ctx.Value(ContextKeyEngine)
 	if v == nil {

@@ -112,6 +112,7 @@ func (state *GridStrategyState) Rebalance() error {
 			if ok && ord.Status == order.StatusCanceled {
 				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
 					state.strategy.GUID, state.strategy.Symbol, *lvl.BuyClientOrderId)
+				return ErrOrderCanceled
 			}
 		}
 
@@ -120,6 +121,7 @@ func (state *GridStrategyState) Rebalance() error {
 			if ok && ord.Status == order.StatusCanceled {
 				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
 					state.strategy.GUID, state.strategy.Symbol, *lvl.SellClientOrderId)
+				return ErrOrderCanceled
 			}
 		}
 	}

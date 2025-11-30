@@ -231,15 +231,6 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
 
-func (h *StrategySwitchHandler) cancelAllOrders(ctx context.Context, record *ent.Strategy) error {
-	adapter, err := helper.NewExchangeAdapterFromStrategy(h.svcCtx, record)
-	if err != nil {
-		return err
-	}
-
-	return adapter.CancalAllOrders(ctx, record.Symbol)
-}
-
 func (h *StrategySwitchHandler) handleStopStrategy(
 	ctx context.Context, userId int64, update tele.Update, record *ent.Strategy, strategyEngine *engine.StrategyEngine) error {
 
@@ -262,7 +253,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 
 	// 取消用户订单
 	name := StrategyName(record)
-	err := h.cancelAllOrders(ctx, record)
+	err := CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
 		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
 		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
@@ -287,6 +278,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	if err != nil {
 		text := "❌ 关闭策略失败，请稍后再试"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		logger.Errorf("[StrategySwitchHandler] 更新策略状态失败, guid: %s, %v", record.GUID, err)
 		return nil
 	}
 	record.Status = strategy.StatusInactive
@@ -314,7 +306,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 
 	// 取消用户订单
 	name := StrategyName(record)
-	err := h.cancelAllOrders(ctx, record)
+	err := CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
 		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
 		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
@@ -351,6 +343,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	if err != nil {
 		text := "❌ 关闭策略失败，请稍后再试"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		logger.Errorf("[StrategySwitchHandler] 更新策略状态失败, guid: %s, %v", record.GUID, err)
 		return nil
 	}
 	record.Status = strategy.StatusInactive

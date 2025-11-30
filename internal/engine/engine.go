@@ -12,10 +12,13 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
+	gridstrategy "github.com/fachebot/omni-grid-bot/internal/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/fachebot/omni-grid-bot/internal/util"
 	"github.com/samber/lo"
 )
+
+type OrderCancelled func(ctx context.Context, svcCtx *svc.ServiceContext, engine *StrategyEngine, s *ent.Strategy)
 
 type Strategy interface {
 	Get() *ent.Strategy
@@ -29,6 +32,7 @@ type StrategyEngine struct {
 	stopChan chan struct{}
 
 	svcCtx            *svc.ServiceContext
+	onOrderCancelled  OrderCancelled
 	lighterSubscriber *lighter.LighterSubscriber
 	paradexSubscriber *paradex.ParadexSubscriber
 
@@ -41,12 +45,14 @@ func NewStrategyEngine(
 	svcCtx *svc.ServiceContext,
 	lighterSubscriber *lighter.LighterSubscriber,
 	paradexSubscriber *paradex.ParadexSubscriber,
+	onOrderCancelled OrderCancelled,
 ) *StrategyEngine {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &StrategyEngine{
 		ctx:               ctx,
 		cancel:            cancel,
 		svcCtx:            svcCtx,
+		onOrderCancelled:  onOrderCancelled,
 		lighterSubscriber: lighterSubscriber,
 		paradexSubscriber: paradexSubscriber,
 		strategyMap:       make(map[string]Strategy),
@@ -427,9 +433,14 @@ func (engine *StrategyEngine) handleUserOrders(userOrders exchange.UserOrders, n
 
 		logger.Debugf("[StrategyEngine] 执行用户策略开始, id: %s, account: %s, symbol: %s", s.GUID, s.Account, s.Symbol)
 		if err = item.OnUpdate(engine.ctx); err != nil {
+			if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
+				engine.onOrderCancelled(engine.ctx, engine.svcCtx, engine, s)
+			}
 			logger.Errorf("[StrategyEngine] 执行用户策略失败, id: %s, account: %s, symbol: %s, %v", s.GUID, s.Account, s.Symbol, err)
+
+		} else {
+			logger.Debugf("[StrategyEngine] 执行用户策略结束, id: %s, account: %s, symbol: %s", s.GUID, s.Account, s.Symbol)
 		}
-		logger.Debugf("[StrategyEngine] 执行用户策略结束, id: %s, account: %s, symbol: %s", s.GUID, s.Account, s.Symbol)
 	}
 
 	return nil
