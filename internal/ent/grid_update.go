@@ -160,6 +160,33 @@ func (_u *GridUpdate) ClearBuyClientOrderId() *GridUpdate {
 	return _u
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (_u *GridUpdate) SetBuyClientOrderTime(v int64) *GridUpdate {
+	_u.mutation.ResetBuyClientOrderTime()
+	_u.mutation.SetBuyClientOrderTime(v)
+	return _u
+}
+
+// SetNillableBuyClientOrderTime sets the "buyClientOrderTime" field if the given value is not nil.
+func (_u *GridUpdate) SetNillableBuyClientOrderTime(v *int64) *GridUpdate {
+	if v != nil {
+		_u.SetBuyClientOrderTime(*v)
+	}
+	return _u
+}
+
+// AddBuyClientOrderTime adds value to the "buyClientOrderTime" field.
+func (_u *GridUpdate) AddBuyClientOrderTime(v int64) *GridUpdate {
+	_u.mutation.AddBuyClientOrderTime(v)
+	return _u
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (_u *GridUpdate) ClearBuyClientOrderTime() *GridUpdate {
+	_u.mutation.ClearBuyClientOrderTime()
+	return _u
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (_u *GridUpdate) SetSellClientOrderId(v string) *GridUpdate {
 	_u.mutation.SetSellClientOrderId(v)
@@ -177,6 +204,33 @@ func (_u *GridUpdate) SetNillableSellClientOrderId(v *string) *GridUpdate {
 // ClearSellClientOrderId clears the value of the "sellClientOrderId" field.
 func (_u *GridUpdate) ClearSellClientOrderId() *GridUpdate {
 	_u.mutation.ClearSellClientOrderId()
+	return _u
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (_u *GridUpdate) SetSellClientOrderTime(v int64) *GridUpdate {
+	_u.mutation.ResetSellClientOrderTime()
+	_u.mutation.SetSellClientOrderTime(v)
+	return _u
+}
+
+// SetNillableSellClientOrderTime sets the "sellClientOrderTime" field if the given value is not nil.
+func (_u *GridUpdate) SetNillableSellClientOrderTime(v *int64) *GridUpdate {
+	if v != nil {
+		_u.SetSellClientOrderTime(*v)
+	}
+	return _u
+}
+
+// AddSellClientOrderTime adds value to the "sellClientOrderTime" field.
+func (_u *GridUpdate) AddSellClientOrderTime(v int64) *GridUpdate {
+	_u.mutation.AddSellClientOrderTime(v)
+	return _u
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (_u *GridUpdate) ClearSellClientOrderTime() *GridUpdate {
+	_u.mutation.ClearSellClientOrderTime()
 	return _u
 }
 
@@ -286,11 +340,29 @@ func (_u *GridUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.BuyClientOrderIdCleared() {
 		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeString)
 	}
+	if value, ok := _u.mutation.BuyClientOrderTime(); ok {
+		_spec.SetField(grid.FieldBuyClientOrderTime, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedBuyClientOrderTime(); ok {
+		_spec.AddField(grid.FieldBuyClientOrderTime, field.TypeInt64, value)
+	}
+	if _u.mutation.BuyClientOrderTimeCleared() {
+		_spec.ClearField(grid.FieldBuyClientOrderTime, field.TypeInt64)
+	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
 		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
 		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeString)
+	}
+	if value, ok := _u.mutation.SellClientOrderTime(); ok {
+		_spec.SetField(grid.FieldSellClientOrderTime, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedSellClientOrderTime(); ok {
+		_spec.AddField(grid.FieldSellClientOrderTime, field.TypeInt64, value)
+	}
+	if _u.mutation.SellClientOrderTimeCleared() {
+		_spec.ClearField(grid.FieldSellClientOrderTime, field.TypeInt64)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -443,6 +515,33 @@ func (_u *GridUpdateOne) ClearBuyClientOrderId() *GridUpdateOne {
 	return _u
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (_u *GridUpdateOne) SetBuyClientOrderTime(v int64) *GridUpdateOne {
+	_u.mutation.ResetBuyClientOrderTime()
+	_u.mutation.SetBuyClientOrderTime(v)
+	return _u
+}
+
+// SetNillableBuyClientOrderTime sets the "buyClientOrderTime" field if the given value is not nil.
+func (_u *GridUpdateOne) SetNillableBuyClientOrderTime(v *int64) *GridUpdateOne {
+	if v != nil {
+		_u.SetBuyClientOrderTime(*v)
+	}
+	return _u
+}
+
+// AddBuyClientOrderTime adds value to the "buyClientOrderTime" field.
+func (_u *GridUpdateOne) AddBuyClientOrderTime(v int64) *GridUpdateOne {
+	_u.mutation.AddBuyClientOrderTime(v)
+	return _u
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (_u *GridUpdateOne) ClearBuyClientOrderTime() *GridUpdateOne {
+	_u.mutation.ClearBuyClientOrderTime()
+	return _u
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (_u *GridUpdateOne) SetSellClientOrderId(v string) *GridUpdateOne {
 	_u.mutation.SetSellClientOrderId(v)
@@ -460,6 +559,33 @@ func (_u *GridUpdateOne) SetNillableSellClientOrderId(v *string) *GridUpdateOne 
 // ClearSellClientOrderId clears the value of the "sellClientOrderId" field.
 func (_u *GridUpdateOne) ClearSellClientOrderId() *GridUpdateOne {
 	_u.mutation.ClearSellClientOrderId()
+	return _u
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (_u *GridUpdateOne) SetSellClientOrderTime(v int64) *GridUpdateOne {
+	_u.mutation.ResetSellClientOrderTime()
+	_u.mutation.SetSellClientOrderTime(v)
+	return _u
+}
+
+// SetNillableSellClientOrderTime sets the "sellClientOrderTime" field if the given value is not nil.
+func (_u *GridUpdateOne) SetNillableSellClientOrderTime(v *int64) *GridUpdateOne {
+	if v != nil {
+		_u.SetSellClientOrderTime(*v)
+	}
+	return _u
+}
+
+// AddSellClientOrderTime adds value to the "sellClientOrderTime" field.
+func (_u *GridUpdateOne) AddSellClientOrderTime(v int64) *GridUpdateOne {
+	_u.mutation.AddSellClientOrderTime(v)
+	return _u
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (_u *GridUpdateOne) ClearSellClientOrderTime() *GridUpdateOne {
+	_u.mutation.ClearSellClientOrderTime()
 	return _u
 }
 
@@ -599,11 +725,29 @@ func (_u *GridUpdateOne) sqlSave(ctx context.Context) (_node *Grid, err error) {
 	if _u.mutation.BuyClientOrderIdCleared() {
 		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeString)
 	}
+	if value, ok := _u.mutation.BuyClientOrderTime(); ok {
+		_spec.SetField(grid.FieldBuyClientOrderTime, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedBuyClientOrderTime(); ok {
+		_spec.AddField(grid.FieldBuyClientOrderTime, field.TypeInt64, value)
+	}
+	if _u.mutation.BuyClientOrderTimeCleared() {
+		_spec.ClearField(grid.FieldBuyClientOrderTime, field.TypeInt64)
+	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
 		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
 		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeString)
+	}
+	if value, ok := _u.mutation.SellClientOrderTime(); ok {
+		_spec.SetField(grid.FieldSellClientOrderTime, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedSellClientOrderTime(); ok {
+		_spec.AddField(grid.FieldSellClientOrderTime, field.TypeInt64, value)
+	}
+	if _u.mutation.SellClientOrderTimeCleared() {
+		_spec.ClearField(grid.FieldSellClientOrderTime, field.TypeInt64)
 	}
 	_node = &Grid{config: _u.config}
 	_spec.Assign = _node.assignValues

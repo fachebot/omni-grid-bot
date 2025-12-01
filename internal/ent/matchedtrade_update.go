@@ -49,6 +49,20 @@ func (_u *MatchedTradeUpdate) SetNillableStrategyId(v *string) *MatchedTradeUpda
 	return _u
 }
 
+// SetAccount sets the "account" field.
+func (_u *MatchedTradeUpdate) SetAccount(v string) *MatchedTradeUpdate {
+	_u.mutation.SetAccount(v)
+	return _u
+}
+
+// SetNillableAccount sets the "account" field if the given value is not nil.
+func (_u *MatchedTradeUpdate) SetNillableAccount(v *string) *MatchedTradeUpdate {
+	if v != nil {
+		_u.SetAccount(*v)
+	}
+	return _u
+}
+
 // SetSymbol sets the "symbol" field.
 func (_u *MatchedTradeUpdate) SetSymbol(v string) *MatchedTradeUpdate {
 	_u.mutation.SetSymbol(v)
@@ -333,6 +347,9 @@ func (_u *MatchedTradeUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if value, ok := _u.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Account(); ok {
+		_spec.SetField(matchedtrade.FieldAccount, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Symbol(); ok {
 		_spec.SetField(matchedtrade.FieldSymbol, field.TypeString, value)
 	}
@@ -435,6 +452,20 @@ func (_u *MatchedTradeUpdateOne) SetStrategyId(v string) *MatchedTradeUpdateOne 
 func (_u *MatchedTradeUpdateOne) SetNillableStrategyId(v *string) *MatchedTradeUpdateOne {
 	if v != nil {
 		_u.SetStrategyId(*v)
+	}
+	return _u
+}
+
+// SetAccount sets the "account" field.
+func (_u *MatchedTradeUpdateOne) SetAccount(v string) *MatchedTradeUpdateOne {
+	_u.mutation.SetAccount(v)
+	return _u
+}
+
+// SetNillableAccount sets the "account" field if the given value is not nil.
+func (_u *MatchedTradeUpdateOne) SetNillableAccount(v *string) *MatchedTradeUpdateOne {
+	if v != nil {
+		_u.SetAccount(*v)
 	}
 	return _u
 }
@@ -752,6 +783,9 @@ func (_u *MatchedTradeUpdateOne) sqlSave(ctx context.Context) (_node *MatchedTra
 	}
 	if value, ok := _u.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Account(); ok {
+		_spec.SetField(matchedtrade.FieldAccount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Symbol(); ok {
 		_spec.SetField(matchedtrade.FieldSymbol, field.TypeString, value)

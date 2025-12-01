@@ -248,7 +248,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 	logger.Infof("[%s %s] #%d 买单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.ClientOrderId, buyOrder.Price, buyOrder.FilledBaseAmount)
 
-	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy, buyOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %s, %v", state.strategy.GUID, buyOrder.ClientOrderId, err)
 		return err
@@ -256,6 +256,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 
 	state.handleEventNotification(isFirstRecord, buyOrder, completedPair)
 
+	now := time.Now()
 	upperLevel := getUpperLevel(state.sortedGrids, level.Level)
 	if upperLevel != nil {
 		if upperLevel.SellClientOrderId == nil && !state.isActiveOrder(upperLevel.BuyClientOrderId) {
@@ -278,12 +279,12 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 			// 更新数据状态
 			err = util.Tx(state.ctx, state.svcCtx.DbClient, func(tx *ent.Tx) error {
 				m := model.NewGridModel(tx.Grid)
-				err = m.UpdateBuyClientOrderId(state.ctx, level.ID, nil)
+				err = m.UpdateBuyClientOrderId(state.ctx, level.ID, nil, now)
 				if err != nil {
 					return err
 				}
 
-				err = m.UpdateSellClientOrderId(state.ctx, upperLevel.ID, &sellOrderId)
+				err = m.UpdateSellClientOrderId(state.ctx, upperLevel.ID, &sellOrderId, now)
 				if err != nil {
 					return err
 				}
@@ -318,7 +319,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 	logger.Infof("[%s %s] #%d 卖单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.ClientOrderId, sellOrder.Price, sellOrder.FilledBaseAmount)
 
-	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy.GUID, sellOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy, sellOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %s, %v", state.strategy.GUID, sellOrder.ClientOrderId, err)
 		return err
@@ -326,6 +327,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 
 	state.handleEventNotification(isFirstRecord, sellOrder, completedPair)
 
+	now := time.Now()
 	lowerLevel := getLowerLevel(state.sortedGrids, level.Level)
 	if lowerLevel != nil {
 		if lowerLevel.BuyClientOrderId == nil && !state.isActiveOrder(lowerLevel.SellClientOrderId) {
@@ -348,12 +350,12 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 			// 更新数据状态
 			err = util.Tx(state.ctx, state.svcCtx.DbClient, func(tx *ent.Tx) error {
 				m := model.NewGridModel(tx.Grid)
-				err = m.UpdateSellClientOrderId(state.ctx, level.ID, nil)
+				err = m.UpdateSellClientOrderId(state.ctx, level.ID, nil, now)
 				if err != nil {
 					return err
 				}
 
-				err = m.UpdateBuyClientOrderId(state.ctx, lowerLevel.ID, &buyOrderId)
+				err = m.UpdateBuyClientOrderId(state.ctx, lowerLevel.ID, &buyOrderId, now)
 				if err != nil {
 					return err
 				}

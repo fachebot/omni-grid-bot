@@ -24,6 +24,8 @@ type MatchedTrade struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// StrategyId holds the value of the "strategyId" field.
 	StrategyId string `json:"strategyId,omitempty"`
+	// Account holds the value of the "account" field.
+	Account string `json:"account,omitempty"`
 	// Symbol holds the value of the "symbol" field.
 	Symbol string `json:"symbol,omitempty"`
 	// BuyClientOrderId holds the value of the "buyClientOrderId" field.
@@ -58,7 +60,7 @@ func (*MatchedTrade) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case matchedtrade.FieldID, matchedtrade.FieldBuyOrderTimestamp, matchedtrade.FieldSellOrderTimestamp:
 			values[i] = new(sql.NullInt64)
-		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldSellClientOrderId:
+		case matchedtrade.FieldStrategyId, matchedtrade.FieldAccount, matchedtrade.FieldSymbol, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldSellClientOrderId:
 			values[i] = new(sql.NullString)
 		case matchedtrade.FieldCreateTime, matchedtrade.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -100,6 +102,12 @@ func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field strategyId", values[i])
 			} else if value.Valid {
 				_m.StrategyId = value.String
+			}
+		case matchedtrade.FieldAccount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field account", values[i])
+			} else if value.Valid {
+				_m.Account = value.String
 			}
 		case matchedtrade.FieldSymbol:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -214,6 +222,9 @@ func (_m *MatchedTrade) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("strategyId=")
 	builder.WriteString(_m.StrategyId)
+	builder.WriteString(", ")
+	builder.WriteString("account=")
+	builder.WriteString(_m.Account)
 	builder.WriteString(", ")
 	builder.WriteString("symbol=")
 	builder.WriteString(_m.Symbol)

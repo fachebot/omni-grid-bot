@@ -147,13 +147,34 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 		return err
 	}
 
+	// 计算开始时间
+	var startTime *time.Time
+	grids, err := h.svcCtx.GridModel.FindAllByAccount(ctx, account)
+	if err != nil {
+		logger.Debugf("[ParadexOrderHelper] 查询账户网格失败, account: %s,  %v", account, err)
+		return err
+	}
+	nums := make([]int64, 0)
+	for _, item := range grids {
+		if item.BuyClientOrderTime != nil {
+			nums = append(nums, *item.BuyClientOrderTime)
+		}
+		if item.SellClientOrderTime != nil {
+			nums = append(nums, *item.SellClientOrderTime)
+		}
+	}
+	if len(nums) > 0 {
+		t := time.UnixMilli(lo.Min(nums))
+		startTime = &t
+	}
+
 	// 同步所有订单
 	cursor := ""
 	const limit = 1000
 	userOrders := make([]*paradex.Order, 0)
 	for {
 		logger.Debugf("[ParadexOrderHelper] 查询用户订单记录开始, account: %s, cursor: %s, limit: %d", account, cursor, limit)
-		userOrdersRes, err := h.userClient.GetUserOrders(ctx, cursor, limit)
+		userOrdersRes, err := h.userClient.GetUserOrders(ctx, startTime, cursor, limit)
 		if err != nil {
 			logger.Debugf("[ParadexOrderHelper] 查询用户订单记录失败, account: %s, cursor: %s, limit: %d, %v", account, cursor, limit, err)
 			return err

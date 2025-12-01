@@ -39,25 +39,29 @@ const (
 // GridMutation represents an operation that mutates the Grid nodes in the graph.
 type GridMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	create_time       *time.Time
-	update_time       *time.Time
-	strategyId        *string
-	exchange          *string
-	symbol            *string
-	account           *string
-	level             *int
-	addlevel          *int
-	price             *decimal.Decimal
-	quantity          *decimal.Decimal
-	buyClientOrderId  *string
-	sellClientOrderId *string
-	clearedFields     map[string]struct{}
-	done              bool
-	oldValue          func(context.Context) (*Grid, error)
-	predicates        []predicate.Grid
+	op                     Op
+	typ                    string
+	id                     *int
+	create_time            *time.Time
+	update_time            *time.Time
+	strategyId             *string
+	exchange               *string
+	symbol                 *string
+	account                *string
+	level                  *int
+	addlevel               *int
+	price                  *decimal.Decimal
+	quantity               *decimal.Decimal
+	buyClientOrderId       *string
+	buyClientOrderTime     *int64
+	addbuyClientOrderTime  *int64
+	sellClientOrderId      *string
+	sellClientOrderTime    *int64
+	addsellClientOrderTime *int64
+	clearedFields          map[string]struct{}
+	done                   bool
+	oldValue               func(context.Context) (*Grid, error)
+	predicates             []predicate.Grid
 }
 
 var _ ent.Mutation = (*GridMutation)(nil)
@@ -551,6 +555,76 @@ func (m *GridMutation) ResetBuyClientOrderId() {
 	delete(m.clearedFields, grid.FieldBuyClientOrderId)
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (m *GridMutation) SetBuyClientOrderTime(i int64) {
+	m.buyClientOrderTime = &i
+	m.addbuyClientOrderTime = nil
+}
+
+// BuyClientOrderTime returns the value of the "buyClientOrderTime" field in the mutation.
+func (m *GridMutation) BuyClientOrderTime() (r int64, exists bool) {
+	v := m.buyClientOrderTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyClientOrderTime returns the old "buyClientOrderTime" field's value of the Grid entity.
+// If the Grid object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GridMutation) OldBuyClientOrderTime(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyClientOrderTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyClientOrderTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyClientOrderTime: %w", err)
+	}
+	return oldValue.BuyClientOrderTime, nil
+}
+
+// AddBuyClientOrderTime adds i to the "buyClientOrderTime" field.
+func (m *GridMutation) AddBuyClientOrderTime(i int64) {
+	if m.addbuyClientOrderTime != nil {
+		*m.addbuyClientOrderTime += i
+	} else {
+		m.addbuyClientOrderTime = &i
+	}
+}
+
+// AddedBuyClientOrderTime returns the value that was added to the "buyClientOrderTime" field in this mutation.
+func (m *GridMutation) AddedBuyClientOrderTime() (r int64, exists bool) {
+	v := m.addbuyClientOrderTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (m *GridMutation) ClearBuyClientOrderTime() {
+	m.buyClientOrderTime = nil
+	m.addbuyClientOrderTime = nil
+	m.clearedFields[grid.FieldBuyClientOrderTime] = struct{}{}
+}
+
+// BuyClientOrderTimeCleared returns if the "buyClientOrderTime" field was cleared in this mutation.
+func (m *GridMutation) BuyClientOrderTimeCleared() bool {
+	_, ok := m.clearedFields[grid.FieldBuyClientOrderTime]
+	return ok
+}
+
+// ResetBuyClientOrderTime resets all changes to the "buyClientOrderTime" field.
+func (m *GridMutation) ResetBuyClientOrderTime() {
+	m.buyClientOrderTime = nil
+	m.addbuyClientOrderTime = nil
+	delete(m.clearedFields, grid.FieldBuyClientOrderTime)
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (m *GridMutation) SetSellClientOrderId(s string) {
 	m.sellClientOrderId = &s
@@ -600,6 +674,76 @@ func (m *GridMutation) ResetSellClientOrderId() {
 	delete(m.clearedFields, grid.FieldSellClientOrderId)
 }
 
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (m *GridMutation) SetSellClientOrderTime(i int64) {
+	m.sellClientOrderTime = &i
+	m.addsellClientOrderTime = nil
+}
+
+// SellClientOrderTime returns the value of the "sellClientOrderTime" field in the mutation.
+func (m *GridMutation) SellClientOrderTime() (r int64, exists bool) {
+	v := m.sellClientOrderTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSellClientOrderTime returns the old "sellClientOrderTime" field's value of the Grid entity.
+// If the Grid object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GridMutation) OldSellClientOrderTime(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSellClientOrderTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSellClientOrderTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSellClientOrderTime: %w", err)
+	}
+	return oldValue.SellClientOrderTime, nil
+}
+
+// AddSellClientOrderTime adds i to the "sellClientOrderTime" field.
+func (m *GridMutation) AddSellClientOrderTime(i int64) {
+	if m.addsellClientOrderTime != nil {
+		*m.addsellClientOrderTime += i
+	} else {
+		m.addsellClientOrderTime = &i
+	}
+}
+
+// AddedSellClientOrderTime returns the value that was added to the "sellClientOrderTime" field in this mutation.
+func (m *GridMutation) AddedSellClientOrderTime() (r int64, exists bool) {
+	v := m.addsellClientOrderTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (m *GridMutation) ClearSellClientOrderTime() {
+	m.sellClientOrderTime = nil
+	m.addsellClientOrderTime = nil
+	m.clearedFields[grid.FieldSellClientOrderTime] = struct{}{}
+}
+
+// SellClientOrderTimeCleared returns if the "sellClientOrderTime" field was cleared in this mutation.
+func (m *GridMutation) SellClientOrderTimeCleared() bool {
+	_, ok := m.clearedFields[grid.FieldSellClientOrderTime]
+	return ok
+}
+
+// ResetSellClientOrderTime resets all changes to the "sellClientOrderTime" field.
+func (m *GridMutation) ResetSellClientOrderTime() {
+	m.sellClientOrderTime = nil
+	m.addsellClientOrderTime = nil
+	delete(m.clearedFields, grid.FieldSellClientOrderTime)
+}
+
 // Where appends a list predicates to the GridMutation builder.
 func (m *GridMutation) Where(ps ...predicate.Grid) {
 	m.predicates = append(m.predicates, ps...)
@@ -634,7 +778,7 @@ func (m *GridMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GridMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.create_time != nil {
 		fields = append(fields, grid.FieldCreateTime)
 	}
@@ -665,8 +809,14 @@ func (m *GridMutation) Fields() []string {
 	if m.buyClientOrderId != nil {
 		fields = append(fields, grid.FieldBuyClientOrderId)
 	}
+	if m.buyClientOrderTime != nil {
+		fields = append(fields, grid.FieldBuyClientOrderTime)
+	}
 	if m.sellClientOrderId != nil {
 		fields = append(fields, grid.FieldSellClientOrderId)
+	}
+	if m.sellClientOrderTime != nil {
+		fields = append(fields, grid.FieldSellClientOrderTime)
 	}
 	return fields
 }
@@ -696,8 +846,12 @@ func (m *GridMutation) Field(name string) (ent.Value, bool) {
 		return m.Quantity()
 	case grid.FieldBuyClientOrderId:
 		return m.BuyClientOrderId()
+	case grid.FieldBuyClientOrderTime:
+		return m.BuyClientOrderTime()
 	case grid.FieldSellClientOrderId:
 		return m.SellClientOrderId()
+	case grid.FieldSellClientOrderTime:
+		return m.SellClientOrderTime()
 	}
 	return nil, false
 }
@@ -727,8 +881,12 @@ func (m *GridMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldQuantity(ctx)
 	case grid.FieldBuyClientOrderId:
 		return m.OldBuyClientOrderId(ctx)
+	case grid.FieldBuyClientOrderTime:
+		return m.OldBuyClientOrderTime(ctx)
 	case grid.FieldSellClientOrderId:
 		return m.OldSellClientOrderId(ctx)
+	case grid.FieldSellClientOrderTime:
+		return m.OldSellClientOrderTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown Grid field %s", name)
 }
@@ -808,12 +966,26 @@ func (m *GridMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBuyClientOrderId(v)
 		return nil
+	case grid.FieldBuyClientOrderTime:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyClientOrderTime(v)
+		return nil
 	case grid.FieldSellClientOrderId:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSellClientOrderId(v)
+		return nil
+	case grid.FieldSellClientOrderTime:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSellClientOrderTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Grid field %s", name)
@@ -826,6 +998,12 @@ func (m *GridMutation) AddedFields() []string {
 	if m.addlevel != nil {
 		fields = append(fields, grid.FieldLevel)
 	}
+	if m.addbuyClientOrderTime != nil {
+		fields = append(fields, grid.FieldBuyClientOrderTime)
+	}
+	if m.addsellClientOrderTime != nil {
+		fields = append(fields, grid.FieldSellClientOrderTime)
+	}
 	return fields
 }
 
@@ -836,6 +1014,10 @@ func (m *GridMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case grid.FieldLevel:
 		return m.AddedLevel()
+	case grid.FieldBuyClientOrderTime:
+		return m.AddedBuyClientOrderTime()
+	case grid.FieldSellClientOrderTime:
+		return m.AddedSellClientOrderTime()
 	}
 	return nil, false
 }
@@ -852,6 +1034,20 @@ func (m *GridMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddLevel(v)
 		return nil
+	case grid.FieldBuyClientOrderTime:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBuyClientOrderTime(v)
+		return nil
+	case grid.FieldSellClientOrderTime:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSellClientOrderTime(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Grid numeric field %s", name)
 }
@@ -863,8 +1059,14 @@ func (m *GridMutation) ClearedFields() []string {
 	if m.FieldCleared(grid.FieldBuyClientOrderId) {
 		fields = append(fields, grid.FieldBuyClientOrderId)
 	}
+	if m.FieldCleared(grid.FieldBuyClientOrderTime) {
+		fields = append(fields, grid.FieldBuyClientOrderTime)
+	}
 	if m.FieldCleared(grid.FieldSellClientOrderId) {
 		fields = append(fields, grid.FieldSellClientOrderId)
+	}
+	if m.FieldCleared(grid.FieldSellClientOrderTime) {
+		fields = append(fields, grid.FieldSellClientOrderTime)
 	}
 	return fields
 }
@@ -883,8 +1085,14 @@ func (m *GridMutation) ClearField(name string) error {
 	case grid.FieldBuyClientOrderId:
 		m.ClearBuyClientOrderId()
 		return nil
+	case grid.FieldBuyClientOrderTime:
+		m.ClearBuyClientOrderTime()
+		return nil
 	case grid.FieldSellClientOrderId:
 		m.ClearSellClientOrderId()
+		return nil
+	case grid.FieldSellClientOrderTime:
+		m.ClearSellClientOrderTime()
 		return nil
 	}
 	return fmt.Errorf("unknown Grid nullable field %s", name)
@@ -924,8 +1132,14 @@ func (m *GridMutation) ResetField(name string) error {
 	case grid.FieldBuyClientOrderId:
 		m.ResetBuyClientOrderId()
 		return nil
+	case grid.FieldBuyClientOrderTime:
+		m.ResetBuyClientOrderTime()
+		return nil
 	case grid.FieldSellClientOrderId:
 		m.ResetSellClientOrderId()
+		return nil
+	case grid.FieldSellClientOrderTime:
+		m.ResetSellClientOrderTime()
 		return nil
 	}
 	return fmt.Errorf("unknown Grid field %s", name)
@@ -988,6 +1202,7 @@ type MatchedTradeMutation struct {
 	create_time           *time.Time
 	update_time           *time.Time
 	strategyId            *string
+	account               *string
 	symbol                *string
 	buyClientOrderId      *string
 	buyBaseAmount         *decimal.Decimal
@@ -1211,6 +1426,42 @@ func (m *MatchedTradeMutation) OldStrategyId(ctx context.Context) (v string, err
 // ResetStrategyId resets all changes to the "strategyId" field.
 func (m *MatchedTradeMutation) ResetStrategyId() {
 	m.strategyId = nil
+}
+
+// SetAccount sets the "account" field.
+func (m *MatchedTradeMutation) SetAccount(s string) {
+	m.account = &s
+}
+
+// Account returns the value of the "account" field in the mutation.
+func (m *MatchedTradeMutation) Account() (r string, exists bool) {
+	v := m.account
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccount returns the old "account" field's value of the MatchedTrade entity.
+// If the MatchedTrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MatchedTradeMutation) OldAccount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccount: %w", err)
+	}
+	return oldValue.Account, nil
+}
+
+// ResetAccount resets all changes to the "account" field.
+func (m *MatchedTradeMutation) ResetAccount() {
+	m.account = nil
 }
 
 // SetSymbol sets the "symbol" field.
@@ -1787,7 +2038,7 @@ func (m *MatchedTradeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MatchedTradeMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, matchedtrade.FieldCreateTime)
 	}
@@ -1796,6 +2047,9 @@ func (m *MatchedTradeMutation) Fields() []string {
 	}
 	if m.strategyId != nil {
 		fields = append(fields, matchedtrade.FieldStrategyId)
+	}
+	if m.account != nil {
+		fields = append(fields, matchedtrade.FieldAccount)
 	}
 	if m.symbol != nil {
 		fields = append(fields, matchedtrade.FieldSymbol)
@@ -1841,6 +2095,8 @@ func (m *MatchedTradeMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case matchedtrade.FieldStrategyId:
 		return m.StrategyId()
+	case matchedtrade.FieldAccount:
+		return m.Account()
 	case matchedtrade.FieldSymbol:
 		return m.Symbol()
 	case matchedtrade.FieldBuyClientOrderId:
@@ -1876,6 +2132,8 @@ func (m *MatchedTradeMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldUpdateTime(ctx)
 	case matchedtrade.FieldStrategyId:
 		return m.OldStrategyId(ctx)
+	case matchedtrade.FieldAccount:
+		return m.OldAccount(ctx)
 	case matchedtrade.FieldSymbol:
 		return m.OldSymbol(ctx)
 	case matchedtrade.FieldBuyClientOrderId:
@@ -1925,6 +2183,13 @@ func (m *MatchedTradeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStrategyId(v)
+		return nil
+	case matchedtrade.FieldAccount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccount(v)
 		return nil
 	case matchedtrade.FieldSymbol:
 		v, ok := value.(string)
@@ -2149,6 +2414,9 @@ func (m *MatchedTradeMutation) ResetField(name string) error {
 		return nil
 	case matchedtrade.FieldStrategyId:
 		m.ResetStrategyId()
+		return nil
+	case matchedtrade.FieldAccount:
+		m.ResetAccount()
 		return nil
 	case matchedtrade.FieldSymbol:
 		m.ResetSymbol()

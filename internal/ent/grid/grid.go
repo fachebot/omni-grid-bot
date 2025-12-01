@@ -33,8 +33,12 @@ const (
 	FieldQuantity = "quantity"
 	// FieldBuyClientOrderId holds the string denoting the buyclientorderid field in the database.
 	FieldBuyClientOrderId = "buy_client_order_id"
+	// FieldBuyClientOrderTime holds the string denoting the buyclientordertime field in the database.
+	FieldBuyClientOrderTime = "buy_client_order_time"
 	// FieldSellClientOrderId holds the string denoting the sellclientorderid field in the database.
 	FieldSellClientOrderId = "sell_client_order_id"
+	// FieldSellClientOrderTime holds the string denoting the sellclientordertime field in the database.
+	FieldSellClientOrderTime = "sell_client_order_time"
 	// Table holds the table name of the grid in the database.
 	Table = "grids"
 )
@@ -52,7 +56,9 @@ var Columns = []string{
 	FieldPrice,
 	FieldQuantity,
 	FieldBuyClientOrderId,
+	FieldBuyClientOrderTime,
 	FieldSellClientOrderId,
+	FieldSellClientOrderTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -138,7 +144,17 @@ func ByBuyClientOrderId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBuyClientOrderId, opts...).ToFunc()
 }
 
+// ByBuyClientOrderTime orders the results by the buyClientOrderTime field.
+func ByBuyClientOrderTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuyClientOrderTime, opts...).ToFunc()
+}
+
 // BySellClientOrderId orders the results by the sellClientOrderId field.
 func BySellClientOrderId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSellClientOrderId, opts...).ToFunc()
+}
+
+// BySellClientOrderTime orders the results by the sellClientOrderTime field.
+func BySellClientOrderTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSellClientOrderTime, opts...).ToFunc()
 }

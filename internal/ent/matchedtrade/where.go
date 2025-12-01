@@ -70,6 +70,11 @@ func StrategyId(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldStrategyId, v))
 }
 
+// Account applies equality check predicate on the "account" field. It's identical to AccountEQ.
+func Account(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldAccount, v))
+}
+
 // Symbol applies equality check predicate on the "symbol" field. It's identical to SymbolEQ.
 func Symbol(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldSymbol, v))
@@ -263,6 +268,71 @@ func StrategyIdEqualFold(v string) predicate.MatchedTrade {
 // StrategyIdContainsFold applies the ContainsFold predicate on the "strategyId" field.
 func StrategyIdContainsFold(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldContainsFold(FieldStrategyId, v))
+}
+
+// AccountEQ applies the EQ predicate on the "account" field.
+func AccountEQ(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEQ(FieldAccount, v))
+}
+
+// AccountNEQ applies the NEQ predicate on the "account" field.
+func AccountNEQ(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNEQ(FieldAccount, v))
+}
+
+// AccountIn applies the In predicate on the "account" field.
+func AccountIn(vs ...string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldIn(FieldAccount, vs...))
+}
+
+// AccountNotIn applies the NotIn predicate on the "account" field.
+func AccountNotIn(vs ...string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldNotIn(FieldAccount, vs...))
+}
+
+// AccountGT applies the GT predicate on the "account" field.
+func AccountGT(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGT(FieldAccount, v))
+}
+
+// AccountGTE applies the GTE predicate on the "account" field.
+func AccountGTE(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldGTE(FieldAccount, v))
+}
+
+// AccountLT applies the LT predicate on the "account" field.
+func AccountLT(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLT(FieldAccount, v))
+}
+
+// AccountLTE applies the LTE predicate on the "account" field.
+func AccountLTE(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldLTE(FieldAccount, v))
+}
+
+// AccountContains applies the Contains predicate on the "account" field.
+func AccountContains(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContains(FieldAccount, v))
+}
+
+// AccountHasPrefix applies the HasPrefix predicate on the "account" field.
+func AccountHasPrefix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasPrefix(FieldAccount, v))
+}
+
+// AccountHasSuffix applies the HasSuffix predicate on the "account" field.
+func AccountHasSuffix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasSuffix(FieldAccount, v))
+}
+
+// AccountEqualFold applies the EqualFold predicate on the "account" field.
+func AccountEqualFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEqualFold(FieldAccount, v))
+}
+
+// AccountContainsFold applies the ContainsFold predicate on the "account" field.
+func AccountContainsFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContainsFold(FieldAccount, v))
 }
 
 // SymbolEQ applies the EQ predicate on the "symbol" field.

@@ -23,6 +23,7 @@ func (MatchedTrade) Mixin() []ent.Mixin {
 func (MatchedTrade) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("strategyId").MaxLen(50),
+		field.String("account"),
 		field.String("symbol"),
 		field.String("buyClientOrderId").Nillable().Optional(),
 		field.String("buyBaseAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
@@ -44,6 +45,7 @@ func (MatchedTrade) Edges() []ent.Edge {
 // Indexes of the MatchedTrade.
 func (MatchedTrade) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("account"),
 		index.Fields("strategyId"),
 		index.Fields("strategyId", "buyClientOrderId", "sellClientOrderId").Unique(),
 	}

@@ -107,6 +107,20 @@ func (_c *GridCreate) SetNillableBuyClientOrderId(v *string) *GridCreate {
 	return _c
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (_c *GridCreate) SetBuyClientOrderTime(v int64) *GridCreate {
+	_c.mutation.SetBuyClientOrderTime(v)
+	return _c
+}
+
+// SetNillableBuyClientOrderTime sets the "buyClientOrderTime" field if the given value is not nil.
+func (_c *GridCreate) SetNillableBuyClientOrderTime(v *int64) *GridCreate {
+	if v != nil {
+		_c.SetBuyClientOrderTime(*v)
+	}
+	return _c
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (_c *GridCreate) SetSellClientOrderId(v string) *GridCreate {
 	_c.mutation.SetSellClientOrderId(v)
@@ -117,6 +131,20 @@ func (_c *GridCreate) SetSellClientOrderId(v string) *GridCreate {
 func (_c *GridCreate) SetNillableSellClientOrderId(v *string) *GridCreate {
 	if v != nil {
 		_c.SetSellClientOrderId(*v)
+	}
+	return _c
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (_c *GridCreate) SetSellClientOrderTime(v int64) *GridCreate {
+	_c.mutation.SetSellClientOrderTime(v)
+	return _c
+}
+
+// SetNillableSellClientOrderTime sets the "sellClientOrderTime" field if the given value is not nil.
+func (_c *GridCreate) SetNillableSellClientOrderTime(v *int64) *GridCreate {
+	if v != nil {
+		_c.SetSellClientOrderTime(*v)
 	}
 	return _c
 }
@@ -277,9 +305,17 @@ func (_c *GridCreate) createSpec() (*Grid, *sqlgraph.CreateSpec) {
 		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeString, value)
 		_node.BuyClientOrderId = &value
 	}
+	if value, ok := _c.mutation.BuyClientOrderTime(); ok {
+		_spec.SetField(grid.FieldBuyClientOrderTime, field.TypeInt64, value)
+		_node.BuyClientOrderTime = &value
+	}
 	if value, ok := _c.mutation.SellClientOrderId(); ok {
 		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 		_node.SellClientOrderId = &value
+	}
+	if value, ok := _c.mutation.SellClientOrderTime(); ok {
+		_spec.SetField(grid.FieldSellClientOrderTime, field.TypeInt64, value)
+		_node.SellClientOrderTime = &value
 	}
 	return _node, _spec
 }
@@ -453,6 +489,30 @@ func (u *GridUpsert) ClearBuyClientOrderId() *GridUpsert {
 	return u
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (u *GridUpsert) SetBuyClientOrderTime(v int64) *GridUpsert {
+	u.Set(grid.FieldBuyClientOrderTime, v)
+	return u
+}
+
+// UpdateBuyClientOrderTime sets the "buyClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsert) UpdateBuyClientOrderTime() *GridUpsert {
+	u.SetExcluded(grid.FieldBuyClientOrderTime)
+	return u
+}
+
+// AddBuyClientOrderTime adds v to the "buyClientOrderTime" field.
+func (u *GridUpsert) AddBuyClientOrderTime(v int64) *GridUpsert {
+	u.Add(grid.FieldBuyClientOrderTime, v)
+	return u
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (u *GridUpsert) ClearBuyClientOrderTime() *GridUpsert {
+	u.SetNull(grid.FieldBuyClientOrderTime)
+	return u
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (u *GridUpsert) SetSellClientOrderId(v string) *GridUpsert {
 	u.Set(grid.FieldSellClientOrderId, v)
@@ -468,6 +528,30 @@ func (u *GridUpsert) UpdateSellClientOrderId() *GridUpsert {
 // ClearSellClientOrderId clears the value of the "sellClientOrderId" field.
 func (u *GridUpsert) ClearSellClientOrderId() *GridUpsert {
 	u.SetNull(grid.FieldSellClientOrderId)
+	return u
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (u *GridUpsert) SetSellClientOrderTime(v int64) *GridUpsert {
+	u.Set(grid.FieldSellClientOrderTime, v)
+	return u
+}
+
+// UpdateSellClientOrderTime sets the "sellClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsert) UpdateSellClientOrderTime() *GridUpsert {
+	u.SetExcluded(grid.FieldSellClientOrderTime)
+	return u
+}
+
+// AddSellClientOrderTime adds v to the "sellClientOrderTime" field.
+func (u *GridUpsert) AddSellClientOrderTime(v int64) *GridUpsert {
+	u.Add(grid.FieldSellClientOrderTime, v)
+	return u
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (u *GridUpsert) ClearSellClientOrderTime() *GridUpsert {
+	u.SetNull(grid.FieldSellClientOrderTime)
 	return u
 }
 
@@ -656,6 +740,34 @@ func (u *GridUpsertOne) ClearBuyClientOrderId() *GridUpsertOne {
 	})
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (u *GridUpsertOne) SetBuyClientOrderTime(v int64) *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.SetBuyClientOrderTime(v)
+	})
+}
+
+// AddBuyClientOrderTime adds v to the "buyClientOrderTime" field.
+func (u *GridUpsertOne) AddBuyClientOrderTime(v int64) *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.AddBuyClientOrderTime(v)
+	})
+}
+
+// UpdateBuyClientOrderTime sets the "buyClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsertOne) UpdateBuyClientOrderTime() *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.UpdateBuyClientOrderTime()
+	})
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (u *GridUpsertOne) ClearBuyClientOrderTime() *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.ClearBuyClientOrderTime()
+	})
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (u *GridUpsertOne) SetSellClientOrderId(v string) *GridUpsertOne {
 	return u.Update(func(s *GridUpsert) {
@@ -674,6 +786,34 @@ func (u *GridUpsertOne) UpdateSellClientOrderId() *GridUpsertOne {
 func (u *GridUpsertOne) ClearSellClientOrderId() *GridUpsertOne {
 	return u.Update(func(s *GridUpsert) {
 		s.ClearSellClientOrderId()
+	})
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (u *GridUpsertOne) SetSellClientOrderTime(v int64) *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.SetSellClientOrderTime(v)
+	})
+}
+
+// AddSellClientOrderTime adds v to the "sellClientOrderTime" field.
+func (u *GridUpsertOne) AddSellClientOrderTime(v int64) *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.AddSellClientOrderTime(v)
+	})
+}
+
+// UpdateSellClientOrderTime sets the "sellClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsertOne) UpdateSellClientOrderTime() *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.UpdateSellClientOrderTime()
+	})
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (u *GridUpsertOne) ClearSellClientOrderTime() *GridUpsertOne {
+	return u.Update(func(s *GridUpsert) {
+		s.ClearSellClientOrderTime()
 	})
 }
 
@@ -1028,6 +1168,34 @@ func (u *GridUpsertBulk) ClearBuyClientOrderId() *GridUpsertBulk {
 	})
 }
 
+// SetBuyClientOrderTime sets the "buyClientOrderTime" field.
+func (u *GridUpsertBulk) SetBuyClientOrderTime(v int64) *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.SetBuyClientOrderTime(v)
+	})
+}
+
+// AddBuyClientOrderTime adds v to the "buyClientOrderTime" field.
+func (u *GridUpsertBulk) AddBuyClientOrderTime(v int64) *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.AddBuyClientOrderTime(v)
+	})
+}
+
+// UpdateBuyClientOrderTime sets the "buyClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsertBulk) UpdateBuyClientOrderTime() *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.UpdateBuyClientOrderTime()
+	})
+}
+
+// ClearBuyClientOrderTime clears the value of the "buyClientOrderTime" field.
+func (u *GridUpsertBulk) ClearBuyClientOrderTime() *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.ClearBuyClientOrderTime()
+	})
+}
+
 // SetSellClientOrderId sets the "sellClientOrderId" field.
 func (u *GridUpsertBulk) SetSellClientOrderId(v string) *GridUpsertBulk {
 	return u.Update(func(s *GridUpsert) {
@@ -1046,6 +1214,34 @@ func (u *GridUpsertBulk) UpdateSellClientOrderId() *GridUpsertBulk {
 func (u *GridUpsertBulk) ClearSellClientOrderId() *GridUpsertBulk {
 	return u.Update(func(s *GridUpsert) {
 		s.ClearSellClientOrderId()
+	})
+}
+
+// SetSellClientOrderTime sets the "sellClientOrderTime" field.
+func (u *GridUpsertBulk) SetSellClientOrderTime(v int64) *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.SetSellClientOrderTime(v)
+	})
+}
+
+// AddSellClientOrderTime adds v to the "sellClientOrderTime" field.
+func (u *GridUpsertBulk) AddSellClientOrderTime(v int64) *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.AddSellClientOrderTime(v)
+	})
+}
+
+// UpdateSellClientOrderTime sets the "sellClientOrderTime" field to the value that was provided on create.
+func (u *GridUpsertBulk) UpdateSellClientOrderTime() *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.UpdateSellClientOrderTime()
+	})
+}
+
+// ClearSellClientOrderTime clears the value of the "sellClientOrderTime" field.
+func (u *GridUpsertBulk) ClearSellClientOrderTime() *GridUpsertBulk {
+	return u.Update(func(s *GridUpsert) {
+		s.ClearSellClientOrderTime()
 	})
 }
 

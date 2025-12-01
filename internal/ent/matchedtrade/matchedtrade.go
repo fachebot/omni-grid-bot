@@ -19,6 +19,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldStrategyId holds the string denoting the strategyid field in the database.
 	FieldStrategyId = "strategy_id"
+	// FieldAccount holds the string denoting the account field in the database.
+	FieldAccount = "account"
 	// FieldSymbol holds the string denoting the symbol field in the database.
 	FieldSymbol = "symbol"
 	// FieldBuyClientOrderId holds the string denoting the buyclientorderid field in the database.
@@ -49,6 +51,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldStrategyId,
+	FieldAccount,
 	FieldSymbol,
 	FieldBuyClientOrderId,
 	FieldBuyBaseAmount,
@@ -103,6 +106,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByStrategyId orders the results by the strategyId field.
 func ByStrategyId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStrategyId, opts...).ToFunc()
+}
+
+// ByAccount orders the results by the account field.
+func ByAccount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccount, opts...).ToFunc()
 }
 
 // BySymbol orders the results by the symbol field.

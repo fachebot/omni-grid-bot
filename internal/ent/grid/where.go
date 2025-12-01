@@ -105,9 +105,19 @@ func BuyClientOrderId(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldBuyClientOrderId, v))
 }
 
+// BuyClientOrderTime applies equality check predicate on the "buyClientOrderTime" field. It's identical to BuyClientOrderTimeEQ.
+func BuyClientOrderTime(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldEQ(FieldBuyClientOrderTime, v))
+}
+
 // SellClientOrderId applies equality check predicate on the "sellClientOrderId" field. It's identical to SellClientOrderIdEQ.
 func SellClientOrderId(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderTime applies equality check predicate on the "sellClientOrderTime" field. It's identical to SellClientOrderTimeEQ.
+func SellClientOrderTime(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderTime, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -705,6 +715,56 @@ func BuyClientOrderIdContainsFold(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldContainsFold(FieldBuyClientOrderId, v))
 }
 
+// BuyClientOrderTimeEQ applies the EQ predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeEQ(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldEQ(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeNEQ applies the NEQ predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeNEQ(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldNEQ(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeIn applies the In predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeIn(vs ...int64) predicate.Grid {
+	return predicate.Grid(sql.FieldIn(FieldBuyClientOrderTime, vs...))
+}
+
+// BuyClientOrderTimeNotIn applies the NotIn predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeNotIn(vs ...int64) predicate.Grid {
+	return predicate.Grid(sql.FieldNotIn(FieldBuyClientOrderTime, vs...))
+}
+
+// BuyClientOrderTimeGT applies the GT predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeGT(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldGT(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeGTE applies the GTE predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeGTE(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldGTE(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeLT applies the LT predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeLT(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldLT(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeLTE applies the LTE predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeLTE(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldLTE(FieldBuyClientOrderTime, v))
+}
+
+// BuyClientOrderTimeIsNil applies the IsNil predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeIsNil() predicate.Grid {
+	return predicate.Grid(sql.FieldIsNull(FieldBuyClientOrderTime))
+}
+
+// BuyClientOrderTimeNotNil applies the NotNil predicate on the "buyClientOrderTime" field.
+func BuyClientOrderTimeNotNil() predicate.Grid {
+	return predicate.Grid(sql.FieldNotNull(FieldBuyClientOrderTime))
+}
+
 // SellClientOrderIdEQ applies the EQ predicate on the "sellClientOrderId" field.
 func SellClientOrderIdEQ(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderId, v))
@@ -778,6 +838,56 @@ func SellClientOrderIdEqualFold(v string) predicate.Grid {
 // SellClientOrderIdContainsFold applies the ContainsFold predicate on the "sellClientOrderId" field.
 func SellClientOrderIdContainsFold(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldContainsFold(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderTimeEQ applies the EQ predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeEQ(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeNEQ applies the NEQ predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeNEQ(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldNEQ(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeIn applies the In predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeIn(vs ...int64) predicate.Grid {
+	return predicate.Grid(sql.FieldIn(FieldSellClientOrderTime, vs...))
+}
+
+// SellClientOrderTimeNotIn applies the NotIn predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeNotIn(vs ...int64) predicate.Grid {
+	return predicate.Grid(sql.FieldNotIn(FieldSellClientOrderTime, vs...))
+}
+
+// SellClientOrderTimeGT applies the GT predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeGT(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldGT(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeGTE applies the GTE predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeGTE(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldGTE(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeLT applies the LT predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeLT(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldLT(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeLTE applies the LTE predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeLTE(v int64) predicate.Grid {
+	return predicate.Grid(sql.FieldLTE(FieldSellClientOrderTime, v))
+}
+
+// SellClientOrderTimeIsNil applies the IsNil predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeIsNil() predicate.Grid {
+	return predicate.Grid(sql.FieldIsNull(FieldSellClientOrderTime))
+}
+
+// SellClientOrderTimeNotNil applies the NotNil predicate on the "sellClientOrderTime" field.
+func SellClientOrderTimeNotNil() predicate.Grid {
+	return predicate.Grid(sql.FieldNotNull(FieldSellClientOrderTime))
 }
 
 // And groups predicates with the AND operator between them.

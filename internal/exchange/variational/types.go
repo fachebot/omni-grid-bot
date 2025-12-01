@@ -110,3 +110,75 @@ type CreateOrderRes struct {
 	TakeProfitRfqId *string `json:"take_profit_rfq_id"`
 	StopLossRfqId   *string `json:"stop_loss_rfq_id"`
 }
+
+// OrderStatus 订单状态枚举
+type OrderStatus string
+
+const (
+	OrderStatusPending  OrderStatus = "pending"  // 订单待处理
+	OrderStatusCanceled OrderStatus = "canceled" // 订单已取消
+	OrderStatusCleared  OrderStatus = "cleared"  // 订单已清算
+	OrderStatusRejected OrderStatus = "rejected" // 订单已驳回
+)
+
+// OrderType 订单类型枚举
+type OrderType string
+
+const (
+	OrderTypeLimit  OrderType = "limit"  // 限价订单
+	OrderTypeMarket OrderType = "market" // 市价订单
+)
+
+// OrderSide 订单方向枚举
+type OrderSide string
+
+const (
+	OrderSideBuy  OrderSide = "buy"  // 买入
+	OrderSideSell OrderSide = "sell" // 卖出
+)
+
+// Pagination 分页信息
+type Pagination struct {
+	LastPage    *PageInfo `json:"last_page"`    // 最后一页信息
+	NextPage    *PageInfo `json:"next_page"`    // 下一页信息
+	ObjectCount int       `json:"object_count"` // 对象总数
+}
+
+// PageInfo 页面信息
+type PageInfo struct {
+	Limit  string `json:"limit"`  // 每页限制数量
+	Offset string `json:"offset"` // 偏移量
+}
+
+// Order 订单信息
+type Order struct {
+	CancelReason       string           `json:"cancel_reason"`       // 取消原因
+	ClearingStatus     *string          `json:"clearing_status"`     // 清算状态
+	Company            string           `json:"company"`             // 公司标识
+	CreatedAt          time.Time        `json:"created_at"`          // 创建时间
+	ExecutionTimestamp *time.Time       `json:"execution_timestamp"` // 执行时间戳
+	FailedRiskChecks   []string         `json:"failed_risk_checks"`  // 失败的风险检查
+	Instrument         Instrument       `json:"instrument"`          // 交易工具信息
+	IsAutoResize       bool             `json:"is_auto_resize"`      // 是否自动调整大小
+	IsReduceOnly       bool             `json:"is_reduce_only"`      // 是否仅减仓
+	LimitPrice         *decimal.Decimal `json:"limit_price"`         // 限价价格
+	MarkPrice          *decimal.Decimal `json:"mark_price"`          // 标记价格
+	OrderID            string           `json:"order_id"`            // 订单ID
+	OrderType          OrderType        `json:"order_type"`          // 订单类型
+	PoolLocation       string           `json:"pool_location"`       // 资金池位置
+	Price              *decimal.Decimal `json:"price"`               // 实际成交价格
+	Qty                decimal.Decimal  `json:"qty"`                 // 数量
+	RfqID              string           `json:"rfq_id"`              // RFQ ID
+	Side               OrderSide        `json:"side"`                // 买卖方向
+	SlippageLimit      *decimal.Decimal `json:"slippage_limit"`      // 滑点限制
+	Status             OrderStatus      `json:"status"`              // 订单状态
+	Tif                string           `json:"tif"`                 // 订单有效时间
+	TriggerPrice       *decimal.Decimal `json:"trigger_price"`       // 触发价格
+	UseMarkPrice       bool             `json:"use_mark_price"`      // 是否使用标记价格
+}
+
+// OrdersRes 订单列表响应
+type OrdersRes struct {
+	Pagination Pagination `json:"pagination"` // 分页信息
+	Result     []*Order   `json:"result"`     // 订单结果列表
+}

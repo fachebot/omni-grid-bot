@@ -57,6 +57,12 @@ func (_c *MatchedTradeCreate) SetStrategyId(v string) *MatchedTradeCreate {
 	return _c
 }
 
+// SetAccount sets the "account" field.
+func (_c *MatchedTradeCreate) SetAccount(v string) *MatchedTradeCreate {
+	_c.mutation.SetAccount(v)
+	return _c
+}
+
 // SetSymbol sets the "symbol" field.
 func (_c *MatchedTradeCreate) SetSymbol(v string) *MatchedTradeCreate {
 	_c.mutation.SetSymbol(v)
@@ -250,6 +256,9 @@ func (_c *MatchedTradeCreate) check() error {
 			return &ValidationError{Name: "strategyId", err: fmt.Errorf(`ent: validator failed for field "MatchedTrade.strategyId": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Account(); !ok {
+		return &ValidationError{Name: "account", err: errors.New(`ent: missing required field "MatchedTrade.account"`)}
+	}
 	if _, ok := _c.mutation.Symbol(); !ok {
 		return &ValidationError{Name: "symbol", err: errors.New(`ent: missing required field "MatchedTrade.symbol"`)}
 	}
@@ -291,6 +300,10 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.StrategyId(); ok {
 		_spec.SetField(matchedtrade.FieldStrategyId, field.TypeString, value)
 		_node.StrategyId = value
+	}
+	if value, ok := _c.mutation.Account(); ok {
+		_spec.SetField(matchedtrade.FieldAccount, field.TypeString, value)
+		_node.Account = value
 	}
 	if value, ok := _c.mutation.Symbol(); ok {
 		_spec.SetField(matchedtrade.FieldSymbol, field.TypeString, value)
@@ -405,6 +418,18 @@ func (u *MatchedTradeUpsert) SetStrategyId(v string) *MatchedTradeUpsert {
 // UpdateStrategyId sets the "strategyId" field to the value that was provided on create.
 func (u *MatchedTradeUpsert) UpdateStrategyId() *MatchedTradeUpsert {
 	u.SetExcluded(matchedtrade.FieldStrategyId)
+	return u
+}
+
+// SetAccount sets the "account" field.
+func (u *MatchedTradeUpsert) SetAccount(v string) *MatchedTradeUpsert {
+	u.Set(matchedtrade.FieldAccount, v)
+	return u
+}
+
+// UpdateAccount sets the "account" field to the value that was provided on create.
+func (u *MatchedTradeUpsert) UpdateAccount() *MatchedTradeUpsert {
+	u.SetExcluded(matchedtrade.FieldAccount)
 	return u
 }
 
@@ -670,6 +695,20 @@ func (u *MatchedTradeUpsertOne) SetStrategyId(v string) *MatchedTradeUpsertOne {
 func (u *MatchedTradeUpsertOne) UpdateStrategyId() *MatchedTradeUpsertOne {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.UpdateStrategyId()
+	})
+}
+
+// SetAccount sets the "account" field.
+func (u *MatchedTradeUpsertOne) SetAccount(v string) *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetAccount(v)
+	})
+}
+
+// UpdateAccount sets the "account" field to the value that was provided on create.
+func (u *MatchedTradeUpsertOne) UpdateAccount() *MatchedTradeUpsertOne {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateAccount()
 	})
 }
 
@@ -1133,6 +1172,20 @@ func (u *MatchedTradeUpsertBulk) SetStrategyId(v string) *MatchedTradeUpsertBulk
 func (u *MatchedTradeUpsertBulk) UpdateStrategyId() *MatchedTradeUpsertBulk {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.UpdateStrategyId()
+	})
+}
+
+// SetAccount sets the "account" field.
+func (u *MatchedTradeUpsertBulk) SetAccount(v string) *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.SetAccount(v)
+	})
+}
+
+// UpdateAccount sets the "account" field to the value that was provided on create.
+func (u *MatchedTradeUpsertBulk) UpdateAccount() *MatchedTradeUpsertBulk {
+	return u.Update(func(s *MatchedTradeUpsert) {
+		s.UpdateAccount()
 	})
 }
 

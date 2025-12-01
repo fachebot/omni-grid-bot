@@ -136,7 +136,7 @@ func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) 
 	return &res, nil
 }
 
-func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int) (*OrdersRes, error) {
+func (c *UserClient) GetUserOrders(ctx context.Context, startAt *time.Time, cursor string, size int) (*OrdersRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
@@ -147,6 +147,9 @@ func (c *UserClient) GetUserOrders(ctx context.Context, cursor string, size int)
 		params.Set("cursor", cursor)
 	}
 	params.Set("page_size", strconv.Itoa(size))
+	if startAt != nil {
+		params.Set("start_at", strconv.FormatInt(startAt.UnixMilli(), 10))
+	}
 
 	var res OrdersRes
 	var errRes *ErrorRes

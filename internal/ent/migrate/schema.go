@@ -21,7 +21,9 @@ var (
 		{Name: "price", Type: field.TypeString},
 		{Name: "quantity", Type: field.TypeString},
 		{Name: "buy_client_order_id", Type: field.TypeString, Nullable: true},
+		{Name: "buy_client_order_time", Type: field.TypeInt64, Nullable: true},
 		{Name: "sell_client_order_id", Type: field.TypeString, Nullable: true},
+		{Name: "sell_client_order_time", Type: field.TypeInt64, Nullable: true},
 	}
 	// GridsTable holds the schema information for the "grids" table.
 	GridsTable = &schema.Table{
@@ -29,6 +31,11 @@ var (
 		Columns:    GridsColumns,
 		PrimaryKey: []*schema.Column{GridsColumns[0]},
 		Indexes: []*schema.Index{
+			{
+				Name:    "grid_account",
+				Unique:  false,
+				Columns: []*schema.Column{GridsColumns[6]},
+			},
 			{
 				Name:    "grid_strategy_id",
 				Unique:  false,
@@ -52,6 +59,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "strategy_id", Type: field.TypeString, Size: 50},
+		{Name: "account", Type: field.TypeString},
 		{Name: "symbol", Type: field.TypeString},
 		{Name: "buy_client_order_id", Type: field.TypeString, Nullable: true},
 		{Name: "buy_base_amount", Type: field.TypeString, Nullable: true},
@@ -70,6 +78,11 @@ var (
 		PrimaryKey: []*schema.Column{MatchedTradesColumns[0]},
 		Indexes: []*schema.Index{
 			{
+				Name:    "matchedtrade_account",
+				Unique:  false,
+				Columns: []*schema.Column{MatchedTradesColumns[4]},
+			},
+			{
 				Name:    "matchedtrade_strategy_id",
 				Unique:  false,
 				Columns: []*schema.Column{MatchedTradesColumns[3]},
@@ -77,7 +90,7 @@ var (
 			{
 				Name:    "matchedtrade_strategy_id_buy_client_order_id_sell_client_order_id",
 				Unique:  true,
-				Columns: []*schema.Column{MatchedTradesColumns[3], MatchedTradesColumns[5], MatchedTradesColumns[9]},
+				Columns: []*schema.Column{MatchedTradesColumns[3], MatchedTradesColumns[6], MatchedTradesColumns[10]},
 			},
 		},
 	}

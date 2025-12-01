@@ -21,6 +21,7 @@ func NewMatchedTradeModel(client *ent.MatchedTradeClient) *MatchedTradeModel {
 func (m *MatchedTradeModel) Create(ctx context.Context, args ent.MatchedTrade) error {
 	return m.client.Create().
 		SetStrategyId(args.StrategyId).
+		SetAccount(args.Account).
 		SetSymbol(args.Symbol).
 		SetNillableBuyClientOrderId(args.BuyClientOrderId).
 		SetNillableBuyBaseAmount(args.BuyBaseAmount).
@@ -105,10 +106,10 @@ func (m *MatchedTradeModel) QueryOpenShortPositionAndCost(ctx context.Context, s
 }
 
 func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
-	ctx context.Context, strategyId string, buyOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
+	ctx context.Context, s *ent.Strategy, buyOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
 
 	ps := []predicate.MatchedTrade{
-		matchedtrade.StrategyIdEQ(strategyId),
+		matchedtrade.StrategyIdEQ(s.GUID),
 		matchedtrade.BuyClientOrderIdEQ(buyOrder.ClientOrderId),
 	}
 	r, err := m.client.Query().Where(ps...).First(ctx)
@@ -140,7 +141,8 @@ func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
 
 	isFirstRecord = true
 	args := ent.MatchedTrade{
-		StrategyId:        strategyId,
+		StrategyId:        s.GUID,
+		Account:           s.Account,
 		Symbol:            buyOrder.Symbol,
 		BuyClientOrderId:  &buyOrder.ClientOrderId,
 		BuyBaseAmount:     &buyOrder.FilledBaseAmount,
@@ -155,10 +157,10 @@ func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
 }
 
 func (m *MatchedTradeModel) RecordAndMatchSellOrder(
-	ctx context.Context, strategyId string, sellOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
+	ctx context.Context, s *ent.Strategy, sellOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
 
 	ps := []predicate.MatchedTrade{
-		matchedtrade.StrategyIdEQ(strategyId),
+		matchedtrade.StrategyIdEQ(s.GUID),
 		matchedtrade.SellClientOrderIdEQ(sellOrder.ClientOrderId),
 	}
 	r, err := m.client.Query().Where(ps...).First(ctx)
@@ -191,7 +193,8 @@ func (m *MatchedTradeModel) RecordAndMatchSellOrder(
 
 	isFirstRecord = true
 	args := ent.MatchedTrade{
-		StrategyId:         strategyId,
+		StrategyId:         s.GUID,
+		Account:            s.Account,
 		Symbol:             sellOrder.Symbol,
 		SellClientOrderId:  &sellOrder.ClientOrderId,
 		SellBaseAmount:     &sellOrder.FilledBaseAmount,

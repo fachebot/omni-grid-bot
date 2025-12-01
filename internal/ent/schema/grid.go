@@ -30,7 +30,9 @@ func (Grid) Fields() []ent.Field {
 		field.String("price").GoType(decimal.Decimal{}),
 		field.String("quantity").GoType(decimal.Decimal{}),
 		field.String("buyClientOrderId").Nillable().Optional(),
+		field.Int64("buyClientOrderTime").Nillable().Optional(),
 		field.String("sellClientOrderId").Nillable().Optional(),
+		field.Int64("sellClientOrderTime").Nillable().Optional(),
 	}
 }
 
@@ -42,6 +44,7 @@ func (Grid) Edges() []ent.Edge {
 // Indexes of the Grid.
 func (Grid) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("account"),
 		index.Fields("strategyId"),
 		index.Fields("strategyId", "level").Unique(),
 		index.Fields("exchange", "symbol", "account"),
