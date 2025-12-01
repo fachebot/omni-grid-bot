@@ -11,17 +11,44 @@ require (
 	github.com/dontpanicdao/caigo v0.4.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elliottech/lighter-go v0.0.0-20251104171447-78b9b55ebc48
-	github.com/google/uuid v1.3.0
+	github.com/enetx/surf v1.0.143
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/samber/lo v1.52.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
-	golang.org/x/net v0.38.0
+	golang.org/x/net v0.47.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/telebot.v4 v4.0.0-beta.7
 	gopkg.in/yaml.v2 v2.4.0
+)
+
+require (
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/enetx/g v1.0.195
+	github.com/enetx/http v1.0.19 // indirect
+	github.com/enetx/http2 v1.0.20 // indirect
+	github.com/enetx/iter v0.0.0-20250912135656-f1583323588f // indirect
+	github.com/enetx/uquic v0.0.0-20250922085439-3a2249d297c9 // indirect
+	github.com/enetx/utls v0.0.0-20251024090823-efbd194d7328 // indirect
+	github.com/gaukas/clienthellod v0.4.2 // indirect
+	github.com/gaukas/godicttls v0.0.4 // indirect
+	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/google/gopacket v1.1.19 // indirect
+	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
+	github.com/klauspost/compress v1.18.1 // indirect
+	github.com/onsi/ginkgo/v2 v2.27.2 // indirect
+	github.com/quic-go/qpack v0.5.1 // indirect
+	github.com/quic-go/quic-go v0.39.0 // indirect
+	github.com/refraction-networking/utls v1.5.4 // indirect
+	github.com/wzshiming/socks5 v0.6.0 // indirect
+	go.uber.org/mock v0.6.0 // indirect
+	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 )
 
 require (
@@ -39,12 +66,12 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/elliottech/poseidon_crypto v0.0.11 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
-	github.com/ethereum/go-ethereum v1.15.6 // indirect
+	github.com/ethereum/go-ethereum v1.15.6
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.18.1 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
@@ -57,10 +84,10 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	github.com/zclconf/go-cty-yaml v1.1.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/sync v0.12.0
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/crypto v0.44.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/sync v0.18.0
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/carlmjohnson/requests"
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
+	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/golang-jwt/jwt/v5"
 	gocache "github.com/patrickmn/go-cache"
 	"golang.org/x/sync/singleflight"
@@ -25,7 +25,6 @@ type Client struct {
 	httpClient   *http.Client
 	systemConfig *SystemConfigRes
 
-	mutex         sync.RWMutex
 	jwtTokenCache *gocache.Cache
 	sfGroup       singleflight.Group
 }
@@ -34,7 +33,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c := Client{
 		endpoint:      PARADEX_HTTP_URL,
 		httpClient:    httpClient,
-		jwtTokenCache: gocache.New(300, 600),
+		jwtTokenCache: gocache.New(300*time.Second, 600*time.Second),
 	}
 	return &c
 }
@@ -202,23 +201,15 @@ func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey stri
 }
 
 func (c *Client) EnsureJwtToken(ctx context.Context, dexAccount, dexPrivateKey string) (string, error) {
-	c.mutex.RLock()
-	v, ok := c.jwtTokenCache.Get(dexPrivateKey)
-	c.mutex.RUnlock()
-
-	if ok {
+	if v, ok := c.jwtTokenCache.Get(dexAccount); ok {
 		if token, isString := v.(string); isString && token != "" {
 			return token, nil
 		}
 	}
 
-	cacheKey := dexPrivateKey
+	cacheKey := dexAccount
 	result, err, _ := c.sfGroup.Do(cacheKey, func() (any, error) {
-		c.mutex.RLock()
-		v, ok := c.jwtTokenCache.Get(dexPrivateKey)
-		c.mutex.RUnlock()
-
-		if ok {
+		if v, ok := c.jwtTokenCache.Get(dexAccount); ok {
 			if token, isString := v.(string); isString && token != "" {
 				return token, nil
 			}
@@ -231,12 +222,11 @@ func (c *Client) EnsureJwtToken(ctx context.Context, dexAccount, dexPrivateKey s
 
 		expirationTime, err := parseExpirationTime(jwtToken)
 		if err != nil {
-			expirationTime = time.Now().Add(time.Second * 30)
+			expirationTime = time.Now().Add(3 * time.Minute)
+			logger.Warnf("[paradex.Client] 未找到Token过期时间, account: %s", dexAccount)
 		}
 
-		c.mutex.Lock()
-		c.jwtTokenCache.Set(dexPrivateKey, jwtToken, expirationTime.Sub(time.Now().Add(time.Second*10)))
-		c.mutex.Unlock()
+		c.jwtTokenCache.Set(dexAccount, jwtToken, time.Until(expirationTime.Add(-10*time.Second)))
 
 		return jwtToken, nil
 	})
