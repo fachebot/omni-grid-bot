@@ -2,6 +2,7 @@ package variational
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -152,6 +153,8 @@ func (c *Client) parseRespone(res g.Result[*surf.Response], data any) error {
 		return res.Err()
 	}
 
+	defer res.Ok().Body.Close()
+
 	statusCode := res.Ok().StatusCode
 	if statusCode < 200 || statusCode >= 300 {
 		var errRes ErrorRes
@@ -162,8 +165,9 @@ func (c *Client) parseRespone(res g.Result[*surf.Response], data any) error {
 		return fmt.Errorf("http error - status_code: %d, body: %s", statusCode, res.Ok().Body.String())
 	}
 
-	if err := res.Ok().Body.JSON(data); err != nil {
-		return fmt.Errorf("invalid json content, body: %s", res.Ok().Body.String())
+	content := res.Ok().Body.Bytes()
+	if err := json.Unmarshal(content, data); err != nil {
+		return fmt.Errorf("invalid json content, body: %s", string(content))
 	}
 	return nil
 }
