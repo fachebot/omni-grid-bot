@@ -101,12 +101,12 @@ func Quantity(v decimal.Decimal) predicate.Grid {
 }
 
 // BuyClientOrderId applies equality check predicate on the "buyClientOrderId" field. It's identical to BuyClientOrderIdEQ.
-func BuyClientOrderId(v int64) predicate.Grid {
+func BuyClientOrderId(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldBuyClientOrderId, v))
 }
 
 // SellClientOrderId applies equality check predicate on the "sellClientOrderId" field. It's identical to SellClientOrderIdEQ.
-func SellClientOrderId(v int64) predicate.Grid {
+func SellClientOrderId(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderId, v))
 }
 
@@ -631,43 +631,58 @@ func QuantityContainsFold(v decimal.Decimal) predicate.Grid {
 }
 
 // BuyClientOrderIdEQ applies the EQ predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdEQ(v int64) predicate.Grid {
+func BuyClientOrderIdEQ(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdNEQ applies the NEQ predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdNEQ(v int64) predicate.Grid {
+func BuyClientOrderIdNEQ(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldNEQ(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdIn applies the In predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdIn(vs ...int64) predicate.Grid {
+func BuyClientOrderIdIn(vs ...string) predicate.Grid {
 	return predicate.Grid(sql.FieldIn(FieldBuyClientOrderId, vs...))
 }
 
 // BuyClientOrderIdNotIn applies the NotIn predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdNotIn(vs ...int64) predicate.Grid {
+func BuyClientOrderIdNotIn(vs ...string) predicate.Grid {
 	return predicate.Grid(sql.FieldNotIn(FieldBuyClientOrderId, vs...))
 }
 
 // BuyClientOrderIdGT applies the GT predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdGT(v int64) predicate.Grid {
+func BuyClientOrderIdGT(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldGT(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdGTE applies the GTE predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdGTE(v int64) predicate.Grid {
+func BuyClientOrderIdGTE(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldGTE(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdLT applies the LT predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdLT(v int64) predicate.Grid {
+func BuyClientOrderIdLT(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldLT(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdLTE applies the LTE predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdLTE(v int64) predicate.Grid {
+func BuyClientOrderIdLTE(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldLTE(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdContains applies the Contains predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdContains(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldContains(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdHasPrefix applies the HasPrefix predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdHasPrefix(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldHasPrefix(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdHasSuffix applies the HasSuffix predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdHasSuffix(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldHasSuffix(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdIsNil applies the IsNil predicate on the "buyClientOrderId" field.
@@ -680,44 +695,69 @@ func BuyClientOrderIdNotNil() predicate.Grid {
 	return predicate.Grid(sql.FieldNotNull(FieldBuyClientOrderId))
 }
 
+// BuyClientOrderIdEqualFold applies the EqualFold predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdEqualFold(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldEqualFold(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdContainsFold applies the ContainsFold predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdContainsFold(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldContainsFold(FieldBuyClientOrderId, v))
+}
+
 // SellClientOrderIdEQ applies the EQ predicate on the "sellClientOrderId" field.
-func SellClientOrderIdEQ(v int64) predicate.Grid {
+func SellClientOrderIdEQ(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldEQ(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdNEQ applies the NEQ predicate on the "sellClientOrderId" field.
-func SellClientOrderIdNEQ(v int64) predicate.Grid {
+func SellClientOrderIdNEQ(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldNEQ(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdIn applies the In predicate on the "sellClientOrderId" field.
-func SellClientOrderIdIn(vs ...int64) predicate.Grid {
+func SellClientOrderIdIn(vs ...string) predicate.Grid {
 	return predicate.Grid(sql.FieldIn(FieldSellClientOrderId, vs...))
 }
 
 // SellClientOrderIdNotIn applies the NotIn predicate on the "sellClientOrderId" field.
-func SellClientOrderIdNotIn(vs ...int64) predicate.Grid {
+func SellClientOrderIdNotIn(vs ...string) predicate.Grid {
 	return predicate.Grid(sql.FieldNotIn(FieldSellClientOrderId, vs...))
 }
 
 // SellClientOrderIdGT applies the GT predicate on the "sellClientOrderId" field.
-func SellClientOrderIdGT(v int64) predicate.Grid {
+func SellClientOrderIdGT(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldGT(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdGTE applies the GTE predicate on the "sellClientOrderId" field.
-func SellClientOrderIdGTE(v int64) predicate.Grid {
+func SellClientOrderIdGTE(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldGTE(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdLT applies the LT predicate on the "sellClientOrderId" field.
-func SellClientOrderIdLT(v int64) predicate.Grid {
+func SellClientOrderIdLT(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldLT(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdLTE applies the LTE predicate on the "sellClientOrderId" field.
-func SellClientOrderIdLTE(v int64) predicate.Grid {
+func SellClientOrderIdLTE(v string) predicate.Grid {
 	return predicate.Grid(sql.FieldLTE(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdContains applies the Contains predicate on the "sellClientOrderId" field.
+func SellClientOrderIdContains(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldContains(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdHasPrefix applies the HasPrefix predicate on the "sellClientOrderId" field.
+func SellClientOrderIdHasPrefix(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldHasPrefix(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdHasSuffix applies the HasSuffix predicate on the "sellClientOrderId" field.
+func SellClientOrderIdHasSuffix(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldHasSuffix(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdIsNil applies the IsNil predicate on the "sellClientOrderId" field.
@@ -728,6 +768,16 @@ func SellClientOrderIdIsNil() predicate.Grid {
 // SellClientOrderIdNotNil applies the NotNil predicate on the "sellClientOrderId" field.
 func SellClientOrderIdNotNil() predicate.Grid {
 	return predicate.Grid(sql.FieldNotNull(FieldSellClientOrderId))
+}
+
+// SellClientOrderIdEqualFold applies the EqualFold predicate on the "sellClientOrderId" field.
+func SellClientOrderIdEqualFold(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldEqualFold(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdContainsFold applies the ContainsFold predicate on the "sellClientOrderId" field.
+func SellClientOrderIdContainsFold(v string) predicate.Grid {
+	return predicate.Grid(sql.FieldContainsFold(FieldSellClientOrderId, v))
 }
 
 // And groups predicates with the AND operator between them.

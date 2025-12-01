@@ -64,23 +64,16 @@ func (_u *MatchedTradeUpdate) SetNillableSymbol(v *string) *MatchedTradeUpdate {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_u *MatchedTradeUpdate) SetBuyClientOrderId(v int64) *MatchedTradeUpdate {
-	_u.mutation.ResetBuyClientOrderId()
+func (_u *MatchedTradeUpdate) SetBuyClientOrderId(v string) *MatchedTradeUpdate {
 	_u.mutation.SetBuyClientOrderId(v)
 	return _u
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_u *MatchedTradeUpdate) SetNillableBuyClientOrderId(v *int64) *MatchedTradeUpdate {
+func (_u *MatchedTradeUpdate) SetNillableBuyClientOrderId(v *string) *MatchedTradeUpdate {
 	if v != nil {
 		_u.SetBuyClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddBuyClientOrderId adds value to the "buyClientOrderId" field.
-func (_u *MatchedTradeUpdate) AddBuyClientOrderId(v int64) *MatchedTradeUpdate {
-	_u.mutation.AddBuyClientOrderId(v)
 	return _u
 }
 
@@ -158,23 +151,16 @@ func (_u *MatchedTradeUpdate) ClearBuyOrderTimestamp() *MatchedTradeUpdate {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_u *MatchedTradeUpdate) SetSellClientOrderId(v int64) *MatchedTradeUpdate {
-	_u.mutation.ResetSellClientOrderId()
+func (_u *MatchedTradeUpdate) SetSellClientOrderId(v string) *MatchedTradeUpdate {
 	_u.mutation.SetSellClientOrderId(v)
 	return _u
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_u *MatchedTradeUpdate) SetNillableSellClientOrderId(v *int64) *MatchedTradeUpdate {
+func (_u *MatchedTradeUpdate) SetNillableSellClientOrderId(v *string) *MatchedTradeUpdate {
 	if v != nil {
 		_u.SetSellClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddSellClientOrderId adds value to the "sellClientOrderId" field.
-func (_u *MatchedTradeUpdate) AddSellClientOrderId(v int64) *MatchedTradeUpdate {
-	_u.mutation.AddSellClientOrderId(v)
 	return _u
 }
 
@@ -351,13 +337,10 @@ func (_u *MatchedTradeUpdate) sqlSave(ctx context.Context) (_node int, err error
 		_spec.SetField(matchedtrade.FieldSymbol, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedBuyClientOrderId(); ok {
-		_spec.AddField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.BuyClientOrderIdCleared() {
-		_spec.ClearField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64)
+		_spec.ClearField(matchedtrade.FieldBuyClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.BuyBaseAmount(); ok {
 		_spec.SetField(matchedtrade.FieldBuyBaseAmount, field.TypeString, value)
@@ -381,13 +364,10 @@ func (_u *MatchedTradeUpdate) sqlSave(ctx context.Context) (_node int, err error
 		_spec.ClearField(matchedtrade.FieldBuyOrderTimestamp, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedSellClientOrderId(); ok {
-		_spec.AddField(matchedtrade.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
-		_spec.ClearField(matchedtrade.FieldSellClientOrderId, field.TypeInt64)
+		_spec.ClearField(matchedtrade.FieldSellClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.SellBaseAmount(); ok {
 		_spec.SetField(matchedtrade.FieldSellBaseAmount, field.TypeString, value)
@@ -474,23 +454,16 @@ func (_u *MatchedTradeUpdateOne) SetNillableSymbol(v *string) *MatchedTradeUpdat
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_u *MatchedTradeUpdateOne) SetBuyClientOrderId(v int64) *MatchedTradeUpdateOne {
-	_u.mutation.ResetBuyClientOrderId()
+func (_u *MatchedTradeUpdateOne) SetBuyClientOrderId(v string) *MatchedTradeUpdateOne {
 	_u.mutation.SetBuyClientOrderId(v)
 	return _u
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_u *MatchedTradeUpdateOne) SetNillableBuyClientOrderId(v *int64) *MatchedTradeUpdateOne {
+func (_u *MatchedTradeUpdateOne) SetNillableBuyClientOrderId(v *string) *MatchedTradeUpdateOne {
 	if v != nil {
 		_u.SetBuyClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddBuyClientOrderId adds value to the "buyClientOrderId" field.
-func (_u *MatchedTradeUpdateOne) AddBuyClientOrderId(v int64) *MatchedTradeUpdateOne {
-	_u.mutation.AddBuyClientOrderId(v)
 	return _u
 }
 
@@ -568,23 +541,16 @@ func (_u *MatchedTradeUpdateOne) ClearBuyOrderTimestamp() *MatchedTradeUpdateOne
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_u *MatchedTradeUpdateOne) SetSellClientOrderId(v int64) *MatchedTradeUpdateOne {
-	_u.mutation.ResetSellClientOrderId()
+func (_u *MatchedTradeUpdateOne) SetSellClientOrderId(v string) *MatchedTradeUpdateOne {
 	_u.mutation.SetSellClientOrderId(v)
 	return _u
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_u *MatchedTradeUpdateOne) SetNillableSellClientOrderId(v *int64) *MatchedTradeUpdateOne {
+func (_u *MatchedTradeUpdateOne) SetNillableSellClientOrderId(v *string) *MatchedTradeUpdateOne {
 	if v != nil {
 		_u.SetSellClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddSellClientOrderId adds value to the "sellClientOrderId" field.
-func (_u *MatchedTradeUpdateOne) AddSellClientOrderId(v int64) *MatchedTradeUpdateOne {
-	_u.mutation.AddSellClientOrderId(v)
 	return _u
 }
 
@@ -791,13 +757,10 @@ func (_u *MatchedTradeUpdateOne) sqlSave(ctx context.Context) (_node *MatchedTra
 		_spec.SetField(matchedtrade.FieldSymbol, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedBuyClientOrderId(); ok {
-		_spec.AddField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.BuyClientOrderIdCleared() {
-		_spec.ClearField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64)
+		_spec.ClearField(matchedtrade.FieldBuyClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.BuyBaseAmount(); ok {
 		_spec.SetField(matchedtrade.FieldBuyBaseAmount, field.TypeString, value)
@@ -821,13 +784,10 @@ func (_u *MatchedTradeUpdateOne) sqlSave(ctx context.Context) (_node *MatchedTra
 		_spec.ClearField(matchedtrade.FieldBuyOrderTimestamp, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedSellClientOrderId(); ok {
-		_spec.AddField(matchedtrade.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
-		_spec.ClearField(matchedtrade.FieldSellClientOrderId, field.TypeInt64)
+		_spec.ClearField(matchedtrade.FieldSellClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.SellBaseAmount(); ok {
 		_spec.SetField(matchedtrade.FieldSellBaseAmount, field.TypeString, value)

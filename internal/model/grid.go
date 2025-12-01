@@ -39,14 +39,14 @@ func (m *GridModel) FindAllByStrategyIdOrderAsc(ctx context.Context, strategyId 
 	return m.client.Query().Where(grid.StrategyIdEQ(strategyId)).Order(grid.ByLevel(sql.OrderAsc())).All(ctx)
 }
 
-func (m *GridModel) UpdateBuyClientOrderId(ctx context.Context, id int, newValue *int64) error {
+func (m *GridModel) UpdateBuyClientOrderId(ctx context.Context, id int, newValue *string) error {
 	if newValue == nil {
 		return m.client.UpdateOneID(id).ClearBuyClientOrderId().Exec(ctx)
 	}
 	return m.client.UpdateOneID(id).SetBuyClientOrderId(*newValue).Exec(ctx)
 }
 
-func (m *GridModel) UpdateSellClientOrderId(ctx context.Context, id int, newValue *int64) error {
+func (m *GridModel) UpdateSellClientOrderId(ctx context.Context, id int, newValue *string) error {
 	if newValue == nil {
 		return m.client.UpdateOneID(id).ClearSellClientOrderId().Exec(ctx)
 	}

@@ -213,7 +213,7 @@ func (m *MatchedTradeModel) UpdateByBuyOrder(
 	ctx context.Context,
 	strategyId string,
 	buyOrder *ent.Order,
-	sellClientOrderId int64,
+	sellClientOrderId string,
 	sellBaseAmount,
 	sellQuoteAmount *decimal.Decimal,
 	sellOrderTimestamp *int64) error {
@@ -234,7 +234,7 @@ func (m *MatchedTradeModel) UpdateBySellOrder(
 	ctx context.Context,
 	strategyId string,
 	sellOrder *ent.Order,
-	buyClientOrderId int64,
+	buyClientOrderId string,
 	buyBaseAmount,
 	buyQuoteAmount *decimal.Decimal,
 	buyOrderTimestamp *int64) error {

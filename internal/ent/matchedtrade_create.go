@@ -64,13 +64,13 @@ func (_c *MatchedTradeCreate) SetSymbol(v string) *MatchedTradeCreate {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_c *MatchedTradeCreate) SetBuyClientOrderId(v int64) *MatchedTradeCreate {
+func (_c *MatchedTradeCreate) SetBuyClientOrderId(v string) *MatchedTradeCreate {
 	_c.mutation.SetBuyClientOrderId(v)
 	return _c
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_c *MatchedTradeCreate) SetNillableBuyClientOrderId(v *int64) *MatchedTradeCreate {
+func (_c *MatchedTradeCreate) SetNillableBuyClientOrderId(v *string) *MatchedTradeCreate {
 	if v != nil {
 		_c.SetBuyClientOrderId(*v)
 	}
@@ -120,13 +120,13 @@ func (_c *MatchedTradeCreate) SetNillableBuyOrderTimestamp(v *int64) *MatchedTra
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_c *MatchedTradeCreate) SetSellClientOrderId(v int64) *MatchedTradeCreate {
+func (_c *MatchedTradeCreate) SetSellClientOrderId(v string) *MatchedTradeCreate {
 	_c.mutation.SetSellClientOrderId(v)
 	return _c
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_c *MatchedTradeCreate) SetNillableSellClientOrderId(v *int64) *MatchedTradeCreate {
+func (_c *MatchedTradeCreate) SetNillableSellClientOrderId(v *string) *MatchedTradeCreate {
 	if v != nil {
 		_c.SetSellClientOrderId(*v)
 	}
@@ -297,7 +297,7 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 		_node.Symbol = value
 	}
 	if value, ok := _c.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldBuyClientOrderId, field.TypeString, value)
 		_node.BuyClientOrderId = &value
 	}
 	if value, ok := _c.mutation.BuyBaseAmount(); ok {
@@ -313,7 +313,7 @@ func (_c *MatchedTradeCreate) createSpec() (*MatchedTrade, *sqlgraph.CreateSpec)
 		_node.BuyOrderTimestamp = &value
 	}
 	if value, ok := _c.mutation.SellClientOrderId(); ok {
-		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(matchedtrade.FieldSellClientOrderId, field.TypeString, value)
 		_node.SellClientOrderId = &value
 	}
 	if value, ok := _c.mutation.SellBaseAmount(); ok {
@@ -421,7 +421,7 @@ func (u *MatchedTradeUpsert) UpdateSymbol() *MatchedTradeUpsert {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *MatchedTradeUpsert) SetBuyClientOrderId(v int64) *MatchedTradeUpsert {
+func (u *MatchedTradeUpsert) SetBuyClientOrderId(v string) *MatchedTradeUpsert {
 	u.Set(matchedtrade.FieldBuyClientOrderId, v)
 	return u
 }
@@ -429,12 +429,6 @@ func (u *MatchedTradeUpsert) SetBuyClientOrderId(v int64) *MatchedTradeUpsert {
 // UpdateBuyClientOrderId sets the "buyClientOrderId" field to the value that was provided on create.
 func (u *MatchedTradeUpsert) UpdateBuyClientOrderId() *MatchedTradeUpsert {
 	u.SetExcluded(matchedtrade.FieldBuyClientOrderId)
-	return u
-}
-
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *MatchedTradeUpsert) AddBuyClientOrderId(v int64) *MatchedTradeUpsert {
-	u.Add(matchedtrade.FieldBuyClientOrderId, v)
 	return u
 }
 
@@ -505,7 +499,7 @@ func (u *MatchedTradeUpsert) ClearBuyOrderTimestamp() *MatchedTradeUpsert {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *MatchedTradeUpsert) SetSellClientOrderId(v int64) *MatchedTradeUpsert {
+func (u *MatchedTradeUpsert) SetSellClientOrderId(v string) *MatchedTradeUpsert {
 	u.Set(matchedtrade.FieldSellClientOrderId, v)
 	return u
 }
@@ -513,12 +507,6 @@ func (u *MatchedTradeUpsert) SetSellClientOrderId(v int64) *MatchedTradeUpsert {
 // UpdateSellClientOrderId sets the "sellClientOrderId" field to the value that was provided on create.
 func (u *MatchedTradeUpsert) UpdateSellClientOrderId() *MatchedTradeUpsert {
 	u.SetExcluded(matchedtrade.FieldSellClientOrderId)
-	return u
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *MatchedTradeUpsert) AddSellClientOrderId(v int64) *MatchedTradeUpsert {
-	u.Add(matchedtrade.FieldSellClientOrderId, v)
 	return u
 }
 
@@ -700,16 +688,9 @@ func (u *MatchedTradeUpsertOne) UpdateSymbol() *MatchedTradeUpsertOne {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *MatchedTradeUpsertOne) SetBuyClientOrderId(v int64) *MatchedTradeUpsertOne {
+func (u *MatchedTradeUpsertOne) SetBuyClientOrderId(v string) *MatchedTradeUpsertOne {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.SetBuyClientOrderId(v)
-	})
-}
-
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *MatchedTradeUpsertOne) AddBuyClientOrderId(v int64) *MatchedTradeUpsertOne {
-	return u.Update(func(s *MatchedTradeUpsert) {
-		s.AddBuyClientOrderId(v)
 	})
 }
 
@@ -798,16 +779,9 @@ func (u *MatchedTradeUpsertOne) ClearBuyOrderTimestamp() *MatchedTradeUpsertOne 
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *MatchedTradeUpsertOne) SetSellClientOrderId(v int64) *MatchedTradeUpsertOne {
+func (u *MatchedTradeUpsertOne) SetSellClientOrderId(v string) *MatchedTradeUpsertOne {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.SetSellClientOrderId(v)
-	})
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *MatchedTradeUpsertOne) AddSellClientOrderId(v int64) *MatchedTradeUpsertOne {
-	return u.Update(func(s *MatchedTradeUpsert) {
-		s.AddSellClientOrderId(v)
 	})
 }
 
@@ -1177,16 +1151,9 @@ func (u *MatchedTradeUpsertBulk) UpdateSymbol() *MatchedTradeUpsertBulk {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *MatchedTradeUpsertBulk) SetBuyClientOrderId(v int64) *MatchedTradeUpsertBulk {
+func (u *MatchedTradeUpsertBulk) SetBuyClientOrderId(v string) *MatchedTradeUpsertBulk {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.SetBuyClientOrderId(v)
-	})
-}
-
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *MatchedTradeUpsertBulk) AddBuyClientOrderId(v int64) *MatchedTradeUpsertBulk {
-	return u.Update(func(s *MatchedTradeUpsert) {
-		s.AddBuyClientOrderId(v)
 	})
 }
 
@@ -1275,16 +1242,9 @@ func (u *MatchedTradeUpsertBulk) ClearBuyOrderTimestamp() *MatchedTradeUpsertBul
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *MatchedTradeUpsertBulk) SetSellClientOrderId(v int64) *MatchedTradeUpsertBulk {
+func (u *MatchedTradeUpsertBulk) SetSellClientOrderId(v string) *MatchedTradeUpsertBulk {
 	return u.Update(func(s *MatchedTradeUpsert) {
 		s.SetSellClientOrderId(v)
-	})
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *MatchedTradeUpsertBulk) AddSellClientOrderId(v int64) *MatchedTradeUpsertBulk {
-	return u.Update(func(s *MatchedTradeUpsert) {
-		s.AddSellClientOrderId(v)
 	})
 }
 

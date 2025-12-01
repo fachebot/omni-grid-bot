@@ -15,18 +15,18 @@ func NewRecentOrdersCache() *RecentOrdersCache {
 	return &RecentOrdersCache{cache: gocache.New(5*time.Minute, 10*time.Minute)}
 }
 
-func (router *RecentOrdersCache) Add(exchange, user string, clientOrderId int64) {
-	key := fmt.Sprintf("%s:%s:%d", exchange, user, clientOrderId)
+func (router *RecentOrdersCache) Add(exchange, user, clientOrderId string) {
+	key := fmt.Sprintf("%s:%s:%s", exchange, user, clientOrderId)
 	router.cache.Add(key, "", gocache.DefaultExpiration)
 }
 
-func (router *RecentOrdersCache) Del(exchange, user string, clientOrderId int64) {
-	key := fmt.Sprintf("%s:%s:%d", exchange, user, clientOrderId)
+func (router *RecentOrdersCache) Del(exchange, user, clientOrderId string) {
+	key := fmt.Sprintf("%s:%s:%s", exchange, user, clientOrderId)
 	router.cache.Delete(key)
 }
 
-func (router *RecentOrdersCache) Has(exchange, user string, clientOrderId int64) bool {
-	key := fmt.Sprintf("%s:%s:%d", exchange, user, clientOrderId)
+func (router *RecentOrdersCache) Has(exchange, user, clientOrderId string) bool {
+	key := fmt.Sprintf("%s:%s:%s", exchange, user, clientOrderId)
 	_, ok := router.cache.Get(key)
 	return ok
 }

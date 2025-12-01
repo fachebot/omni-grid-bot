@@ -31,7 +31,7 @@ type Order struct {
 	// OrderId holds the value of the "orderId" field.
 	OrderId string `json:"orderId,omitempty"`
 	// ClientOrderId holds the value of the "clientOrderId" field.
-	ClientOrderId int64 `json:"clientOrderId,omitempty"`
+	ClientOrderId string `json:"clientOrderId,omitempty"`
 	// Side holds the value of the "side" field.
 	Side order.Side `json:"side,omitempty"`
 	// Price holds the value of the "price" field.
@@ -56,9 +56,9 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldPrice, order.FieldBaseAmount, order.FieldFilledBaseAmount, order.FieldFilledQuoteAmount:
 			values[i] = new(decimal.Decimal)
-		case order.FieldID, order.FieldClientOrderId, order.FieldTimestamp:
+		case order.FieldID, order.FieldTimestamp:
 			values[i] = new(sql.NullInt64)
-		case order.FieldExchange, order.FieldAccount, order.FieldSymbol, order.FieldOrderId, order.FieldSide, order.FieldStatus:
+		case order.FieldExchange, order.FieldAccount, order.FieldSymbol, order.FieldOrderId, order.FieldClientOrderId, order.FieldSide, order.FieldStatus:
 			values[i] = new(sql.NullString)
 		case order.FieldCreateTime, order.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -120,10 +120,10 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.OrderId = value.String
 			}
 		case order.FieldClientOrderId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field clientOrderId", values[i])
 			} else if value.Valid {
-				_m.ClientOrderId = value.Int64
+				_m.ClientOrderId = value.String
 			}
 		case order.FieldSide:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -222,7 +222,7 @@ func (_m *Order) String() string {
 	builder.WriteString(_m.OrderId)
 	builder.WriteString(", ")
 	builder.WriteString("clientOrderId=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ClientOrderId))
+	builder.WriteString(_m.ClientOrderId)
 	builder.WriteString(", ")
 	builder.WriteString("side=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Side))

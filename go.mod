@@ -30,7 +30,7 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/enetx/g v1.0.195
-	github.com/enetx/http v1.0.19 // indirect
+	github.com/enetx/http v1.0.19
 	github.com/enetx/http2 v1.0.20 // indirect
 	github.com/enetx/iter v0.0.0-20250912135656-f1583323588f // indirect
 	github.com/enetx/uquic v0.0.0-20250922085439-3a2249d297c9 // indirect

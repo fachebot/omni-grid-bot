@@ -29,8 +29,8 @@ func (Grid) Fields() []ent.Field {
 		field.Int("level"),
 		field.String("price").GoType(decimal.Decimal{}),
 		field.String("quantity").GoType(decimal.Decimal{}),
-		field.Int64("buyClientOrderId").Nillable().Optional(),
-		field.Int64("sellClientOrderId").Nillable().Optional(),
+		field.String("buyClientOrderId").Nillable().Optional(),
+		field.String("sellClientOrderId").Nillable().Optional(),
 	}
 }
 

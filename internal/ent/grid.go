@@ -37,9 +37,9 @@ type Grid struct {
 	// Quantity holds the value of the "quantity" field.
 	Quantity decimal.Decimal `json:"quantity,omitempty"`
 	// BuyClientOrderId holds the value of the "buyClientOrderId" field.
-	BuyClientOrderId *int64 `json:"buyClientOrderId,omitempty"`
+	BuyClientOrderId *string `json:"buyClientOrderId,omitempty"`
 	// SellClientOrderId holds the value of the "sellClientOrderId" field.
-	SellClientOrderId *int64 `json:"sellClientOrderId,omitempty"`
+	SellClientOrderId *string `json:"sellClientOrderId,omitempty"`
 	selectValues      sql.SelectValues
 }
 
@@ -50,9 +50,9 @@ func (*Grid) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case grid.FieldPrice, grid.FieldQuantity:
 			values[i] = new(decimal.Decimal)
-		case grid.FieldID, grid.FieldLevel, grid.FieldBuyClientOrderId, grid.FieldSellClientOrderId:
+		case grid.FieldID, grid.FieldLevel:
 			values[i] = new(sql.NullInt64)
-		case grid.FieldStrategyId, grid.FieldExchange, grid.FieldSymbol, grid.FieldAccount:
+		case grid.FieldStrategyId, grid.FieldExchange, grid.FieldSymbol, grid.FieldAccount, grid.FieldBuyClientOrderId, grid.FieldSellClientOrderId:
 			values[i] = new(sql.NullString)
 		case grid.FieldCreateTime, grid.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -132,18 +132,18 @@ func (_m *Grid) assignValues(columns []string, values []any) error {
 				_m.Quantity = *value
 			}
 		case grid.FieldBuyClientOrderId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field buyClientOrderId", values[i])
 			} else if value.Valid {
-				_m.BuyClientOrderId = new(int64)
-				*_m.BuyClientOrderId = value.Int64
+				_m.BuyClientOrderId = new(string)
+				*_m.BuyClientOrderId = value.String
 			}
 		case grid.FieldSellClientOrderId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field sellClientOrderId", values[i])
 			} else if value.Valid {
-				_m.SellClientOrderId = new(int64)
-				*_m.SellClientOrderId = value.Int64
+				_m.SellClientOrderId = new(string)
+				*_m.SellClientOrderId = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -210,12 +210,12 @@ func (_m *Grid) String() string {
 	builder.WriteString(", ")
 	if v := _m.BuyClientOrderId; v != nil {
 		builder.WriteString("buyClientOrderId=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.SellClientOrderId; v != nil {
 		builder.WriteString("sellClientOrderId=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')
 	return builder.String()

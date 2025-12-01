@@ -20,8 +20,8 @@ var (
 		{Name: "level", Type: field.TypeInt},
 		{Name: "price", Type: field.TypeString},
 		{Name: "quantity", Type: field.TypeString},
-		{Name: "buy_client_order_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "sell_client_order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "buy_client_order_id", Type: field.TypeString, Nullable: true},
+		{Name: "sell_client_order_id", Type: field.TypeString, Nullable: true},
 	}
 	// GridsTable holds the schema information for the "grids" table.
 	GridsTable = &schema.Table{
@@ -53,11 +53,11 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "strategy_id", Type: field.TypeString, Size: 50},
 		{Name: "symbol", Type: field.TypeString},
-		{Name: "buy_client_order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "buy_client_order_id", Type: field.TypeString, Nullable: true},
 		{Name: "buy_base_amount", Type: field.TypeString, Nullable: true},
 		{Name: "buy_quote_amount", Type: field.TypeString, Nullable: true},
 		{Name: "buy_order_timestamp", Type: field.TypeInt64, Nullable: true},
-		{Name: "sell_client_order_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "sell_client_order_id", Type: field.TypeString, Nullable: true},
 		{Name: "sell_base_amount", Type: field.TypeString, Nullable: true},
 		{Name: "sell_quote_amount", Type: field.TypeString, Nullable: true},
 		{Name: "sell_order_timestamp", Type: field.TypeInt64, Nullable: true},
@@ -90,7 +90,7 @@ var (
 		{Name: "account", Type: field.TypeString},
 		{Name: "symbol", Type: field.TypeString},
 		{Name: "order_id", Type: field.TypeString},
-		{Name: "client_order_id", Type: field.TypeInt64},
+		{Name: "client_order_id", Type: field.TypeString},
 		{Name: "side", Type: field.TypeEnum, Enums: []string{"buy", "sell"}},
 		{Name: "price", Type: field.TypeString},
 		{Name: "base_amount", Type: field.TypeString},

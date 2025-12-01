@@ -131,13 +131,13 @@ func (h *LighterOrderHelper) CancelOrder(ctx context.Context, symbol string, ord
 	return h.CancelOrderBatch(ctx, []CancelOrderParams{{Symbol: symbol, OrderID: orderIndex}})
 }
 
-func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]int64, []int64, error) {
+func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	nonce, err := h.signer.Client().GetNextNonce(ctx, h.signer.GetAccountIndex(), h.signer.GetApiKeyIndex())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	limitClientOrderIds := make([]int64, 0)
+	limitClientOrderIds := make([]string, 0)
 	txInfos := make([]string, 0, len(limitOrders)+len(marketOrders))
 	txTypes := make([]lighter.TX_TYPE, 0, len(limitOrders)+len(marketOrders))
 	for _, item := range limitOrders {
@@ -151,10 +151,10 @@ func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 		txInfos = append(txInfos, txInfo)
 		txTypes = append(txTypes, lighter.TX_TYPE_CREATE_ORDER)
 
-		limitClientOrderIds = append(limitClientOrderIds, clientOrderIndex)
+		limitClientOrderIds = append(limitClientOrderIds, strconv.FormatInt(clientOrderIndex, 10))
 	}
 
-	marketClientOrderIds := make([]int64, 0)
+	marketClientOrderIds := make([]string, 0)
 	for _, item := range marketOrders {
 		clientOrderIndex := ClientOrderIndexBegin + nonce
 		txInfo, err := h.signCreateMarketOrder(ctx, item.Symbol, item.IsAsk, item.ReduceOnly, item.AcceptableExecutionPrice, item.Size, clientOrderIndex, nonce)
@@ -166,7 +166,7 @@ func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 		txInfos = append(txInfos, txInfo)
 		txTypes = append(txTypes, lighter.TX_TYPE_CREATE_ORDER)
 
-		marketClientOrderIds = append(marketClientOrderIds, clientOrderIndex)
+		marketClientOrderIds = append(marketClientOrderIds, strconv.FormatInt(clientOrderIndex, 10))
 	}
 
 	_, err = h.signer.Client().SendRawTxBatch(ctx, txTypes, txInfos)
@@ -177,7 +177,7 @@ func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 	return limitClientOrderIds, marketClientOrderIds, nil
 }
 
-func (h *LighterOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (int64, error) {
+func (h *LighterOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	clientOrderIds, _, err := h.CreateOrderBatch(ctx, []CreateLimitOrderParams{{
 		Symbol:     symbol,
 		IsAsk:      isAsk,
@@ -186,13 +186,13 @@ func (h *LighterOrderHelper) CreateLimitOrder(ctx context.Context, symbol string
 		Size:       size,
 	}}, nil)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return clientOrderIds[0], nil
 }
 
-func (h *LighterOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (int64, error) {
+func (h *LighterOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
 	_, clientOrderIds, err := h.CreateOrderBatch(ctx, nil, []CreateMarketOrderParams{{
 		Symbol:                   symbol,
 		IsAsk:                    isAsk,
@@ -201,7 +201,7 @@ func (h *LighterOrderHelper) CreateMarketOrder(ctx context.Context, symbol strin
 		Size:                     size,
 	}})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return clientOrderIds[0], nil
@@ -345,7 +345,7 @@ exit:
 				Account:           account,
 				Symbol:            symbol,
 				OrderId:           strconv.FormatInt(item.OrderIndex, 10),
-				ClientOrderId:     item.ClientOrderIndex,
+				ClientOrderId:     strconv.FormatInt(item.ClientOrderIndex, 10),
 				Side:              lo.If(item.IsAsk, order.SideSell).Else(order.SideBuy),
 				Price:             item.Price,
 				BaseAmount:        item.InitialBaseAmount,

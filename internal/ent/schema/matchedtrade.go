@@ -24,11 +24,11 @@ func (MatchedTrade) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("strategyId").MaxLen(50),
 		field.String("symbol"),
-		field.Int64("buyClientOrderId").Nillable().Optional(),
+		field.String("buyClientOrderId").Nillable().Optional(),
 		field.String("buyBaseAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.String("buyQuoteAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.Int64("buyOrderTimestamp").Nillable().Optional(),
-		field.Int64("sellClientOrderId").Nillable().Optional(),
+		field.String("sellClientOrderId").Nillable().Optional(),
 		field.String("sellBaseAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.String("sellQuoteAmount").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.Int64("sellOrderTimestamp").Nillable().Optional(),

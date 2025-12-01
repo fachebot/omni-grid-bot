@@ -15,7 +15,6 @@ import (
 	entstrategy "github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
-	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
 	"github.com/fachebot/omni-grid-bot/internal/strategy"
@@ -114,18 +113,6 @@ func main() {
 	if err != nil {
 		logger.Fatalf("读取配置文件失败, %s", err)
 	}
-
-	// 创建 SIWE 消息
-	fmt.Println("==================>")
-	cli := variational.NewClient(c.Sock5Proxy)
-	userClient := variational.NewUserClient(cli, "0xAC41618df323A66eB8cE0b82b5797E7D83569BB5", "0x3bab56abb4f14fc984bc6d12ca6ece92b431558e50fdcb12728d2490a37e4851")
-	s, err := userClient.GetPositions(context.TODO())
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(s)
-
-	return
 
 	// 创建数据目录
 	if _, err := os.Stat("data"); os.IsNotExist(err) {

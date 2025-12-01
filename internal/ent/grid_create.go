@@ -94,13 +94,13 @@ func (_c *GridCreate) SetQuantity(v decimal.Decimal) *GridCreate {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_c *GridCreate) SetBuyClientOrderId(v int64) *GridCreate {
+func (_c *GridCreate) SetBuyClientOrderId(v string) *GridCreate {
 	_c.mutation.SetBuyClientOrderId(v)
 	return _c
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_c *GridCreate) SetNillableBuyClientOrderId(v *int64) *GridCreate {
+func (_c *GridCreate) SetNillableBuyClientOrderId(v *string) *GridCreate {
 	if v != nil {
 		_c.SetBuyClientOrderId(*v)
 	}
@@ -108,13 +108,13 @@ func (_c *GridCreate) SetNillableBuyClientOrderId(v *int64) *GridCreate {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_c *GridCreate) SetSellClientOrderId(v int64) *GridCreate {
+func (_c *GridCreate) SetSellClientOrderId(v string) *GridCreate {
 	_c.mutation.SetSellClientOrderId(v)
 	return _c
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_c *GridCreate) SetNillableSellClientOrderId(v *int64) *GridCreate {
+func (_c *GridCreate) SetNillableSellClientOrderId(v *string) *GridCreate {
 	if v != nil {
 		_c.SetSellClientOrderId(*v)
 	}
@@ -274,11 +274,11 @@ func (_c *GridCreate) createSpec() (*Grid, *sqlgraph.CreateSpec) {
 		_node.Quantity = value
 	}
 	if value, ok := _c.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeString, value)
 		_node.BuyClientOrderId = &value
 	}
 	if value, ok := _c.mutation.SellClientOrderId(); ok {
-		_spec.SetField(grid.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 		_node.SellClientOrderId = &value
 	}
 	return _node, _spec
@@ -436,7 +436,7 @@ func (u *GridUpsert) UpdateQuantity() *GridUpsert {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *GridUpsert) SetBuyClientOrderId(v int64) *GridUpsert {
+func (u *GridUpsert) SetBuyClientOrderId(v string) *GridUpsert {
 	u.Set(grid.FieldBuyClientOrderId, v)
 	return u
 }
@@ -447,12 +447,6 @@ func (u *GridUpsert) UpdateBuyClientOrderId() *GridUpsert {
 	return u
 }
 
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *GridUpsert) AddBuyClientOrderId(v int64) *GridUpsert {
-	u.Add(grid.FieldBuyClientOrderId, v)
-	return u
-}
-
 // ClearBuyClientOrderId clears the value of the "buyClientOrderId" field.
 func (u *GridUpsert) ClearBuyClientOrderId() *GridUpsert {
 	u.SetNull(grid.FieldBuyClientOrderId)
@@ -460,7 +454,7 @@ func (u *GridUpsert) ClearBuyClientOrderId() *GridUpsert {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *GridUpsert) SetSellClientOrderId(v int64) *GridUpsert {
+func (u *GridUpsert) SetSellClientOrderId(v string) *GridUpsert {
 	u.Set(grid.FieldSellClientOrderId, v)
 	return u
 }
@@ -468,12 +462,6 @@ func (u *GridUpsert) SetSellClientOrderId(v int64) *GridUpsert {
 // UpdateSellClientOrderId sets the "sellClientOrderId" field to the value that was provided on create.
 func (u *GridUpsert) UpdateSellClientOrderId() *GridUpsert {
 	u.SetExcluded(grid.FieldSellClientOrderId)
-	return u
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *GridUpsert) AddSellClientOrderId(v int64) *GridUpsert {
-	u.Add(grid.FieldSellClientOrderId, v)
 	return u
 }
 
@@ -648,16 +636,9 @@ func (u *GridUpsertOne) UpdateQuantity() *GridUpsertOne {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *GridUpsertOne) SetBuyClientOrderId(v int64) *GridUpsertOne {
+func (u *GridUpsertOne) SetBuyClientOrderId(v string) *GridUpsertOne {
 	return u.Update(func(s *GridUpsert) {
 		s.SetBuyClientOrderId(v)
-	})
-}
-
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *GridUpsertOne) AddBuyClientOrderId(v int64) *GridUpsertOne {
-	return u.Update(func(s *GridUpsert) {
-		s.AddBuyClientOrderId(v)
 	})
 }
 
@@ -676,16 +657,9 @@ func (u *GridUpsertOne) ClearBuyClientOrderId() *GridUpsertOne {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *GridUpsertOne) SetSellClientOrderId(v int64) *GridUpsertOne {
+func (u *GridUpsertOne) SetSellClientOrderId(v string) *GridUpsertOne {
 	return u.Update(func(s *GridUpsert) {
 		s.SetSellClientOrderId(v)
-	})
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *GridUpsertOne) AddSellClientOrderId(v int64) *GridUpsertOne {
-	return u.Update(func(s *GridUpsert) {
-		s.AddSellClientOrderId(v)
 	})
 }
 
@@ -1034,16 +1008,9 @@ func (u *GridUpsertBulk) UpdateQuantity() *GridUpsertBulk {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (u *GridUpsertBulk) SetBuyClientOrderId(v int64) *GridUpsertBulk {
+func (u *GridUpsertBulk) SetBuyClientOrderId(v string) *GridUpsertBulk {
 	return u.Update(func(s *GridUpsert) {
 		s.SetBuyClientOrderId(v)
-	})
-}
-
-// AddBuyClientOrderId adds v to the "buyClientOrderId" field.
-func (u *GridUpsertBulk) AddBuyClientOrderId(v int64) *GridUpsertBulk {
-	return u.Update(func(s *GridUpsert) {
-		s.AddBuyClientOrderId(v)
 	})
 }
 
@@ -1062,16 +1029,9 @@ func (u *GridUpsertBulk) ClearBuyClientOrderId() *GridUpsertBulk {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (u *GridUpsertBulk) SetSellClientOrderId(v int64) *GridUpsertBulk {
+func (u *GridUpsertBulk) SetSellClientOrderId(v string) *GridUpsertBulk {
 	return u.Update(func(s *GridUpsert) {
 		s.SetSellClientOrderId(v)
-	})
-}
-
-// AddSellClientOrderId adds v to the "sellClientOrderId" field.
-func (u *GridUpsertBulk) AddSellClientOrderId(v int64) *GridUpsertBulk {
-	return u.Update(func(s *GridUpsert) {
-		s.AddSellClientOrderId(v)
 	})
 }
 

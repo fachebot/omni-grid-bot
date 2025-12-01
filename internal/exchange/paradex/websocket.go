@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 	"time"
 
@@ -255,14 +254,6 @@ func (ws *ParadexWS) readMessages() {
 					continue
 				}
 
-				var clientId int64
-				if ord.ClientID != "" {
-					clientId, err = strconv.ParseInt(ord.ClientID, 10, 64)
-					if err != nil {
-						clientId = 0
-					}
-				}
-
 				filledQuoteAmount := decimal.Zero
 				if ord.AvgFillPrice != "" {
 					avgFillPrice, err := decimal.NewFromString(ord.AvgFillPrice)
@@ -278,7 +269,7 @@ func (ws *ParadexWS) readMessages() {
 						{
 							Symbol:            symbol,
 							OrderID:           ord.ID,
-							ClientOrderID:     clientId,
+							ClientOrderID:     ord.ClientID,
 							Side:              lo.If(ord.Side == OrderSideSell, order.SideSell).Else(order.SideBuy),
 							Price:             ord.Price,
 							BaseAmount:        ord.Size,

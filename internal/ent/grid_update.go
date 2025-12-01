@@ -141,23 +141,16 @@ func (_u *GridUpdate) SetNillableQuantity(v *decimal.Decimal) *GridUpdate {
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_u *GridUpdate) SetBuyClientOrderId(v int64) *GridUpdate {
-	_u.mutation.ResetBuyClientOrderId()
+func (_u *GridUpdate) SetBuyClientOrderId(v string) *GridUpdate {
 	_u.mutation.SetBuyClientOrderId(v)
 	return _u
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_u *GridUpdate) SetNillableBuyClientOrderId(v *int64) *GridUpdate {
+func (_u *GridUpdate) SetNillableBuyClientOrderId(v *string) *GridUpdate {
 	if v != nil {
 		_u.SetBuyClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddBuyClientOrderId adds value to the "buyClientOrderId" field.
-func (_u *GridUpdate) AddBuyClientOrderId(v int64) *GridUpdate {
-	_u.mutation.AddBuyClientOrderId(v)
 	return _u
 }
 
@@ -168,23 +161,16 @@ func (_u *GridUpdate) ClearBuyClientOrderId() *GridUpdate {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_u *GridUpdate) SetSellClientOrderId(v int64) *GridUpdate {
-	_u.mutation.ResetSellClientOrderId()
+func (_u *GridUpdate) SetSellClientOrderId(v string) *GridUpdate {
 	_u.mutation.SetSellClientOrderId(v)
 	return _u
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_u *GridUpdate) SetNillableSellClientOrderId(v *int64) *GridUpdate {
+func (_u *GridUpdate) SetNillableSellClientOrderId(v *string) *GridUpdate {
 	if v != nil {
 		_u.SetSellClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddSellClientOrderId adds value to the "sellClientOrderId" field.
-func (_u *GridUpdate) AddSellClientOrderId(v int64) *GridUpdate {
-	_u.mutation.AddSellClientOrderId(v)
 	return _u
 }
 
@@ -295,22 +281,16 @@ func (_u *GridUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(grid.FieldQuantity, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedBuyClientOrderId(); ok {
-		_spec.AddField(grid.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.BuyClientOrderIdCleared() {
-		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeInt64)
+		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
-		_spec.SetField(grid.FieldSellClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedSellClientOrderId(); ok {
-		_spec.AddField(grid.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
-		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeInt64)
+		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -444,23 +424,16 @@ func (_u *GridUpdateOne) SetNillableQuantity(v *decimal.Decimal) *GridUpdateOne 
 }
 
 // SetBuyClientOrderId sets the "buyClientOrderId" field.
-func (_u *GridUpdateOne) SetBuyClientOrderId(v int64) *GridUpdateOne {
-	_u.mutation.ResetBuyClientOrderId()
+func (_u *GridUpdateOne) SetBuyClientOrderId(v string) *GridUpdateOne {
 	_u.mutation.SetBuyClientOrderId(v)
 	return _u
 }
 
 // SetNillableBuyClientOrderId sets the "buyClientOrderId" field if the given value is not nil.
-func (_u *GridUpdateOne) SetNillableBuyClientOrderId(v *int64) *GridUpdateOne {
+func (_u *GridUpdateOne) SetNillableBuyClientOrderId(v *string) *GridUpdateOne {
 	if v != nil {
 		_u.SetBuyClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddBuyClientOrderId adds value to the "buyClientOrderId" field.
-func (_u *GridUpdateOne) AddBuyClientOrderId(v int64) *GridUpdateOne {
-	_u.mutation.AddBuyClientOrderId(v)
 	return _u
 }
 
@@ -471,23 +444,16 @@ func (_u *GridUpdateOne) ClearBuyClientOrderId() *GridUpdateOne {
 }
 
 // SetSellClientOrderId sets the "sellClientOrderId" field.
-func (_u *GridUpdateOne) SetSellClientOrderId(v int64) *GridUpdateOne {
-	_u.mutation.ResetSellClientOrderId()
+func (_u *GridUpdateOne) SetSellClientOrderId(v string) *GridUpdateOne {
 	_u.mutation.SetSellClientOrderId(v)
 	return _u
 }
 
 // SetNillableSellClientOrderId sets the "sellClientOrderId" field if the given value is not nil.
-func (_u *GridUpdateOne) SetNillableSellClientOrderId(v *int64) *GridUpdateOne {
+func (_u *GridUpdateOne) SetNillableSellClientOrderId(v *string) *GridUpdateOne {
 	if v != nil {
 		_u.SetSellClientOrderId(*v)
 	}
-	return _u
-}
-
-// AddSellClientOrderId adds value to the "sellClientOrderId" field.
-func (_u *GridUpdateOne) AddSellClientOrderId(v int64) *GridUpdateOne {
-	_u.mutation.AddSellClientOrderId(v)
 	return _u
 }
 
@@ -628,22 +594,16 @@ func (_u *GridUpdateOne) sqlSave(ctx context.Context) (_node *Grid, err error) {
 		_spec.SetField(grid.FieldQuantity, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BuyClientOrderId(); ok {
-		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedBuyClientOrderId(); ok {
-		_spec.AddField(grid.FieldBuyClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldBuyClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.BuyClientOrderIdCleared() {
-		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeInt64)
+		_spec.ClearField(grid.FieldBuyClientOrderId, field.TypeString)
 	}
 	if value, ok := _u.mutation.SellClientOrderId(); ok {
-		_spec.SetField(grid.FieldSellClientOrderId, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedSellClientOrderId(); ok {
-		_spec.AddField(grid.FieldSellClientOrderId, field.TypeInt64, value)
+		_spec.SetField(grid.FieldSellClientOrderId, field.TypeString, value)
 	}
 	if _u.mutation.SellClientOrderIdCleared() {
-		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeInt64)
+		_spec.ClearField(grid.FieldSellClientOrderId, field.TypeString)
 	}
 	_node = &Grid{config: _u.config}
 	_spec.Assign = _node.assignValues

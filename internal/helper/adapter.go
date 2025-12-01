@@ -74,7 +74,7 @@ func (adapter *ExchangeAdapter) CancalAllOrders(ctx context.Context, symbol stri
 	return errors.New("route not found")
 }
 
-func (adapter *ExchangeAdapter) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]int64, []int64, error) {
+func (adapter *ExchangeAdapter) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateOrderBatch(ctx, limitOrders, marketOrders)
 	}
@@ -86,7 +86,7 @@ func (adapter *ExchangeAdapter) CreateOrderBatch(ctx context.Context, limitOrder
 	return nil, nil, errors.New("route not found")
 }
 
-func (adapter *ExchangeAdapter) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (int64, error) {
+func (adapter *ExchangeAdapter) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
 	}
@@ -95,10 +95,10 @@ func (adapter *ExchangeAdapter) CreateLimitOrder(ctx context.Context, symbol str
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
 	}
 
-	return 0, errors.New("route not found")
+	return "", errors.New("route not found")
 }
 
-func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (int64, error) {
+func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
 	if adapter.Account.Signer != nil {
 		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
 	}
@@ -107,7 +107,7 @@ func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol st
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
 	}
 
-	return 0, errors.New("route not found")
+	return "", errors.New("route not found")
 }
 
 func (adapter *ExchangeAdapter) SyncUserOrders(ctx context.Context) error {

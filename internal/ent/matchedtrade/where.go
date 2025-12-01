@@ -76,7 +76,7 @@ func Symbol(v string) predicate.MatchedTrade {
 }
 
 // BuyClientOrderId applies equality check predicate on the "buyClientOrderId" field. It's identical to BuyClientOrderIdEQ.
-func BuyClientOrderId(v int64) predicate.MatchedTrade {
+func BuyClientOrderId(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldBuyClientOrderId, v))
 }
 
@@ -96,7 +96,7 @@ func BuyOrderTimestamp(v int64) predicate.MatchedTrade {
 }
 
 // SellClientOrderId applies equality check predicate on the "sellClientOrderId" field. It's identical to SellClientOrderIdEQ.
-func SellClientOrderId(v int64) predicate.MatchedTrade {
+func SellClientOrderId(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldSellClientOrderId, v))
 }
 
@@ -331,43 +331,58 @@ func SymbolContainsFold(v string) predicate.MatchedTrade {
 }
 
 // BuyClientOrderIdEQ applies the EQ predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdEQ(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdEQ(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdNEQ applies the NEQ predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdNEQ(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdNEQ(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNEQ(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdIn applies the In predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdIn(vs ...int64) predicate.MatchedTrade {
+func BuyClientOrderIdIn(vs ...string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldIn(FieldBuyClientOrderId, vs...))
 }
 
 // BuyClientOrderIdNotIn applies the NotIn predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdNotIn(vs ...int64) predicate.MatchedTrade {
+func BuyClientOrderIdNotIn(vs ...string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNotIn(FieldBuyClientOrderId, vs...))
 }
 
 // BuyClientOrderIdGT applies the GT predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdGT(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdGT(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldGT(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdGTE applies the GTE predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdGTE(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdGTE(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldGTE(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdLT applies the LT predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdLT(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdLT(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldLT(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdLTE applies the LTE predicate on the "buyClientOrderId" field.
-func BuyClientOrderIdLTE(v int64) predicate.MatchedTrade {
+func BuyClientOrderIdLTE(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldLTE(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdContains applies the Contains predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdContains(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContains(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdHasPrefix applies the HasPrefix predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdHasPrefix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasPrefix(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdHasSuffix applies the HasSuffix predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdHasSuffix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasSuffix(FieldBuyClientOrderId, v))
 }
 
 // BuyClientOrderIdIsNil applies the IsNil predicate on the "buyClientOrderId" field.
@@ -378,6 +393,16 @@ func BuyClientOrderIdIsNil() predicate.MatchedTrade {
 // BuyClientOrderIdNotNil applies the NotNil predicate on the "buyClientOrderId" field.
 func BuyClientOrderIdNotNil() predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNotNull(FieldBuyClientOrderId))
+}
+
+// BuyClientOrderIdEqualFold applies the EqualFold predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdEqualFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEqualFold(FieldBuyClientOrderId, v))
+}
+
+// BuyClientOrderIdContainsFold applies the ContainsFold predicate on the "buyClientOrderId" field.
+func BuyClientOrderIdContainsFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContainsFold(FieldBuyClientOrderId, v))
 }
 
 // BuyBaseAmountEQ applies the EQ predicate on the "buyBaseAmount" field.
@@ -591,43 +616,58 @@ func BuyOrderTimestampNotNil() predicate.MatchedTrade {
 }
 
 // SellClientOrderIdEQ applies the EQ predicate on the "sellClientOrderId" field.
-func SellClientOrderIdEQ(v int64) predicate.MatchedTrade {
+func SellClientOrderIdEQ(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldEQ(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdNEQ applies the NEQ predicate on the "sellClientOrderId" field.
-func SellClientOrderIdNEQ(v int64) predicate.MatchedTrade {
+func SellClientOrderIdNEQ(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNEQ(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdIn applies the In predicate on the "sellClientOrderId" field.
-func SellClientOrderIdIn(vs ...int64) predicate.MatchedTrade {
+func SellClientOrderIdIn(vs ...string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldIn(FieldSellClientOrderId, vs...))
 }
 
 // SellClientOrderIdNotIn applies the NotIn predicate on the "sellClientOrderId" field.
-func SellClientOrderIdNotIn(vs ...int64) predicate.MatchedTrade {
+func SellClientOrderIdNotIn(vs ...string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNotIn(FieldSellClientOrderId, vs...))
 }
 
 // SellClientOrderIdGT applies the GT predicate on the "sellClientOrderId" field.
-func SellClientOrderIdGT(v int64) predicate.MatchedTrade {
+func SellClientOrderIdGT(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldGT(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdGTE applies the GTE predicate on the "sellClientOrderId" field.
-func SellClientOrderIdGTE(v int64) predicate.MatchedTrade {
+func SellClientOrderIdGTE(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldGTE(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdLT applies the LT predicate on the "sellClientOrderId" field.
-func SellClientOrderIdLT(v int64) predicate.MatchedTrade {
+func SellClientOrderIdLT(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldLT(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdLTE applies the LTE predicate on the "sellClientOrderId" field.
-func SellClientOrderIdLTE(v int64) predicate.MatchedTrade {
+func SellClientOrderIdLTE(v string) predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldLTE(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdContains applies the Contains predicate on the "sellClientOrderId" field.
+func SellClientOrderIdContains(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContains(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdHasPrefix applies the HasPrefix predicate on the "sellClientOrderId" field.
+func SellClientOrderIdHasPrefix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasPrefix(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdHasSuffix applies the HasSuffix predicate on the "sellClientOrderId" field.
+func SellClientOrderIdHasSuffix(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldHasSuffix(FieldSellClientOrderId, v))
 }
 
 // SellClientOrderIdIsNil applies the IsNil predicate on the "sellClientOrderId" field.
@@ -638,6 +678,16 @@ func SellClientOrderIdIsNil() predicate.MatchedTrade {
 // SellClientOrderIdNotNil applies the NotNil predicate on the "sellClientOrderId" field.
 func SellClientOrderIdNotNil() predicate.MatchedTrade {
 	return predicate.MatchedTrade(sql.FieldNotNull(FieldSellClientOrderId))
+}
+
+// SellClientOrderIdEqualFold applies the EqualFold predicate on the "sellClientOrderId" field.
+func SellClientOrderIdEqualFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldEqualFold(FieldSellClientOrderId, v))
+}
+
+// SellClientOrderIdContainsFold applies the ContainsFold predicate on the "sellClientOrderId" field.
+func SellClientOrderIdContainsFold(v string) predicate.MatchedTrade {
+	return predicate.MatchedTrade(sql.FieldContainsFold(FieldSellClientOrderId, v))
 }
 
 // SellBaseAmountEQ applies the EQ predicate on the "sellBaseAmount" field.

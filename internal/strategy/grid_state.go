@@ -23,7 +23,7 @@ type GridStrategyState struct {
 	strategy    *ent.Strategy
 	account     helper.AmbiguousAccount
 	sortedGrids []*ent.Grid
-	orders      map[int64]*ent.Order
+	orders      map[string]*ent.Order
 }
 
 func strategyName(record *ent.Strategy) string {
@@ -74,7 +74,7 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 	}
 
 	// 查询关联订单
-	clientOrderIds := make([]int64, 0, len(sortedGrids)*2)
+	clientOrderIds := make([]string, 0, len(sortedGrids)*2)
 	for _, item := range sortedGrids {
 		if item.BuyClientOrderId != nil {
 			clientOrderIds = append(clientOrderIds, *item.BuyClientOrderId)
@@ -94,7 +94,7 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 		strategy:    s,
 		account:     adapter.Account,
 		sortedGrids: sortedGrids,
-		orders:      make(map[int64]*ent.Order),
+		orders:      make(map[string]*ent.Order),
 	}
 	for _, item := range orders {
 		state.orders[item.ClientOrderId] = item
@@ -110,7 +110,7 @@ func (state *GridStrategyState) Rebalance() error {
 		if lvl.BuyClientOrderId != nil {
 			ord, ok := state.orders[*lvl.BuyClientOrderId]
 			if ok && ord.Status == order.StatusCanceled {
-				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
+				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %s",
 					state.strategy.GUID, state.strategy.Symbol, *lvl.BuyClientOrderId)
 				return ErrOrderCanceled
 			}
@@ -119,7 +119,7 @@ func (state *GridStrategyState) Rebalance() error {
 		if lvl.SellClientOrderId != nil {
 			ord, ok := state.orders[*lvl.SellClientOrderId]
 			if ok && ord.Status == order.StatusCanceled {
-				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %d",
+				logger.Errorf("[GridStrategyState] 订单意外取消, strategy: %s, symbol: %s, clientOrderId: %s",
 					state.strategy.GUID, state.strategy.Symbol, *lvl.SellClientOrderId)
 				return ErrOrderCanceled
 			}
@@ -137,7 +137,7 @@ func (state *GridStrategyState) Rebalance() error {
 	return nil
 }
 
-func (state *GridStrategyState) isActiveOrder(clientOrderId *int64) bool {
+func (state *GridStrategyState) isActiveOrder(clientOrderId *string) bool {
 	if clientOrderId == nil {
 		return false
 	}
@@ -245,12 +245,12 @@ func (state *GridStrategyState) handleEventNotification(isFirstRecord bool, ord 
 }
 
 func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Order) error {
-	logger.Infof("[%s %s] #%d 买单成交, ID: %d, 价格: %s, 数量: %s",
+	logger.Infof("[%s %s] #%d 买单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.ClientOrderId, buyOrder.Price, buyOrder.FilledBaseAmount)
 
 	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy.GUID, buyOrder)
 	if err != nil {
-		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %d, %v", state.strategy.GUID, buyOrder.ClientOrderId, err)
+		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %s, %v", state.strategy.GUID, buyOrder.ClientOrderId, err)
 		return err
 	}
 
@@ -272,7 +272,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 				return err
 			}
 
-			logger.Infof("[%s %s] #%d 下单卖单, sellOrderId: %d, 价格: %s, 数量: %s",
+			logger.Infof("[%s %s] #%d 下单卖单, sellOrderId: %s, 价格: %s, 数量: %s",
 				state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, sellOrderId, upperLevel.Price, quantity)
 
 			// 更新数据状态
@@ -299,7 +299,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 				return nil
 			})
 			if err != nil {
-				logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, buyClientOrderId: nil, upperLevel: %d, sellClientOrderId: %d, %v",
+				logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, buyClientOrderId: nil, upperLevel: %d, sellClientOrderId: %s, %v",
 					level.ID, upperLevel.ID, sellOrderId, err)
 			} else {
 				level.BuyClientOrderId = nil
@@ -315,12 +315,12 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 }
 
 func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.Order) error {
-	logger.Infof("[%s %s] #%d 卖单成交, ID: %d, 价格: %s, 数量: %s",
+	logger.Infof("[%s %s] #%d 卖单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.ClientOrderId, sellOrder.Price, sellOrder.FilledBaseAmount)
 
 	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy.GUID, sellOrder)
 	if err != nil {
-		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %d, %v", state.strategy.GUID, sellOrder.ClientOrderId, err)
+		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %s, %v", state.strategy.GUID, sellOrder.ClientOrderId, err)
 		return err
 	}
 
@@ -342,7 +342,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 				return err
 			}
 
-			logger.Infof("[%s %s] #%d 下单买单, buyOrderId: %d, 价格: %s, 数量: %s",
+			logger.Infof("[%s %s] #%d 下单买单, buyOrderId: %s, 价格: %s, 数量: %s",
 				state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, buyOrderId, lowerLevel.Price, quantity)
 
 			// 更新数据状态
@@ -369,7 +369,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 				return nil
 			})
 			if err != nil {
-				logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, sellClientOrderId: nil, lowerLevel: %d, buyClientOrderId: %d, %v",
+				logger.Errorf("[GridStrategyState] 更新网格状态失败, level: %d, sellClientOrderId: nil, lowerLevel: %d, buyClientOrderId: %s, %v",
 					level.ID, lowerLevel.ID, buyOrderId, err)
 			} else {
 				level.SellClientOrderId = nil

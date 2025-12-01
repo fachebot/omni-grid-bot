@@ -27,7 +27,7 @@ type MatchedTrade struct {
 	// Symbol holds the value of the "symbol" field.
 	Symbol string `json:"symbol,omitempty"`
 	// BuyClientOrderId holds the value of the "buyClientOrderId" field.
-	BuyClientOrderId *int64 `json:"buyClientOrderId,omitempty"`
+	BuyClientOrderId *string `json:"buyClientOrderId,omitempty"`
 	// BuyBaseAmount holds the value of the "buyBaseAmount" field.
 	BuyBaseAmount *decimal.Decimal `json:"buyBaseAmount,omitempty"`
 	// BuyQuoteAmount holds the value of the "buyQuoteAmount" field.
@@ -35,7 +35,7 @@ type MatchedTrade struct {
 	// BuyOrderTimestamp holds the value of the "buyOrderTimestamp" field.
 	BuyOrderTimestamp *int64 `json:"buyOrderTimestamp,omitempty"`
 	// SellClientOrderId holds the value of the "sellClientOrderId" field.
-	SellClientOrderId *int64 `json:"sellClientOrderId,omitempty"`
+	SellClientOrderId *string `json:"sellClientOrderId,omitempty"`
 	// SellBaseAmount holds the value of the "sellBaseAmount" field.
 	SellBaseAmount *decimal.Decimal `json:"sellBaseAmount,omitempty"`
 	// SellQuoteAmount holds the value of the "sellQuoteAmount" field.
@@ -56,9 +56,9 @@ func (*MatchedTrade) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
 		case matchedtrade.FieldProfit:
 			values[i] = new(sql.NullFloat64)
-		case matchedtrade.FieldID, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldBuyOrderTimestamp, matchedtrade.FieldSellClientOrderId, matchedtrade.FieldSellOrderTimestamp:
+		case matchedtrade.FieldID, matchedtrade.FieldBuyOrderTimestamp, matchedtrade.FieldSellOrderTimestamp:
 			values[i] = new(sql.NullInt64)
-		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol:
+		case matchedtrade.FieldStrategyId, matchedtrade.FieldSymbol, matchedtrade.FieldBuyClientOrderId, matchedtrade.FieldSellClientOrderId:
 			values[i] = new(sql.NullString)
 		case matchedtrade.FieldCreateTime, matchedtrade.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -108,11 +108,11 @@ func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 				_m.Symbol = value.String
 			}
 		case matchedtrade.FieldBuyClientOrderId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field buyClientOrderId", values[i])
 			} else if value.Valid {
-				_m.BuyClientOrderId = new(int64)
-				*_m.BuyClientOrderId = value.Int64
+				_m.BuyClientOrderId = new(string)
+				*_m.BuyClientOrderId = value.String
 			}
 		case matchedtrade.FieldBuyBaseAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -136,11 +136,11 @@ func (_m *MatchedTrade) assignValues(columns []string, values []any) error {
 				*_m.BuyOrderTimestamp = value.Int64
 			}
 		case matchedtrade.FieldSellClientOrderId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field sellClientOrderId", values[i])
 			} else if value.Valid {
-				_m.SellClientOrderId = new(int64)
-				*_m.SellClientOrderId = value.Int64
+				_m.SellClientOrderId = new(string)
+				*_m.SellClientOrderId = value.String
 			}
 		case matchedtrade.FieldSellBaseAmount:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -220,7 +220,7 @@ func (_m *MatchedTrade) String() string {
 	builder.WriteString(", ")
 	if v := _m.BuyClientOrderId; v != nil {
 		builder.WriteString("buyClientOrderId=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.BuyBaseAmount; v != nil {
@@ -240,7 +240,7 @@ func (_m *MatchedTrade) String() string {
 	builder.WriteString(", ")
 	if v := _m.SellClientOrderId; v != nil {
 		builder.WriteString("sellClientOrderId=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.SellBaseAmount; v != nil {

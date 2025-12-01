@@ -76,7 +76,7 @@ func (_c *OrderCreate) SetOrderId(v string) *OrderCreate {
 }
 
 // SetClientOrderId sets the "clientOrderId" field.
-func (_c *OrderCreate) SetClientOrderId(v int64) *OrderCreate {
+func (_c *OrderCreate) SetClientOrderId(v string) *OrderCreate {
 	_c.mutation.SetClientOrderId(v)
 	return _c
 }
@@ -274,7 +274,7 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_node.OrderId = value
 	}
 	if value, ok := _c.mutation.ClientOrderId(); ok {
-		_spec.SetField(order.FieldClientOrderId, field.TypeInt64, value)
+		_spec.SetField(order.FieldClientOrderId, field.TypeString, value)
 		_node.ClientOrderId = value
 	}
 	if value, ok := _c.mutation.Side(); ok {
@@ -418,7 +418,7 @@ func (u *OrderUpsert) UpdateOrderId() *OrderUpsert {
 }
 
 // SetClientOrderId sets the "clientOrderId" field.
-func (u *OrderUpsert) SetClientOrderId(v int64) *OrderUpsert {
+func (u *OrderUpsert) SetClientOrderId(v string) *OrderUpsert {
 	u.Set(order.FieldClientOrderId, v)
 	return u
 }
@@ -426,12 +426,6 @@ func (u *OrderUpsert) SetClientOrderId(v int64) *OrderUpsert {
 // UpdateClientOrderId sets the "clientOrderId" field to the value that was provided on create.
 func (u *OrderUpsert) UpdateClientOrderId() *OrderUpsert {
 	u.SetExcluded(order.FieldClientOrderId)
-	return u
-}
-
-// AddClientOrderId adds v to the "clientOrderId" field.
-func (u *OrderUpsert) AddClientOrderId(v int64) *OrderUpsert {
-	u.Add(order.FieldClientOrderId, v)
 	return u
 }
 
@@ -641,16 +635,9 @@ func (u *OrderUpsertOne) UpdateOrderId() *OrderUpsertOne {
 }
 
 // SetClientOrderId sets the "clientOrderId" field.
-func (u *OrderUpsertOne) SetClientOrderId(v int64) *OrderUpsertOne {
+func (u *OrderUpsertOne) SetClientOrderId(v string) *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetClientOrderId(v)
-	})
-}
-
-// AddClientOrderId adds v to the "clientOrderId" field.
-func (u *OrderUpsertOne) AddClientOrderId(v int64) *OrderUpsertOne {
-	return u.Update(func(s *OrderUpsert) {
-		s.AddClientOrderId(v)
 	})
 }
 
@@ -1048,16 +1035,9 @@ func (u *OrderUpsertBulk) UpdateOrderId() *OrderUpsertBulk {
 }
 
 // SetClientOrderId sets the "clientOrderId" field.
-func (u *OrderUpsertBulk) SetClientOrderId(v int64) *OrderUpsertBulk {
+func (u *OrderUpsertBulk) SetClientOrderId(v string) *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.SetClientOrderId(v)
-	})
-}
-
-// AddClientOrderId adds v to the "clientOrderId" field.
-func (u *OrderUpsertBulk) AddClientOrderId(v int64) *OrderUpsertBulk {
-	return u.Update(func(s *OrderUpsert) {
-		s.AddClientOrderId(v)
 	})
 }
 

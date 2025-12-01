@@ -43,14 +43,14 @@ func (h *ParadexOrderHelper) CancalAllOrders(ctx context.Context, symbol string)
 	return h.userClient.CancelAllOpenOrders(ctx, paradex.FormatUsdPerpMarket(symbol))
 }
 
-func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]int64, []int64, error) {
+func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	nextClientId := time.Now().UnixNano()
-	limitOrderClientIds := make([]int64, 0)
+	limitOrderClientIds := make([]string, 0)
 	batchOrders := make([]*paradex.CreateOrderReq, 0)
 
 	for _, item := range limitOrders {
 		clientId := strconv.FormatInt(nextClientId, 10)
-		limitOrderClientIds = append(limitOrderClientIds, nextClientId)
+		limitOrderClientIds = append(limitOrderClientIds, clientId)
 
 		ord := &paradex.CreateOrderReq{
 			Instruction: paradex.InstructionGTC,
@@ -70,10 +70,10 @@ func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 		batchOrders = append(batchOrders, ord)
 	}
 
-	marketOrderClientIds := make([]int64, 0)
+	marketOrderClientIds := make([]string, 0)
 	for _, item := range marketOrders {
 		clientId := strconv.FormatInt(nextClientId, 10)
-		marketOrderClientIds = append(marketOrderClientIds, nextClientId)
+		marketOrderClientIds = append(marketOrderClientIds, clientId)
 
 		ord := &paradex.CreateOrderReq{
 			Instruction: paradex.InstructionGTC,
@@ -106,7 +106,7 @@ func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 	return limitOrderClientIds, marketOrderClientIds, err
 }
 
-func (h *ParadexOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (int64, error) {
+func (h *ParadexOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	p := CreateLimitOrderParams{
 		Symbol:     symbol,
 		IsAsk:      isAsk,
@@ -116,13 +116,13 @@ func (h *ParadexOrderHelper) CreateLimitOrder(ctx context.Context, symbol string
 	}
 	clientIds, _, err := h.CreateOrderBatch(context.TODO(), []CreateLimitOrderParams{p}, nil)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return clientIds[0], nil
 }
 
-func (h *ParadexOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (int64, error) {
+func (h *ParadexOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
 	p := CreateMarketOrderParams{
 		Symbol:                   symbol,
 		IsAsk:                    isAsk,
@@ -132,7 +132,7 @@ func (h *ParadexOrderHelper) CreateMarketOrder(ctx context.Context, symbol strin
 	}
 	_, clientIds, err := h.CreateOrderBatch(context.TODO(), nil, []CreateMarketOrderParams{p})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return clientIds[0], nil
@@ -193,14 +193,6 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 				continue
 			}
 
-			var clientId int64
-			if item.ClientID != "" {
-				clientId, err = strconv.ParseInt(item.ClientID, 10, 64)
-				if err != nil {
-					clientId = 0
-				}
-			}
-
 			filledQuoteAmount := decimal.Zero
 			if item.AvgFillPrice != "" {
 				avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
@@ -214,7 +206,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 				Account:           account,
 				Symbol:            symbol,
 				OrderId:           item.ID,
-				ClientOrderId:     clientId,
+				ClientOrderId:     item.ClientID,
 				Side:              lo.If(item.Side == paradex.OrderSideSell, order.SideSell).Else(order.SideBuy),
 				Price:             item.Price,
 				BaseAmount:        item.Size,

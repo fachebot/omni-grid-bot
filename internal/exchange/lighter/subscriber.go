@@ -282,7 +282,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 						userOrders.Orders = append(userOrders.Orders, &exchange.Order{
 							Symbol:            marketIndex,
 							OrderID:           strconv.FormatInt(ord.OrderIndex, 10),
-							ClientOrderID:     ord.ClientOrderIndex,
+							ClientOrderID:     strconv.FormatInt(ord.ClientOrderIndex, 10),
 							Side:              lo.If(ord.IsAsk, order.SideSell).Else(order.SideBuy),
 							Price:             ord.Price,
 							BaseAmount:        ord.InitialBaseAmount,
