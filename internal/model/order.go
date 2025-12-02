@@ -15,6 +15,10 @@ func NewOrderModel(client *ent.OrderClient) *OrderModel {
 	return &OrderModel{client: client}
 }
 
+func IsOrderFinal(status order.Status) bool {
+	return status == order.StatusFilled || status == order.StatusCanceled
+}
+
 func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 	existing, err := m.client.Query().
 		Where(order.ExchangeEQ(args.Exchange), order.SymbolEQ(args.Symbol), order.OrderIdEQ(args.OrderId)).
@@ -41,7 +45,7 @@ func (m *OrderModel) Upsert(ctx context.Context, args ent.Order) error {
 	}
 
 	if args.Timestamp > existing.Timestamp ||
-		(existing.Status == order.StatusOpen && existing.Status != args.Status) {
+		(IsOrderFinal(args.Status) && !IsOrderFinal(existing.Status)) {
 		return m.client.Update().
 			SetSide(args.Side).
 			SetPrice(args.Price).

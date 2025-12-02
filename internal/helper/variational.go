@@ -70,7 +70,7 @@ func (h *VariationalOrderHelper) CancalAllOrders(ctx context.Context, symbol str
 			errorList = append(errorList, err)
 			logger.Warnf("[VariationalOrderHelper] 取消订单失败, account: %s, rfqId: %s, %v", h.userClient.EthAccount(), rfqId, err)
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 
 	if len(errorList) > 0 {
@@ -88,7 +88,7 @@ func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrde
 		}
 		limitOrderClientIds = append(limitOrderClientIds, rfqId)
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 
 	marketOrderClientIds := make([]string, 0)
@@ -99,7 +99,7 @@ func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrde
 		}
 		marketOrderClientIds = append(marketOrderClientIds, rfqId)
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 
 	return limitOrderClientIds, marketOrderClientIds, nil
@@ -111,6 +111,9 @@ func (h *VariationalOrderHelper) CreateLimitOrder(ctx context.Context, symbol st
 	if err != nil {
 		return "", err
 	}
+
+	time.Sleep(1 * time.Second)
+
 	return res.RfqId, nil
 }
 
@@ -121,6 +124,9 @@ func (h *VariationalOrderHelper) CreateMarketOrder(ctx context.Context, symbol s
 	if err != nil {
 		return "", err
 	}
+
+	time.Sleep(1 * time.Second)
+
 	return res.RfqId, nil
 }
 
