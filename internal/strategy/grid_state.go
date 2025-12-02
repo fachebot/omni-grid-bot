@@ -100,6 +100,14 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 		state.orders[item.ClientOrderId] = item
 	}
 
+	// 更新订单缓存
+	for _, ord := range orders {
+		if ord.Status != order.StatusFilled && ord.Status != order.StatusCanceled {
+			continue
+		}
+		state.svcCtx.PendingOrdersCache.Del(ord.Exchange, ord.Account, ord.ClientOrderId)
+	}
+
 	return state, nil
 }
 
@@ -147,7 +155,7 @@ func (state *GridStrategyState) isActiveOrder(clientOrderId *string) bool {
 		return ord.Status != order.StatusFilled && ord.Status != order.StatusCanceled
 	}
 
-	return state.svcCtx.RecentOrdersCache.Has(state.strategy.Exchange, state.strategy.Account, *clientOrderId)
+	return state.svcCtx.PendingOrdersCache.Exist(state.strategy.Exchange, state.strategy.Account, *clientOrderId)
 }
 
 func (state *GridStrategyState) sendOrderFilleddNotification(ord *ent.Order) {
@@ -305,7 +313,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 			} else {
 				level.BuyClientOrderId = nil
 				upperLevel.SellClientOrderId = &sellOrderId
-				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, sellOrderId)
+				state.svcCtx.PendingOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, sellOrderId)
 			}
 		} else {
 			logger.Infof("[%s %s] #%d 取消下单卖单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, upperLevel.Quantity)
@@ -376,7 +384,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 			} else {
 				level.SellClientOrderId = nil
 				lowerLevel.BuyClientOrderId = &buyOrderId
-				state.svcCtx.RecentOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, buyOrderId)
+				state.svcCtx.PendingOrdersCache.Add(state.strategy.Exchange, state.strategy.Account, buyOrderId)
 			}
 		} else {
 			logger.Infof("[%s %s] #%d 取消下单买单, 价格: %s, 数量: %s", state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, lowerLevel.Quantity)

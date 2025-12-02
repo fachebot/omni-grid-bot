@@ -15,6 +15,7 @@ import (
 	entstrategy "github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
 	"github.com/fachebot/omni-grid-bot/internal/strategy"
@@ -122,6 +123,9 @@ func main() {
 		}
 	}
 
+	// 创建服务上下文
+	svcCtx := svc.NewServiceContext(c)
+
 	// 启动Lighter订阅器
 	lighterSubscriber := lighter.NewLighterSubscriber(c.Sock5Proxy)
 	lighterSubscriber.Start()
@@ -131,8 +135,9 @@ func main() {
 	paradexSubscriber := paradex.NewParadexSubscriber(c.Sock5Proxy)
 	paradexSubscriber.Start()
 
-	// 创建服务上下文
-	svcCtx := svc.NewServiceContext(c, lighterSubscriber)
+	// 启动Variational订阅器
+	variationalSubscriber := variational.NewVariationalSubscriber(svcCtx.PendingOrdersCache, c.Sock5Proxy)
+	variationalSubscriber.Start()
 
 	// 启动网格策略引擎
 	strategyEngine := engine.NewStrategyEngine(
@@ -157,6 +162,7 @@ func main() {
 	strategyEngine.Stop()
 	lighterSubscriber.Stop()
 	paradexSubscriber.Stop()
+	variationalSubscriber.Stop()
 	botService.Stop()
 
 	svcCtx.Close()

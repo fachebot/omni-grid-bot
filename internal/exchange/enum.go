@@ -2,12 +2,13 @@ package exchange
 
 // Exchange values.
 const (
-	Lighter string = "lighter"
-	Paradex string = "paradex"
+	Lighter     string = "lighter"
+	Paradex     string = "paradex"
+	Variational string = "variational"
 )
 
 var (
-	validExchanges = [2]string{Lighter, Paradex}
+	validExchanges = []string{Lighter, Paradex, Variational}
 )
 
 func IsValidExchanges(ex string) bool {

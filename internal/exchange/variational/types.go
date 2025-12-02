@@ -9,12 +9,17 @@ import (
 
 // ErrorRes 错误响应
 type ErrorRes struct {
-	Message string `json:"error_message"` // 错误消息
+	Message    string `json:"message"`       // 错误消息
+	ErrMessage string `json:"error_message"` // 错误消息
 }
 
 // Error 实现error接口
 func (err *ErrorRes) Error() string {
-	return fmt.Sprintf("message: %s", err.Message)
+	msg := err.Message
+	if msg == "" {
+		msg = err.ErrMessage
+	}
+	return fmt.Sprintf("message: %s", msg)
 }
 
 // LoginRes 登录响应
@@ -29,8 +34,8 @@ type GenerateSigningDataRes struct {
 
 // Instrument 交易品种信息
 type Instrument struct {
-	InstrumentType   string `json:"instrument_type"`    // 品种类型：永续期货
-	Underlying       string `json:"underlying"`         // 标的资产：BTC
+	InstrumentType   string `json:"instrument_type"`    // 品种类型
+	Underlying       string `json:"underlying"`         // 标的资产
 	FundingIntervalS int64  `json:"funding_interval_s"` // 资金费率间隔（秒）
 	SettlementAsset  string `json:"settlement_asset"`   // 结算资产：USDC
 }
@@ -181,4 +186,102 @@ type Order struct {
 type OrdersRes struct {
 	Pagination Pagination `json:"pagination"` // 分页信息
 	Result     []*Order   `json:"result"`     // 订单结果列表
+}
+
+// QtyLimitDetails 数量限制详情
+type QtyLimitDetails struct {
+	MinQtyTick string `json:"min_qty_tick"` // 最小数量变动单位
+	MinQty     string `json:"min_qty"`      // 最小数量
+	MaxQty     string `json:"max_qty"`      // 最大数量
+}
+
+// QtyLimits 数量限制
+type QtyLimits struct {
+	Bid QtyLimitDetails `json:"bid"` // 买价数量限制
+	Ask QtyLimitDetails `json:"ask"` // 卖价数量限制
+}
+
+// SimpleQuoteRes 报价响应
+type SimpleQuoteRes struct {
+	Instrument Instrument `json:"instrument"`  // 交易品种信息
+	Qty        string     `json:"qty"`         // 数量
+	Bid        string     `json:"bid"`         // 买价
+	Ask        string     `json:"ask"`         // 卖价
+	MarkPrice  string     `json:"mark_price"`  // 标记价格
+	IndexPrice string     `json:"index_price"` // 指数价格
+	QuoteID    string     `json:"quote_id"`    // 报价ID
+	QtyLimits  QtyLimits  `json:"qty_limits"`  // 数量限制
+}
+
+// MarginDetails 保证金详细信息
+type MarginDetails struct {
+	InitialMargin     string `json:"initial_margin"`     // 初始保证金
+	MaintenanceMargin string `json:"maintenance_margin"` // 维持保证金
+}
+
+// MarginRequirements 保证金要求信息
+type MarginRequirements struct {
+	ExistingMargin               MarginDetails `json:"existing_margin"`                 // 现有保证金
+	BidMarginDelta               MarginDetails `json:"bid_margin_delta"`                // 买价保证金变化
+	AskMarginDelta               MarginDetails `json:"ask_margin_delta"`                // 卖价保证金变化
+	BidMaxNotionalDelta          string        `json:"bid_max_notional_delta"`          // 买价最大名义金额变化
+	AskMaxNotionalDelta          string        `json:"ask_max_notional_delta"`          // 卖价最大名义金额变化
+	EstimatedFeesBid             string        `json:"estimated_fees_bid"`              // 买价预估费用
+	EstimatedFeesAsk             string        `json:"estimated_fees_ask"`              // 卖价预估费用
+	EstimatedLiquidationPriceBid string        `json:"estimated_liquidation_price_bid"` // 买价预估清算价格
+	EstimatedLiquidationPriceAsk string        `json:"estimated_liquidation_price_ask"` // 卖价预估清算价格
+}
+
+// AssetParam 资产参数
+type AssetParam struct {
+	FuturesInitialMargin     string `json:"futures_initial_margin"`     // 期货初始保证金率
+	FuturesMaintenanceMargin string `json:"futures_maintenance_margin"` // 期货维持保证金率
+	FuturesLeverage          string `json:"futures_leverage"`           // 期货杠杆
+	OptionInitialMargin      string `json:"option_initial_margin"`      // 期权初始保证金率
+	OptionInitialMarginMin   string `json:"option_initial_margin_min"`  // 期权最低初始保证金率
+	OptionMaintenanceMargin  string `json:"option_maintenance_margin"`  // 期权维持保证金率
+}
+
+// MarginParamDetails 表示保证金参数详情
+type MarginParamDetails struct {
+	AssetParams          map[string]AssetParam `json:"asset_params"`            // 资产参数
+	DefaultAssetParam    AssetParam            `json:"default_asset_param"`     // 默认资产参数
+	UseDefaultAssetParam bool                  `json:"use_default_asset_param"` // 是否使用默认资产参数
+	LiquidationPenalty   string                `json:"liquidation_penalty"`     // 清算罚金
+	AutoLiquidation      bool                  `json:"auto_liquidation"`        // 自动清算
+}
+
+// MarginParams 保证金参数
+type MarginParams struct {
+	MarginMode string             `json:"margin_mode"` // 保证金模式
+	Params     MarginParamDetails `json:"params"`      // 参数详情
+}
+
+// IndicativeQuoteRes 报价响应
+type IndicativeQuoteRes struct {
+	Instrument         Instrument         `json:"instrument"`          // 交易品种信息
+	Qty                string             `json:"qty"`                 // 数量
+	Bid                string             `json:"bid"`                 // 买价
+	Ask                string             `json:"ask"`                 // 卖价
+	MarkPrice          string             `json:"mark_price"`          // 标记价格
+	IndexPrice         string             `json:"index_price"`         // 指数价格
+	QuoteID            string             `json:"quote_id"`            // 报价ID
+	MarginRequirements MarginRequirements `json:"margin_requirements"` // 保证金要求
+	MarginParams       MarginParams       `json:"margin_params"`       // 保证金参数
+	QtyLimits          QtyLimits          `json:"qty_limits"`          // 数量限制
+}
+
+// SetLeverageRes 设置杠杆响应
+type SetLeverageRes struct {
+	Current string `json:"current"`
+	Max     string `json:"max"`
+}
+
+// PoolPortfolioResult 资金池组合查询结果
+type PoolPortfolioResult struct {
+	MarginUsage MarginUsage     `json:"margin_usage"` // 保证金使用情况
+	Balance     decimal.Decimal `json:"balance"`      // 账户余额
+	Upnl        decimal.Decimal `json:"upnl"`         // 未实现盈亏
+	Positions   []Position      `json:"positions"`    // 持仓列表
+	PublishedAt string          `json:"published_at"` // 数据发布时间
 }

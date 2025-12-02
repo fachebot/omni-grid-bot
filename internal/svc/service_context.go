@@ -22,18 +22,17 @@ import (
 )
 
 type ServiceContext struct {
-	Config            *config.Config
-	Bot               *tele.Bot
-	DbClient          *ent.Client
-	TransportProxy    *http.Transport
-	MessageCache      *cache.MessageCache
-	LighterCache      *cache.LighterCache
-	ParadexCache      *cache.ParadexCache
-	RecentOrdersCache *cache.RecentOrdersCache
+	Config             *config.Config
+	Bot                *tele.Bot
+	DbClient           *ent.Client
+	TransportProxy     *http.Transport
+	MessageCache       *cache.MessageCache
+	LighterCache       *cache.LighterCache
+	ParadexCache       *cache.ParadexCache
+	PendingOrdersCache *cache.PendingOrdersCache
 
-	ParadexClient     *paradex.Client
-	LighterClient     *lighter.Client
-	LighterSubscriber *lighter.LighterSubscriber
+	ParadexClient *paradex.Client
+	LighterClient *lighter.Client
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
@@ -45,7 +44,7 @@ type ServiceContext struct {
 	locksMutex sync.RWMutex
 }
 
-func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubscriber) *ServiceContext {
+func NewServiceContext(c *config.Config) *ServiceContext {
 	// 创建数据库连接
 	client, err := ent.Open("sqlite3", "file:data/sqlite.db?mode=rwc&_journal_mode=WAL&_fk=1")
 	if err != nil {
@@ -107,14 +106,13 @@ func NewServiceContext(c *config.Config, lighterSubscriber *lighter.LighterSubsc
 		DbClient:       client,
 		TransportProxy: transportProxy,
 
-		MessageCache:      cache.NewMessageCache(),
-		LighterCache:      cache.NewLighterCache(lighterClient),
-		ParadexCache:      cache.NewParadexCache(paradexClient),
-		RecentOrdersCache: cache.NewRecentOrdersCache(),
+		MessageCache:       cache.NewMessageCache(),
+		LighterCache:       cache.NewLighterCache(lighterClient),
+		ParadexCache:       cache.NewParadexCache(paradexClient),
+		PendingOrdersCache: cache.NewPendingOrdersCache(),
 
-		ParadexClient:     paradexClient,
-		LighterClient:     lighterClient,
-		LighterSubscriber: lighterSubscriber,
+		ParadexClient: paradexClient,
+		LighterClient: lighterClient,
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),

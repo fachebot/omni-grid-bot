@@ -18,6 +18,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/util/ethutil"
 	"github.com/golang-jwt/jwt/v5"
 	gocache "github.com/patrickmn/go-cache"
+	"github.com/shopspring/decimal"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -99,6 +100,18 @@ func (c *Client) Auth(ctx context.Context, account, privateKey string) (string, 
 	return r.Token, nil
 }
 
+func (c *Client) SimpleQuote(ctx context.Context, symbol string, qty decimal.Decimal) (*SimpleQuoteRes, error) {
+	url := fmt.Sprintf("%s/quotes/simple", c.endpoint)
+	payload := fmt.Sprintf(`{"instrument":{"underlying":"%s","funding_interval_s":3600,"settlement_asset":"USDC","instrument_type":"perpetual_future"},"qty":"%s"}`, symbol, qty)
+	res := c.client.Post(g.String(url), payload).WithContext(ctx).Do()
+
+	var r SimpleQuoteRes
+	if err := c.parseRespone(res, &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (c *Client) GenerateSigningData(ctx context.Context, address string) (string, error) {
 	url := fmt.Sprintf("%s/auth/generate_signing_data", c.endpoint)
 	payload := fmt.Sprintf(`{"address":"%s"}`, common.HexToAddress(address).Hex())
@@ -155,19 +168,21 @@ func (c *Client) parseRespone(res g.Result[*surf.Response], data any) error {
 
 	defer res.Ok().Body.Close()
 
+	content := res.Ok().Body.Bytes()
 	statusCode := res.Ok().StatusCode
 	if statusCode < 200 || statusCode >= 300 {
 		var errRes ErrorRes
-		if err := res.Ok().Body.JSON(&errRes); err == nil {
+		if err := json.Unmarshal(content, &errRes); err == nil {
 			return &errRes
 		}
 
-		return fmt.Errorf("http error - status_code: %d, body: %s", statusCode, res.Ok().Body.String())
+		return fmt.Errorf("http error - status_code: %d, body: %s", statusCode, string(content))
 	}
 
-	content := res.Ok().Body.Bytes()
-	if err := json.Unmarshal(content, data); err != nil {
-		return fmt.Errorf("invalid json content, body: %s", string(content))
+	if data != nil {
+		if err := json.Unmarshal(content, data); err != nil {
+			return fmt.Errorf("invalid json content, body: %s", string(content))
+		}
 	}
 	return nil
 }
