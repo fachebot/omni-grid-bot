@@ -8,13 +8,15 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/shopspring/decimal"
 )
 
 type AmbiguousAccount struct {
-	Signer     *lighter.Signer
-	ParaClient *paradex.UserClient
+	Signer            *lighter.Signer
+	ParaClient        *paradex.UserClient
+	VariationalClient *variational.UserClient
 }
 
 type ExchangeAdapter struct {
@@ -42,6 +44,12 @@ func NewExchangeAdapterFromStrategy(svcCtx *svc.ServiceContext, s *ent.Strategy)
 			return nil, err
 		}
 		account.ParaClient = userClient
+	case exchange.Variational:
+		userClient, err := GetVariationalClient(svcCtx, s)
+		if err != nil {
+			return nil, err
+		}
+		account.VariationalClient = userClient
 	default:
 		return nil, errors.New("exchange unsupported")
 	}
@@ -59,6 +67,10 @@ func (adapter *ExchangeAdapter) UpdateLeverage(ctx context.Context, symbol strin
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).UpdateLeverage(ctx, symbol, leverage, marginMode)
 	}
 
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).UpdateLeverage(ctx, symbol, leverage, marginMode)
+	}
+
 	return errors.New("route not found")
 }
 
@@ -69,6 +81,10 @@ func (adapter *ExchangeAdapter) CancalAllOrders(ctx context.Context, symbol stri
 
 	if adapter.Account.ParaClient != nil {
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CancalAllOrders(ctx, symbol)
+	}
+
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).CancalAllOrders(ctx, symbol)
 	}
 
 	return errors.New("route not found")
@@ -83,6 +99,10 @@ func (adapter *ExchangeAdapter) CreateOrderBatch(ctx context.Context, limitOrder
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateOrderBatch(ctx, limitOrders, marketOrders)
 	}
 
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).CreateOrderBatch(ctx, limitOrders, marketOrders)
+	}
+
 	return nil, nil, errors.New("route not found")
 }
 
@@ -95,16 +115,8 @@ func (adapter *ExchangeAdapter) CreateLimitOrder(ctx context.Context, symbol str
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
 	}
 
-	return "", errors.New("route not found")
-}
-
-func (adapter *ExchangeAdapter) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
-	if adapter.Account.Signer != nil {
-		return NewLighterOrderHelper(adapter.svcCtx, adapter.Account.Signer).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
-	}
-
-	if adapter.Account.ParaClient != nil {
-		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).CreateMarketOrder(ctx, symbol, isAsk, reduceOnly, acceptableExecutionPrice, size)
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).CreateLimitOrder(ctx, symbol, isAsk, reduceOnly, price, size)
 	}
 
 	return "", errors.New("route not found")
@@ -119,6 +131,10 @@ func (adapter *ExchangeAdapter) SyncUserOrders(ctx context.Context) error {
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).SyncUserOrders(ctx)
 	}
 
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).SyncUserOrders(ctx)
+	}
+
 	return errors.New("route not found")
 }
 
@@ -129,6 +145,10 @@ func (adapter *ExchangeAdapter) ClosePosition(ctx context.Context, symbol string
 
 	if adapter.Account.ParaClient != nil {
 		return NewParadexOrderHelper(adapter.svcCtx, adapter.Account.ParaClient).ClosePosition(ctx, symbol, side, slippageBps)
+	}
+
+	if adapter.Account.VariationalClient != nil {
+		return NewVariationalOrderHelper(adapter.svcCtx, adapter.Account.VariationalClient).ClosePosition(ctx, symbol, side, slippageBps)
 	}
 
 	return errors.New("route not found")

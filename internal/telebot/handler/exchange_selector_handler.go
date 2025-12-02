@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
@@ -15,6 +16,22 @@ import (
 
 	tele "gopkg.in/telebot.v4"
 )
+
+type ExchangeType string
+
+const (
+	ExchangeTypeLighter     ExchangeType = "1"
+	ExchangeTypeParadex     ExchangeType = "2"
+	ExchangeTypeVariational ExchangeType = "3"
+)
+
+var (
+	validExchanges = []ExchangeType{ExchangeTypeLighter, ExchangeTypeParadex, ExchangeTypeVariational}
+)
+
+func IsValidExchange(ex string) bool {
+	return slices.Contains(validExchanges, ExchangeType(ex))
+}
 
 type ExchangeSelectorHandler struct {
 	svcCtx *svc.ServiceContext
@@ -74,10 +91,13 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 		replyMarkup := &tele.ReplyMarkup{
 			InlineKeyboard: [][]tele.InlineButton{
 				{
-					{Text: exchange.Lighter, Data: h.FormatPath(guid, exchange.Lighter)},
+					{Text: exchange.Lighter, Data: h.FormatPath(guid, string(ExchangeTypeLighter))},
 				},
 				{
-					{Text: exchange.Paradex, Data: h.FormatPath(guid, exchange.Paradex)},
+					{Text: exchange.Paradex, Data: h.FormatPath(guid, string(ExchangeTypeParadex))},
+				},
+				{
+					{Text: exchange.Variational, Data: h.FormatPath(guid, string(ExchangeTypeVariational))},
 				},
 			},
 		}
@@ -89,7 +109,7 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 		return nil
 	}
 
-	if !exchange.IsValidExchanges(value) {
+	if !IsValidExchange(value) {
 		return nil
 	}
 
@@ -128,11 +148,13 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 	}
 
 	// 返回交易所账户配置
-	switch value {
-	case exchange.Lighter:
+	switch ExchangeType(value) {
+	case ExchangeTypeLighter:
 		return NewExchangeSettingsLighterHandler(h.svcCtx).handle(ctx, vars, userId, update)
-	case exchange.Paradex:
+	case ExchangeTypeParadex:
 		return NewExchangeSettingsParadexHandler(h.svcCtx).handle(ctx, vars, userId, update)
+	case ExchangeTypeVariational:
+		return NewExchangeSettingsVariationalHandler(h.svcCtx).handle(ctx, vars, userId, update)
 	}
 
 	return nil

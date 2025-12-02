@@ -134,6 +134,8 @@ func marketSymbol(record *ent.Strategy) string {
 		return fmt.Sprintf("[%s](https://app.lighter.xyz/trade/%s)", record.Symbol, record.Symbol)
 	case exchange.Paradex:
 		return fmt.Sprintf("[%s](https://app.paradex.trade/trade/%s)", record.Symbol, paradex.FormatUsdPerpMarket(record.Symbol))
+	case exchange.Variational:
+		return fmt.Sprintf("[%s](https://omni.variational.io/perpetual/%s)", record.Symbol, record.Symbol)
 	default:
 		return "未设置"
 	}

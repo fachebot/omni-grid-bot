@@ -26,6 +26,7 @@ type CreateMarketOrderParams struct {
 	Symbol                   string
 	IsAsk                    bool
 	ReduceOnly               bool
+	SlippageBps              int
 	AcceptableExecutionPrice decimal.Decimal
 	Size                     decimal.Decimal
 }

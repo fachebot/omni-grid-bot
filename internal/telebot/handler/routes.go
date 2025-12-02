@@ -19,4 +19,5 @@ func InitRoutes(svcCtx *svc.ServiceContext, router *pathrouter.Router) {
 	NewExchangeSettingsHandler(svcCtx).AddRouter(router)
 	NewExchangeSettingsLighterHandler(svcCtx).AddRouter(router)
 	NewExchangeSettingsParadexHandler(svcCtx).AddRouter(router)
+	NewExchangeSettingsVariationalHandler(svcCtx).AddRouter(router)
 }

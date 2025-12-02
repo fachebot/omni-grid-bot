@@ -132,7 +132,7 @@ func DisplayStrategyList(ctx context.Context, svcCtx *svc.ServiceContext, userId
 
 	text += "🔥 为震荡而生：在横盘和波动市中自动低买高卖。\n"
 	text += "⏳ 全托管执行：挂单、补仓、止盈、止损全自动。\n"
-	text += "\n[Lighter](app.lighter.xyz/?referral=28913X95) | [ParaDex](https://app.paradex.trade/r/resilienthunter70)"
+	text += "\n[Lighter](app.lighter.xyz/?referral=28913X95) | [ParaDex](https://app.paradex.trade/r/resilienthunter70) | [Variational](https://omni.variational.io/)"
 
 	_, err = util.ReplyMessage(svcCtx.Bot, update, text, replyMarkup)
 	if err != nil {

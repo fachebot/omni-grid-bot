@@ -13,6 +13,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
 
@@ -31,8 +32,9 @@ type ServiceContext struct {
 	ParadexCache       *cache.ParadexCache
 	PendingOrdersCache *cache.PendingOrdersCache
 
-	ParadexClient *paradex.Client
-	LighterClient *lighter.Client
+	ParadexClient     *paradex.Client
+	LighterClient     *lighter.Client
+	VariationalClient *variational.Client
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
@@ -111,8 +113,9 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		ParadexCache:       cache.NewParadexCache(paradexClient),
 		PendingOrdersCache: cache.NewPendingOrdersCache(),
 
-		ParadexClient: paradexClient,
-		LighterClient: lighterClient,
+		ParadexClient:     paradexClient,
+		LighterClient:     lighterClient,
+		VariationalClient: variational.NewClient(c.Sock5Proxy),
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),

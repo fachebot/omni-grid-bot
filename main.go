@@ -141,7 +141,7 @@ func main() {
 
 	// 启动网格策略引擎
 	strategyEngine := engine.NewStrategyEngine(
-		svcCtx, lighterSubscriber, paradexSubscriber, handleOrderCancelled)
+		svcCtx, lighterSubscriber, paradexSubscriber, variationalSubscriber, handleOrderCancelled)
 	strategyEngine.Start()
 
 	// 启动所有网络

@@ -10,6 +10,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	gridstrategy "github.com/fachebot/omni-grid-bot/internal/strategy"
@@ -18,48 +19,72 @@ import (
 	"github.com/samber/lo"
 )
 
+// OrderCancelled 订单取消回调函数类型
 type OrderCancelled func(ctx context.Context, svcCtx *svc.ServiceContext, engine *StrategyEngine, s *ent.Strategy)
 
+// Strategy 策略接口
 type Strategy interface {
 	Get() *ent.Strategy
 	Update(s *ent.Strategy)
 	OnUpdate(ctx context.Context) error
 }
 
+// StrategyEngine 策略引擎
 type StrategyEngine struct {
+	// 上下文管理
 	ctx      context.Context
 	cancel   context.CancelFunc
 	stopChan chan struct{}
 
-	svcCtx            *svc.ServiceContext
-	onOrderCancelled  OrderCancelled
-	lighterSubscriber *lighter.LighterSubscriber
-	paradexSubscriber *paradex.ParadexSubscriber
+	// 依赖服务
+	svcCtx           *svc.ServiceContext
+	onOrderCancelled OrderCancelled
 
+	// 交易所订阅器
+	lighterSubscriber     *lighter.LighterSubscriber
+	paradexSubscriber     *paradex.ParadexSubscriber
+	variationalSubscriber *variational.VariationalSubscriber
+
+	// 策略管理
 	mutex           sync.RWMutex
-	strategyMap     map[string]Strategy
-	userStrategyMap map[string][]string
+	strategyMap     map[string]Strategy // 策略ID -> 策略实例
+	userStrategyMap map[string][]string // 用户账户 -> 策略ID列表
 }
 
+// NewStrategyEngine 创建策略引擎实例
 func NewStrategyEngine(
 	svcCtx *svc.ServiceContext,
 	lighterSubscriber *lighter.LighterSubscriber,
 	paradexSubscriber *paradex.ParadexSubscriber,
+	variationalSubscriber *variational.VariationalSubscriber,
 	onOrderCancelled OrderCancelled,
 ) *StrategyEngine {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &StrategyEngine{
-		ctx:               ctx,
-		cancel:            cancel,
-		svcCtx:            svcCtx,
-		onOrderCancelled:  onOrderCancelled,
-		lighterSubscriber: lighterSubscriber,
-		paradexSubscriber: paradexSubscriber,
-		strategyMap:       make(map[string]Strategy),
-		userStrategyMap:   make(map[string][]string),
+		ctx:                   ctx,
+		cancel:                cancel,
+		svcCtx:                svcCtx,
+		onOrderCancelled:      onOrderCancelled,
+		lighterSubscriber:     lighterSubscriber,
+		paradexSubscriber:     paradexSubscriber,
+		variationalSubscriber: variationalSubscriber,
+		strategyMap:           make(map[string]Strategy),
+		userStrategyMap:       make(map[string][]string),
 	}
 }
 
+// Start 启动策略引擎
+func (engine *StrategyEngine) Start() {
+	if engine.stopChan != nil {
+		return
+	}
+
+	engine.stopChan = make(chan struct{})
+	logger.Infof("[StrategyEngine] 开始运行服务")
+	go engine.run()
+}
+
+// Stop 停止策略引擎
 func (engine *StrategyEngine) Stop() {
 	if engine.stopChan == nil {
 		return
@@ -70,317 +95,428 @@ func (engine *StrategyEngine) Stop() {
 	engine.cancel()
 
 	<-engine.stopChan
-
 	close(engine.stopChan)
 	engine.stopChan = nil
 
 	logger.Infof("[StrategyEngine] 服务已经停止")
 }
 
-func (engine *StrategyEngine) Start() {
-	if engine.stopChan != nil {
-		return
-	}
-
-	engine.stopChan = make(chan struct{})
-
-	logger.Infof("[StrategyEngine] 开始运行服务")
-
-	go engine.run()
-}
-
-func (engine *StrategyEngine) StopStrategy(id string) {
-	// 移除策略
-	engine.mutex.Lock()
-
-	s, ok := engine.strategyMap[id]
-	if !ok {
-		engine.mutex.Unlock()
-		return
-	}
-
-	// 更新用户策略列表
-	record := s.Get()
-	userStrategyCount := 0
-	userStrategyList, ok := engine.userStrategyMap[record.Account]
-	if ok {
-		newUserStrategyList := make([]string, 0, len(userStrategyList))
-		for _, guid := range userStrategyList {
-			if id != guid {
-				newUserStrategyList = append(newUserStrategyList, guid)
-			}
-		}
-
-		userStrategyCount = len(newUserStrategyList)
-		engine.userStrategyMap[record.Account] = newUserStrategyList
-	}
-
-	delete(engine.strategyMap, id)
-
-	engine.mutex.Unlock()
-
-	// 取消订阅用户订单
-	if userStrategyCount == 0 {
-		switch record.Exchange {
-		case exchange.Lighter:
-			signer, err := helper.GetLighterClient(engine.svcCtx, record)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			}
-
-			err = engine.lighterSubscriber.UnsubscribeAccountOrders(signer)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			}
-		case exchange.Paradex:
-			userClient, err := helper.GetParadexClient(engine.svcCtx, record)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
-			}
-
-			err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
-			}
-		}
-	}
-}
-
-func (engine *StrategyEngine) StartStrategy(s Strategy) (err error) {
+// StartStrategy 启动策略
+func (engine *StrategyEngine) StartStrategy(s Strategy) error {
 	record := s.Get()
 
-	// 添加策略
-	engine.mutex.Lock()
-
-	_, ok := engine.strategyMap[record.GUID]
-	if !ok {
-		// 更新用户策略列表
-		userStrategyList, ok := engine.userStrategyMap[record.Account]
-		if !ok {
-			userStrategyList = make([]string, 0)
-		}
-
-		_, find := lo.Find(userStrategyList, func(guid string) bool {
-			return guid == record.GUID
-		})
-		if !find {
-			userStrategyList = append(userStrategyList, record.GUID)
-		}
-		engine.userStrategyMap[record.Account] = userStrategyList
-	}
-	engine.strategyMap[record.GUID] = s
-
-	engine.mutex.Unlock()
+	// 添加策略到引擎
+	engine.addStrategyToEngine(record.GUID, record.Account, s)
 
 	// 订阅用户订单
-	switch record.Exchange {
-	case exchange.Lighter:
-		signer, err := helper.GetLighterClient(engine.svcCtx, record)
-		if err != nil {
-			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			return err
-		}
+	return engine.subscribeUserOrders(record)
+}
 
-		err = engine.lighterSubscriber.SubscribeAccountOrders(signer)
-		if err != nil {
-			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-		}
-		return err
-	case exchange.Paradex:
-		userClient, err := helper.GetParadexClient(engine.svcCtx, record)
-		if err != nil {
-			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
-			return err
-		}
+// StopStrategy 停止策略
+func (engine *StrategyEngine) StopStrategy(id string) {
+	// 从引擎中移除策略
+	record, userStrategyCount := engine.removeStrategyFromEngine(id)
+	if record == nil {
+		return
+	}
 
-		err = engine.paradexSubscriber.SubscribeAccountOrders(userClient)
-		if err != nil {
-			logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
-		}
-		return err
-	default:
-		return errors.New("exchange unsupported")
+	// 如果用户没有其他策略，取消订阅
+	if userStrategyCount == 0 {
+		engine.unsubscribeUserOrders(record)
 	}
 }
 
+// UpdateStrategy 更新策略
 func (engine *StrategyEngine) UpdateStrategy(entStrategy *ent.Strategy) {
 	engine.mutex.Lock()
 	defer engine.mutex.Unlock()
 
-	s, ok := engine.strategyMap[entStrategy.GUID]
-	if !ok {
-		return
+	if s, ok := engine.strategyMap[entStrategy.GUID]; ok {
+		s.Update(entStrategy)
 	}
-
-	s.Update(entStrategy)
 }
 
+// run 主运行循环
 func (engine *StrategyEngine) run() {
-	lighterUserOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
-	paradexUserOrdersChan := engine.paradexSubscriber.GetAccountOrdersChan()
+	lighterOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
+	paradexOrdersChan := engine.paradexSubscriber.GetAccountOrdersChan()
+	variationalOrdersChan := engine.variationalSubscriber.GetAccountOrdersChan()
 
 	for {
 		select {
 		case <-engine.ctx.Done():
 			engine.stopChan <- struct{}{}
 			return
-		case data := <-lighterUserOrdersChan:
-			orders, err := engine.parseLighterOrders(data)
-			if err != nil {
-				continue
-			}
 
-			// 处理用户订单，错误时重新同步订单数据
-			err = engine.handleUserOrders(data, orders)
-			if err != nil {
-				engine.resubscribe(data.Account)
-			}
-		case data := <-paradexUserOrdersChan:
-			orders, err := engine.toEntOrders(data)
-			if err != nil {
-				continue
-			}
+		case data := <-lighterOrdersChan:
+			engine.processLighterOrders(data)
 
-			// 处理用户订单，错误时重新同步订单数据
-			err = engine.handleUserOrders(data, orders)
-			if err != nil {
-				engine.resubscribe(data.Account)
-			}
+		case data := <-paradexOrdersChan:
+			engine.processOrders(data)
+
+		case data := <-variationalOrdersChan:
+			engine.processOrders(data)
 		}
 	}
 }
 
+// addStrategyToEngine 添加策略到引擎
+func (engine *StrategyEngine) addStrategyToEngine(strategyID, account string, s Strategy) {
+	engine.mutex.Lock()
+	defer engine.mutex.Unlock()
+
+	// 如果策略不存在，更新用户策略列表
+	if _, exists := engine.strategyMap[strategyID]; !exists {
+		userStrategyList := engine.userStrategyMap[account]
+		if userStrategyList == nil {
+			userStrategyList = make([]string, 0)
+		}
+
+		// 避免重复添加
+		if _, found := lo.Find(userStrategyList, func(guid string) bool {
+			return guid == strategyID
+		}); !found {
+			userStrategyList = append(userStrategyList, strategyID)
+		}
+		engine.userStrategyMap[account] = userStrategyList
+	}
+
+	engine.strategyMap[strategyID] = s
+}
+
+// removeStrategyFromEngine 从引擎中移除策略
+func (engine *StrategyEngine) removeStrategyFromEngine(strategyID string) (*ent.Strategy, int) {
+	engine.mutex.Lock()
+	defer engine.mutex.Unlock()
+
+	s, ok := engine.strategyMap[strategyID]
+	if !ok {
+		return nil, 0
+	}
+
+	record := s.Get()
+	userStrategyCount := 0
+
+	// 更新用户策略列表
+	if userStrategyList, ok := engine.userStrategyMap[record.Account]; ok {
+		newList := make([]string, 0, len(userStrategyList))
+		for _, guid := range userStrategyList {
+			if guid != strategyID {
+				newList = append(newList, guid)
+			}
+		}
+		userStrategyCount = len(newList)
+		engine.userStrategyMap[record.Account] = newList
+	}
+
+	delete(engine.strategyMap, strategyID)
+	return record, userStrategyCount
+}
+
+// subscribeUserOrders 订阅用户订单
+func (engine *StrategyEngine) subscribeUserOrders(record *ent.Strategy) error {
+	switch record.Exchange {
+	case exchange.Lighter:
+		return engine.subscribeLighterOrders(record)
+	case exchange.Paradex:
+		return engine.subscribeParadexOrders(record)
+	case exchange.Variational:
+		return engine.subscribeVariationalOrders(record)
+	default:
+		return errors.New("exchange unsupported")
+	}
+}
+
+// unsubscribeUserOrders 取消订阅用户订单
+func (engine *StrategyEngine) unsubscribeUserOrders(record *ent.Strategy) {
+	switch record.Exchange {
+	case exchange.Lighter:
+		engine.unsubscribeLighterOrders(record)
+	case exchange.Paradex:
+		engine.unsubscribeParadexOrders(record)
+	case exchange.Variational:
+		engine.unsubscribeVariationalOrders(record)
+	}
+}
+
+// subscribeLighterOrders 订阅 Lighter 订单
+func (engine *StrategyEngine) subscribeLighterOrders(record *ent.Strategy) error {
+	signer, err := helper.GetLighterClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
+		return err
+	}
+
+	if err = engine.lighterSubscriber.SubscribeAccountOrders(signer); err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
+	}
+	return err
+}
+
+// unsubscribeLighterOrders 取消订阅 Lighter 订单
+func (engine *StrategyEngine) unsubscribeLighterOrders(record *ent.Strategy) {
+	signer, err := helper.GetLighterClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, %v", err)
+		return
+	}
+
+	if err = engine.lighterSubscriber.UnsubscribeAccountOrders(signer); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
+	}
+}
+
+// subscribeParadexOrders 订阅 Paradex 订单
+func (engine *StrategyEngine) subscribeParadexOrders(record *ent.Strategy) error {
+	userClient, err := helper.GetParadexClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
+		return err
+	}
+
+	if err = engine.paradexSubscriber.SubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.DexAccount(), err)
+	}
+	return err
+}
+
+// unsubscribeParadexOrders 取消订阅 Paradex 订单
+func (engine *StrategyEngine) unsubscribeParadexOrders(record *ent.Strategy) {
+	userClient, err := helper.GetParadexClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, %v", err)
+		return
+	}
+
+	account := userClient.DexAccount()
+	if err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+}
+
+// subscribeVariationalOrders 订阅 Variational 订单
+func (engine *StrategyEngine) subscribeVariationalOrders(record *ent.Strategy) error {
+	userClient, err := helper.GetVariationalClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.EthAccount(), err)
+		return err
+	}
+
+	if err = engine.variationalSubscriber.SubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 订阅账户订单活动失败, account: %s, %v", userClient.EthAccount(), err)
+	}
+	return err
+}
+
+// unsubscribeVariationalOrders 取消订阅 Variational 订单
+func (engine *StrategyEngine) unsubscribeVariationalOrders(record *ent.Strategy) {
+	userClient, err := helper.GetVariationalClient(engine.svcCtx, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, %v", err)
+		return
+	}
+
+	account := userClient.EthAccount()
+	if err = engine.variationalSubscriber.UnsubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+}
+
+// processLighterOrders 处理 Lighter 订单
+func (engine *StrategyEngine) processLighterOrders(userOrders exchange.UserOrders) {
+	orders, err := engine.parseLighterOrders(userOrders)
+	if err != nil {
+		return
+	}
+
+	if err = engine.handleUserOrders(userOrders, orders); err != nil {
+		engine.resubscribe(userOrders.Account)
+	}
+}
+
+// processOrders 处理订单
+func (engine *StrategyEngine) processOrders(userOrders exchange.UserOrders) {
+	orders, err := engine.toEntOrders(userOrders)
+	if err != nil {
+		return
+	}
+
+	if err = engine.handleUserOrders(userOrders, orders); err != nil {
+		engine.resubscribe(userOrders.Account)
+	}
+}
+
+// resubscribe 重新订阅
 func (engine *StrategyEngine) resubscribe(account string) {
-	userStrategyList := engine.userStrategyList(account)
+	userStrategyList := engine.getUserStrategyList(account)
 	if len(userStrategyList) == 0 {
 		return
 	}
 
-	for _, s := range userStrategyList {
-		switch s.Get().Exchange {
-		case exchange.Lighter:
-			signer, err := helper.GetLighterClient(engine.svcCtx, s.Get())
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			}
+	// 只需要重新订阅一次（所有策略共享同一个账户订阅）
+	firstStrategy := userStrategyList[0].Get()
 
-			err = engine.lighterSubscriber.UnsubscribeAccountOrders(signer)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			}
-
-			err = engine.lighterSubscriber.SubscribeAccountOrders(signer)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %d, %v", signer.GetAccountIndex(), err)
-			}
-
-			return
-		case exchange.Paradex:
-			userClient, err := helper.GetParadexClient(engine.svcCtx, s.Get())
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", s.Get().Account, err)
-			}
-
-			account := userClient.DexAccount()
-			err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
-			}
-
-			err = engine.paradexSubscriber.SubscribeAccountOrders(userClient)
-			if err != nil {
-				logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %s, %v", account, err)
-			}
-
-			return
-		}
+	switch firstStrategy.Exchange {
+	case exchange.Lighter:
+		engine.resubscribeLighter(firstStrategy)
+	case exchange.Paradex:
+		engine.resubscribeParadex(firstStrategy)
+	case exchange.Variational:
+		engine.resubscribeVariational(firstStrategy)
 	}
 }
 
+// resubscribeLighter 重新订阅 Lighter
+func (engine *StrategyEngine) resubscribeLighter(strategy *ent.Strategy) {
+	signer, err := helper.GetLighterClient(engine.svcCtx, strategy)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 获取客户端失败, %v", err)
+		return
+	}
+
+	accountIndex := signer.GetAccountIndex()
+
+	// 取消订阅
+	if err = engine.lighterSubscriber.UnsubscribeAccountOrders(signer); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %d, %v", accountIndex, err)
+	}
+
+	// 重新订阅
+	if err = engine.lighterSubscriber.SubscribeAccountOrders(signer); err != nil {
+		logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %d, %v", accountIndex, err)
+	}
+}
+
+// resubscribeParadex 重新订阅 Paradex
+func (engine *StrategyEngine) resubscribeParadex(strategy *ent.Strategy) {
+	userClient, err := helper.GetParadexClient(engine.svcCtx, strategy)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 获取客户端失败, account: %s, %v", strategy.Account, err)
+		return
+	}
+
+	account := userClient.DexAccount()
+
+	// 取消订阅
+	if err = engine.paradexSubscriber.UnsubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+
+	// 重新订阅
+	if err = engine.paradexSubscriber.SubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+}
+
+// resubscribeVariational 重新订阅 Variational
+func (engine *StrategyEngine) resubscribeVariational(strategy *ent.Strategy) {
+	userClient, err := helper.GetVariationalClient(engine.svcCtx, strategy)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 获取客户端失败, account: %s, %v", strategy.Account, err)
+		return
+	}
+
+	account := userClient.EthAccount()
+
+	// 取消订阅
+	if err = engine.variationalSubscriber.UnsubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 取消订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+
+	// 重新订阅
+	if err = engine.variationalSubscriber.SubscribeAccountOrders(userClient); err != nil {
+		logger.Warnf("[StrategyEngine] 重新订阅账户订单活动失败, account: %s, %v", account, err)
+	}
+}
+
+// getUserStrategyList 获取用户策略列表
+func (engine *StrategyEngine) getUserStrategyList(account string) []Strategy {
+	engine.mutex.Lock()
+	defer engine.mutex.Unlock()
+
+	userStrategyIds, ok := engine.userStrategyMap[account]
+	if !ok {
+		return nil
+	}
+
+	userStrategyList := make([]Strategy, 0, len(userStrategyIds))
+	for _, guid := range userStrategyIds {
+		if s, ok := engine.strategyMap[guid]; ok {
+			userStrategyList = append(userStrategyList, s)
+		}
+	}
+
+	return userStrategyList
+}
+
+// syncUserOrders 同步用户订单
 func (engine *StrategyEngine) syncUserOrders(userOrders exchange.UserOrders, newOrders []ent.Order) error {
 	logger.Debugf("[StrategyEngine] 同步用户订单开始, account: %s", userOrders.Account)
 
 	// 查询账户策略
-	userStrategyList := engine.userStrategyList(userOrders.Account)
+	userStrategyList := engine.getUserStrategyList(userOrders.Account)
 	if len(userStrategyList) == 0 {
 		logger.Debugf("[StrategyEngine] 账户没有正在运行的策略, account: %s", userOrders.Account)
 		return nil
 	}
 
-	// 同步订单数据
+	// 如果是快照数据，需要同步订单
 	if userOrders.IsSnapshot {
-		synchronized := false
-		for _, s := range userStrategyList {
-			adapter, err := helper.NewExchangeAdapterFromStrategy(engine.svcCtx, s.Get())
-			if err != nil {
-				logger.Errorf("[StrategyEngine] 创建交易所适配器失败, account: %s, exchange: %s, %v",
-					s.Get().Account, s.Get().Exchange, err)
-				continue
-			}
-
-			err = adapter.SyncUserOrders(engine.ctx)
-			if err != nil {
-				logger.Errorf("[StrategyEngine] 同步用户订单失败, account: %s, %v", userOrders.Account, err)
-				continue
-			}
-
-			synchronized = true
-			break
-		}
-
-		if !synchronized {
-			logger.Errorf("[StrategyEngine] 无法完成同步用户订单, account: %s", userOrders.Account)
-			return errors.New("synchronization failed")
+		if err := engine.synchronizeOrders(userOrders.Account, userStrategyList); err != nil {
+			return err
 		}
 	}
 
 	// 更新新订单数据
-	err := util.Tx(engine.ctx, engine.svcCtx.DbClient, func(tx *ent.Tx) error {
-		for _, item := range newOrders {
-			err := engine.svcCtx.OrderModel.Upsert(engine.ctx, item)
-			if err != nil {
+	if err := engine.saveOrders(newOrders); err != nil {
+		logger.Errorf("[StrategyEngine] 保存用户活跃订单失败, %v", err)
+		return err
+	}
+
+	logger.Debugf("[StrategyEngine] 同步用户订单结束, account: %s", userOrders.Account)
+	return nil
+}
+
+// synchronizeOrders 同步订单数据
+func (engine *StrategyEngine) synchronizeOrders(account string, strategies []Strategy) error {
+	for _, s := range strategies {
+		adapter, err := helper.NewExchangeAdapterFromStrategy(engine.svcCtx, s.Get())
+		if err != nil {
+			logger.Errorf("[StrategyEngine] 创建交易所适配器失败, account: %s, exchange: %s, %v",
+				s.Get().Account, s.Get().Exchange, err)
+			continue
+		}
+
+		if err = adapter.SyncUserOrders(engine.ctx); err != nil {
+			logger.Errorf("[StrategyEngine] 同步用户订单失败, account: %s, %v", account, err)
+			continue
+		}
+
+		return nil // 同步成功
+	}
+
+	logger.Errorf("[StrategyEngine] 无法完成同步用户订单, account: %s", account)
+	return errors.New("synchronization failed")
+}
+
+// saveOrders 保存订单
+func (engine *StrategyEngine) saveOrders(orders []ent.Order) error {
+	return util.Tx(engine.ctx, engine.svcCtx.DbClient, func(tx *ent.Tx) error {
+		for _, order := range orders {
+			if err := engine.svcCtx.OrderModel.Upsert(engine.ctx, order); err != nil {
 				return err
 			}
 		}
-
 		return nil
 	})
-	if err != nil {
-		logger.Errorf("[StrategyEngine] 保存用户活跃订单失败, %v", err)
-	} else {
-		logger.Debugf("[StrategyEngine] 同步用户订单结束, account: %s", userOrders.Account)
-	}
-
-	return err
 }
 
-func (engine *StrategyEngine) userStrategyList(account string) []Strategy {
-	userStrategyList := make([]Strategy, 0)
-
-	// 查询账户策略
-	engine.mutex.Lock()
-	userStrategyIds, ok := engine.userStrategyMap[account]
-	if !ok {
-		engine.mutex.Unlock()
-		return nil
-	}
-
-	for _, guid := range userStrategyIds {
-		s, ok := engine.strategyMap[guid]
-		if ok {
-			userStrategyList = append(userStrategyList, s)
-		}
-	}
-
-	engine.mutex.Unlock()
-
-	return userStrategyList
-}
-
+// toEntOrders 转换为 Ent 订单
 func (engine *StrategyEngine) toEntOrders(userOrders exchange.UserOrders) ([]ent.Order, error) {
-	newOrders := make([]ent.Order, 0)
+	entOrders := make([]ent.Order, 0, len(userOrders.Orders))
+
 	for _, ord := range userOrders.Orders {
-		args := ent.Order{
+		entOrders = append(entOrders, ent.Order{
 			Exchange:          userOrders.Exchange,
 			Account:           userOrders.Account,
 			Symbol:            ord.Symbol,
@@ -393,55 +529,70 @@ func (engine *StrategyEngine) toEntOrders(userOrders exchange.UserOrders) ([]ent
 			FilledQuoteAmount: ord.FilledQuoteAmount,
 			Status:            ord.Status,
 			Timestamp:         ord.Timestamp,
-		}
-		newOrders = append(newOrders, args)
+		})
 	}
 
-	return newOrders, nil
+	return entOrders, nil
 }
 
+// parseLighterOrders 解析 Lighter 订单
 func (engine *StrategyEngine) parseLighterOrders(userOrders exchange.UserOrders) ([]ent.Order, error) {
-	for _, ord := range userOrders.Orders {
-		marketIndex, err := strconv.ParseInt(ord.Symbol, 10, 64)
+	// 转换市场ID为交易对符号
+	for i := range userOrders.Orders {
+		marketIndex, err := strconv.ParseInt(userOrders.Orders[i].Symbol, 10, 64)
 		if err != nil {
-			logger.Fatalf("[StrategyEngine] 解析市场ID失败, account: %s, symbol: %s", userOrders.Account, ord.Symbol)
+			logger.Fatalf("[StrategyEngine] 解析市场ID失败, account: %s, symbol: %s",
+				userOrders.Account, userOrders.Orders[i].Symbol)
 			return nil, err
 		}
 
 		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, uint8(marketIndex))
 		if err != nil {
-			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d", userOrders.Account, marketIndex)
+			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d",
+				userOrders.Account, marketIndex)
 			return nil, err
 		}
 
-		ord.Symbol = symbol
+		userOrders.Orders[i].Symbol = symbol
 	}
 
 	return engine.toEntOrders(userOrders)
 }
 
+// handleUserOrders 处理用户订单
 func (engine *StrategyEngine) handleUserOrders(userOrders exchange.UserOrders, newOrders []ent.Order) error {
-	err := engine.syncUserOrders(userOrders, newOrders)
-	if err != nil {
+	// 同步用户订单
+	if err := engine.syncUserOrders(userOrders, newOrders); err != nil {
 		logger.Errorf("[StrategyEngine] 同步用户订单失败, account: %s, %v", userOrders.Account, err)
 		return err
 	}
 
-	userStrategyList := engine.userStrategyList(userOrders.Account)
-	for _, item := range userStrategyList {
-		s := item.Get()
-
-		logger.Debugf("[StrategyEngine] 执行用户策略开始, id: %s, account: %s, symbol: %s", s.GUID, s.Account, s.Symbol)
-		if err = item.OnUpdate(engine.ctx); err != nil {
-			if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
-				engine.onOrderCancelled(engine.ctx, engine.svcCtx, engine, s)
-			}
-			logger.Errorf("[StrategyEngine] 执行用户策略失败, id: %s, account: %s, symbol: %s, %v", s.GUID, s.Account, s.Symbol, err)
-
-		} else {
-			logger.Debugf("[StrategyEngine] 执行用户策略结束, id: %s, account: %s, symbol: %s", s.GUID, s.Account, s.Symbol)
-		}
+	// 执行用户策略
+	userStrategyList := engine.getUserStrategyList(userOrders.Account)
+	for _, strategy := range userStrategyList {
+		engine.executeStrategy(strategy)
 	}
 
 	return nil
+}
+
+// executeStrategy 执行策略
+func (engine *StrategyEngine) executeStrategy(strategy Strategy) {
+	s := strategy.Get()
+	logger.Debugf("[StrategyEngine] 执行用户策略开始, id: %s, account: %s, symbol: %s",
+		s.GUID, s.Account, s.Symbol)
+
+	err := strategy.OnUpdate(engine.ctx)
+	if err != nil {
+		// 处理订单取消错误
+		if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
+			engine.onOrderCancelled(engine.ctx, engine.svcCtx, engine, s)
+		}
+		logger.Errorf("[StrategyEngine] 执行用户策略失败, id: %s, account: %s, symbol: %s, %v",
+			s.GUID, s.Account, s.Symbol, err)
+		return
+	}
+
+	logger.Debugf("[StrategyEngine] 执行用户策略结束, id: %s, account: %s, symbol: %s",
+		s.GUID, s.Account, s.Symbol)
 }

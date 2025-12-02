@@ -164,7 +164,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 		}
 	}
 	if len(nums) > 0 {
-		t := time.UnixMilli(lo.Min(nums))
+		t := time.UnixMilli(lo.Min(nums) - 5*1000)
 		startTime = &t
 	}
 

@@ -103,6 +103,16 @@ func testParadexConnectivity(ctx context.Context, svcCtx *svc.ServiceContext, re
 	return err
 }
 
+func testVariationalConnectivity(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
+	userClient, err := helper.GetVariationalClient(svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	_, err = userClient.GetPortfolio(ctx, true)
+	return err
+}
+
 func testExchangeConnectivity(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
 	if record.Exchange == "" {
 		return errors.New("exchange not configured")
@@ -113,6 +123,8 @@ func testExchangeConnectivity(ctx context.Context, svcCtx *svc.ServiceContext, r
 		return testLighterConnectivity(ctx, svcCtx, record)
 	case exchange.Paradex:
 		return testParadexConnectivity(ctx, svcCtx, record)
+	case exchange.Variational:
+		return testVariationalConnectivity(ctx, svcCtx, record)
 	default:
 		return errors.New("exchange unsupported")
 	}

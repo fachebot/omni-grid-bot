@@ -73,20 +73,20 @@ type PositionInfo struct {
 
 // Position 持仓信息
 type Position struct {
-	PositionInfo              PositionInfo           `json:"position_info"`               // 持仓基本信息
-	PendingOrderCounts        map[string]interface{} `json:"pending_order_counts"`        // 待处理订单计数
-	PriceInfo                 PriceInfo              `json:"price_info"`                  // 价格相关信息
-	Value                     decimal.Decimal        `json:"value"`                       // 持仓价值
-	Upnl                      decimal.Decimal        `json:"upnl"`                        // 未实现盈亏
-	Rpnl                      decimal.Decimal        `json:"rpnl"`                        // 已实现盈亏
-	CumFunding                decimal.Decimal        `json:"cum_funding"`                 // 累计资金费用
-	EstimatedLiquidationPrice decimal.Decimal        `json:"estimated_liquidation_price"` // 预估强平价格
+	PositionInfo              PositionInfo    `json:"position_info"`               // 持仓基本信息
+	PendingOrderCounts        map[string]any  `json:"pending_order_counts"`        // 待处理订单计数
+	PriceInfo                 PriceInfo       `json:"price_info"`                  // 价格相关信息
+	Value                     decimal.Decimal `json:"value"`                       // 持仓价值
+	Upnl                      decimal.Decimal `json:"upnl"`                        // 未实现盈亏
+	Rpnl                      decimal.Decimal `json:"rpnl"`                        // 已实现盈亏
+	CumFunding                decimal.Decimal `json:"cum_funding"`                 // 累计资金费用
+	EstimatedLiquidationPrice decimal.Decimal `json:"estimated_liquidation_price"` // 预估强平价格
 }
 
 // MarginUsage 保证金信息
 type MarginUsage struct {
-	InitialMargin     string `json:"initial_margin"`     // 初始保证金要求
-	MaintenanceMargin string `json:"maintenance_margin"` // 维持保证金要求
+	InitialMargin     decimal.Decimal `json:"initial_margin"`     // 初始保证金要求
+	MaintenanceMargin decimal.Decimal `json:"maintenance_margin"` // 维持保证金要求
 }
 
 // Portfolio 投资组合信息
@@ -190,9 +190,9 @@ type OrdersRes struct {
 
 // QtyLimitDetails 数量限制详情
 type QtyLimitDetails struct {
-	MinQtyTick string `json:"min_qty_tick"` // 最小数量变动单位
-	MinQty     string `json:"min_qty"`      // 最小数量
-	MaxQty     string `json:"max_qty"`      // 最大数量
+	MinQtyTick decimal.Decimal `json:"min_qty_tick"` // 最小数量变动单位
+	MinQty     decimal.Decimal `json:"min_qty"`      // 最小数量
+	MaxQty     decimal.Decimal `json:"max_qty"`      // 最大数量
 }
 
 // QtyLimits 数量限制
@@ -203,20 +203,20 @@ type QtyLimits struct {
 
 // SimpleQuoteRes 报价响应
 type SimpleQuoteRes struct {
-	Instrument Instrument `json:"instrument"`  // 交易品种信息
-	Qty        string     `json:"qty"`         // 数量
-	Bid        string     `json:"bid"`         // 买价
-	Ask        string     `json:"ask"`         // 卖价
-	MarkPrice  string     `json:"mark_price"`  // 标记价格
-	IndexPrice string     `json:"index_price"` // 指数价格
-	QuoteID    string     `json:"quote_id"`    // 报价ID
-	QtyLimits  QtyLimits  `json:"qty_limits"`  // 数量限制
+	Instrument Instrument      `json:"instrument"`  // 交易品种信息
+	Qty        decimal.Decimal `json:"qty"`         // 数量
+	Bid        decimal.Decimal `json:"bid"`         // 买价
+	Ask        decimal.Decimal `json:"ask"`         // 卖价
+	MarkPrice  decimal.Decimal `json:"mark_price"`  // 标记价格
+	IndexPrice decimal.Decimal `json:"index_price"` // 指数价格
+	QuoteID    string          `json:"quote_id"`    // 报价ID
+	QtyLimits  QtyLimits       `json:"qty_limits"`  // 数量限制
 }
 
 // MarginDetails 保证金详细信息
 type MarginDetails struct {
-	InitialMargin     string `json:"initial_margin"`     // 初始保证金
-	MaintenanceMargin string `json:"maintenance_margin"` // 维持保证金
+	InitialMargin     decimal.Decimal `json:"initial_margin"`     // 初始保证金
+	MaintenanceMargin decimal.Decimal `json:"maintenance_margin"` // 维持保证金
 }
 
 // MarginRequirements 保证金要求信息

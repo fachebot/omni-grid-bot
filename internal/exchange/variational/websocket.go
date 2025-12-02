@@ -193,7 +193,7 @@ func (ws *VariationalWS) readMessages() {
 
 	// 消息循环
 	first := true
-	pendingOrders := make(map[string]struct{})
+	// pendingOrders := make(map[string]struct{})
 	localSequenceMap := make(map[string]int64)
 	for {
 		_, data, err := ws.conn.ReadMessage()
@@ -213,19 +213,19 @@ func (ws *VariationalWS) readMessages() {
 		}
 
 		// 检测新订单
-		newOrders := make([]string, 0)
-		ids := ws.pendingOrdersCache.List(exchange.Variational, account)
-		for _, id := range ids {
-			_, ok := pendingOrders[id]
-			if !ok {
-				newOrders = append(newOrders, id)
-			}
-		}
+		// newOrders := make([]string, 0)
+		// ids := ws.pendingOrdersCache.List(exchange.Variational, account)
+		// for _, id := range ids {
+		// 	_, ok := pendingOrders[id]
+		// 	if !ok {
+		// 		newOrders = append(newOrders, id)
+		// 	}
+		// }
 
-		pendingOrders = make(map[string]struct{})
-		for _, id := range ids {
-			pendingOrders[id] = struct{}{}
-		}
+		// pendingOrders = make(map[string]struct{})
+		// for _, id := range ids {
+		// 	pendingOrders[id] = struct{}{}
+		// }
 
 		// 检查仓位变化
 		positionChanged := false
@@ -256,7 +256,7 @@ func (ws *VariationalWS) readMessages() {
 		}
 
 		// 触发同步订单
-		if first || len(newOrders) > 0 || positionChanged {
+		if first || positionChanged {
 			first = false
 			userOrders := exchange.UserOrders{
 				Exchange:   exchange.Variational,

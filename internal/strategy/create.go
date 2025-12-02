@@ -109,7 +109,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 	switch record.Mode {
 	case strategy.ModeLong:
 		for idx := 0; idx < len(gridLevels)-1; idx++ {
-			if record.Exchange == exchange.Lighter || gridLevels[idx].Price.LessThan(lastPrice) {
+			if record.Exchange != exchange.Paradex || gridLevels[idx].Price.LessThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
@@ -124,6 +124,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 					Symbol:                   record.Symbol,
 					IsAsk:                    false,
 					ReduceOnly:               false,
+					SlippageBps:              slippageBps,
 					AcceptableExecutionPrice: longMarketPrice,
 					Size:                     gridLevels[idx].Quantity,
 				})
@@ -131,7 +132,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 		}
 	case strategy.ModeShort:
 		for idx := len(gridLevels) - 1; idx > 0; idx-- {
-			if record.Exchange == exchange.Lighter || gridLevels[idx].Price.GreaterThan(lastPrice) {
+			if record.Exchange != exchange.Paradex || gridLevels[idx].Price.GreaterThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
@@ -146,6 +147,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 					Symbol:                   record.Symbol,
 					IsAsk:                    true,
 					ReduceOnly:               false,
+					SlippageBps:              slippageBps,
 					AcceptableExecutionPrice: shortMarketPrice,
 					Size:                     gridLevels[idx].Quantity,
 				})
@@ -155,6 +157,8 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 	default:
 		return errors.New("invalid grid mode")
 	}
+
+	ts := time.Now().UnixMilli()
 	limitOrderIds, marketOrderIds, err := adapter.CreateOrderBatch(ctx, limitOrders, marketOrders)
 	if err != nil {
 		return err
@@ -165,16 +169,20 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 		switch record.Mode {
 		case strategy.ModeLong:
 			gridLevels[limitOrderIndexMap[idx]].BuyClientOrderId = &limitOrderIds[idx]
+			gridLevels[limitOrderIndexMap[idx]].BuyClientOrderTime = &ts
 		case strategy.ModeShort:
 			gridLevels[limitOrderIndexMap[idx]].SellClientOrderId = &limitOrderIds[idx]
+			gridLevels[limitOrderIndexMap[idx]].SellClientOrderTime = &ts
 		}
 	}
 	for idx := range marketOrderIds {
 		switch record.Mode {
 		case strategy.ModeLong:
 			gridLevels[marketOrderIndexMap[idx]].BuyClientOrderId = &marketOrderIds[idx]
+			gridLevels[limitOrderIndexMap[idx]].BuyClientOrderTime = &ts
 		case strategy.ModeShort:
 			gridLevels[marketOrderIndexMap[idx]].SellClientOrderId = &marketOrderIds[idx]
+			gridLevels[limitOrderIndexMap[idx]].SellClientOrderTime = &ts
 		}
 	}
 

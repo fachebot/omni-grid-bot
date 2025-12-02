@@ -28,6 +28,8 @@ func GetAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent
 		return GetLighterAccountInfo(ctx, svcCtx, record.Account)
 	case exchange.Paradex:
 		return GetParadexAccountInfo(ctx, svcCtx, record)
+	case exchange.Variational:
+		return GetVariationalAccountInfo(ctx, svcCtx, record)
 	default:
 		return nil, errors.New("exchange unsupported")
 	}
@@ -146,6 +148,49 @@ func GetParadexAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, reco
 	return &account, nil
 }
 
+func GetVariationalAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
+	client, err := GetVariationalClient(svcCtx, record)
+	if err != nil {
+		return nil, err
+	}
+
+	positions, err := client.GetPositions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	portfolio, err := client.GetPortfolio(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+
+	account := exchange.Account{
+		TotalAssetValue:  portfolio.Balance,
+		AvailableBalance: portfolio.Balance.Sub(portfolio.MarginUsage.MaintenanceMargin),
+		Positions:        make([]*exchange.Position, 0, len(positions)),
+	}
+
+	for _, item := range positions {
+		if item.PositionInfo.Qty.IsZero() {
+			continue
+		}
+
+		account.Positions = append(account.Positions, &exchange.Position{
+			Symbol:              item.PositionInfo.Instrument.Underlying,
+			Side:                lo.If(item.PositionInfo.Qty.GreaterThan(decimal.Zero), exchange.PositionSideLong).Else(exchange.PositionSideShort),
+			Position:            item.PositionInfo.Qty.Abs(),
+			AvgEntryPrice:       item.PositionInfo.AvgEntryPrice,
+			UnrealizedPnl:       item.Upnl,
+			RealizedPnl:         item.Rpnl,
+			LiquidationPrice:    item.EstimatedLiquidationPrice,
+			TotalFundingPaidOut: item.CumFunding,
+			MarginMode:          exchange.MarginModeCross,
+		})
+	}
+
+	return &account, nil
+}
+
 func GetMarketMetadata(ctx context.Context, svcCtx *svc.ServiceContext, exchangeType, symbol string) (MarketMetadata, error) {
 	switch exchangeType {
 	case exchange.Lighter:
@@ -176,6 +221,29 @@ func GetMarketMetadata(ctx context.Context, svcCtx *svc.ServiceContext, exchange
 			SupportedQuoteDecimals: uint8(-metadata.PriceTickSize.Exponent()),
 		}
 		return ret, nil
+	case exchange.Variational:
+		quote, err := svcCtx.VariationalClient.SimpleQuote(ctx, symbol, decimal.NewFromFloat(0.0001))
+		if err != nil {
+			return MarketMetadata{}, err
+		}
+
+		minBaseAmount := quote.QtyLimits.Ask.MinQty
+		if minBaseAmount.LessThan(quote.QtyLimits.Bid.MinQty) {
+			minBaseAmount = quote.QtyLimits.Bid.MinQty
+		}
+
+		askPriceDecimals := uint8(-quote.Ask.Exponent())
+		bidPriceDecimals := uint8(-quote.Bid.Exponent())
+		supportedPriceDecimals := lo.Max([]uint8{askPriceDecimals, bidPriceDecimals})
+
+		ret := MarketMetadata{
+			MinBaseAmount:          minBaseAmount,
+			MinQuoteAmount:         decimal.Zero,
+			SupportedSizeDecimals:  uint8(-minBaseAmount.Exponent()),
+			SupportedPriceDecimals: supportedPriceDecimals,
+			SupportedQuoteDecimals: supportedPriceDecimals,
+		}
+		return ret, nil
 	default:
 		return MarketMetadata{}, errors.New("exchange unsupported")
 	}
@@ -201,6 +269,12 @@ func GetLastTradePrice(ctx context.Context, svcCtx *svc.ServiceContext, exchange
 		}
 
 		return marketSummary.Results[0].LastTradedPrice, nil
+	case exchange.Variational:
+		quote, err := svcCtx.VariationalClient.SimpleQuote(ctx, symbol, decimal.NewFromFloat(0.0001))
+		if err != nil {
+			return decimal.Zero, err
+		}
+		return quote.Ask, nil
 	default:
 		return decimal.Zero, errors.New("exchange unsupported")
 	}
