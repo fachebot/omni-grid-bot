@@ -30,7 +30,7 @@ OminiGrid Bot 专注于做一件事：
 
 - **多交易所支持**
 
-  - 当前已支持：**Lighter、Paradex、Variational**
+  - 当前已支持：**Lighter**、**Paradex**、**Variational**(前端 API)
   - 使用统一接口封装，便于后续扩展更多 Perp DEX
 
 - **可配置的网格交易策略**
