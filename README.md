@@ -65,6 +65,8 @@ OminiGrid Bot 专注于做一件事：
 
 下面以本地开发运行为例，演示如何在几分钟内跑起来。
 
+> 📌 **普通用户提示**：如果您不是开发者，可以直接跳过下面的编译步骤，前往 [Release 页面](https://github.com/fachebot/omni-grid-bot/releases) 下载最新版本的可执行文件，然后直接查看 [配置说明](#⚙️-配置说明) 部分，修改配置文件后即可运行。
+
 ### 1. 环境准备
 
 **先决条件：**
@@ -89,7 +91,7 @@ cd omni-grid-bot
 
 ### 3. 配置文件
 
-项目使用 `etc/config.yaml` 作为主配置文件，仓库中提供了一个样例：
+项目使用 `etc/config.yaml` 作为主配置文件，仓库中提供了一个样例，你可以手动复制 [etc/config.yaml.sampl](etc/config.yaml.sampl) 到 `etc/config.yaml` 文件，也可以执行下面的命令进行复制：
 
 ```bash
 cp etc/config.yaml.sample etc/config.yaml
