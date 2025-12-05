@@ -155,31 +155,43 @@ type PageInfo struct {
 	Offset string `json:"offset"` // 偏移量
 }
 
+// FailedRiskCheck 风险检查失败记录
+type FailedRiskCheck struct {
+	CreatedAt     time.Time `json:"created_at"`      // 创建时间
+	ID            int64     `json:"id"`              // 风险检查ID
+	Message       string    `json:"message"`         // 失败消息
+	ParentQuoteID string    `json:"parent_quote_id"` // 父报价ID
+	Result        any       `json:"result"`          // 检查结果
+	RfqID         string    `json:"rfq_id"`          // 询价单ID
+	RiskCheck     string    `json:"risk_check"`      // 风险检查类型
+	RiskLimit     any       `json:"risk_limit"`      // 风险限制值
+}
+
 // Order 订单信息
 type Order struct {
-	CancelReason       string           `json:"cancel_reason"`       // 取消原因
-	ClearingStatus     *string          `json:"clearing_status"`     // 清算状态
-	Company            string           `json:"company"`             // 公司标识
-	CreatedAt          time.Time        `json:"created_at"`          // 创建时间
-	ExecutionTimestamp *time.Time       `json:"execution_timestamp"` // 执行时间戳
-	FailedRiskChecks   []string         `json:"failed_risk_checks"`  // 失败的风险检查
-	Instrument         Instrument       `json:"instrument"`          // 交易工具信息
-	IsAutoResize       bool             `json:"is_auto_resize"`      // 是否自动调整大小
-	IsReduceOnly       bool             `json:"is_reduce_only"`      // 是否仅减仓
-	LimitPrice         *decimal.Decimal `json:"limit_price"`         // 限价价格
-	MarkPrice          *decimal.Decimal `json:"mark_price"`          // 标记价格
-	OrderID            string           `json:"order_id"`            // 订单ID
-	OrderType          OrderType        `json:"order_type"`          // 订单类型
-	PoolLocation       string           `json:"pool_location"`       // 资金池位置
-	Price              *decimal.Decimal `json:"price"`               // 实际成交价格
-	Qty                decimal.Decimal  `json:"qty"`                 // 数量
-	RfqID              string           `json:"rfq_id"`              // RFQ ID
-	Side               OrderSide        `json:"side"`                // 买卖方向
-	SlippageLimit      *decimal.Decimal `json:"slippage_limit"`      // 滑点限制
-	Status             OrderStatus      `json:"status"`              // 订单状态
-	Tif                string           `json:"tif"`                 // 订单有效时间
-	TriggerPrice       *decimal.Decimal `json:"trigger_price"`       // 触发价格
-	UseMarkPrice       bool             `json:"use_mark_price"`      // 是否使用标记价格
+	CancelReason       string             `json:"cancel_reason"`       // 取消原因
+	ClearingStatus     *string            `json:"clearing_status"`     // 清算状态
+	Company            string             `json:"company"`             // 公司标识
+	CreatedAt          time.Time          `json:"created_at"`          // 创建时间
+	ExecutionTimestamp *time.Time         `json:"execution_timestamp"` // 执行时间戳
+	FailedRiskChecks   []*FailedRiskCheck `json:"failed_risk_checks"`  // 失败的风险检查
+	Instrument         Instrument         `json:"instrument"`          // 交易工具信息
+	IsAutoResize       bool               `json:"is_auto_resize"`      // 是否自动调整大小
+	IsReduceOnly       bool               `json:"is_reduce_only"`      // 是否仅减仓
+	LimitPrice         *decimal.Decimal   `json:"limit_price"`         // 限价价格
+	MarkPrice          *decimal.Decimal   `json:"mark_price"`          // 标记价格
+	OrderID            string             `json:"order_id"`            // 订单ID
+	OrderType          OrderType          `json:"order_type"`          // 订单类型
+	PoolLocation       string             `json:"pool_location"`       // 资金池位置
+	Price              *decimal.Decimal   `json:"price"`               // 实际成交价格
+	Qty                decimal.Decimal    `json:"qty"`                 // 数量
+	RfqID              string             `json:"rfq_id"`              // RFQ ID
+	Side               OrderSide          `json:"side"`                // 买卖方向
+	SlippageLimit      *decimal.Decimal   `json:"slippage_limit"`      // 滑点限制
+	Status             OrderStatus        `json:"status"`              // 订单状态
+	Tif                string             `json:"tif"`                 // 订单有效时间
+	TriggerPrice       *decimal.Decimal   `json:"trigger_price"`       // 触发价格
+	UseMarkPrice       bool               `json:"use_mark_price"`      // 是否使用标记价格
 }
 
 // OrdersRes 订单列表响应
