@@ -2,6 +2,9 @@
 
 一个用 **Golang** 编写的网格交易 Telegram 机器人框架，用于连接多家 **Perp DEX**，并以可配置策略自动执行网格交易。
 
+- 🐛 Bug 报告：[Issues](https://github.com/fachebot/omni-grid-bot/issues)
+- 📧 使用交流：[电报群](https://t.me/+sRrZC-LVPAsyOWE1)
+
 <img width="574" height="588" alt="Snipaste_2025-12-05_22-10-10" src="https://github.com/user-attachments/assets/431f1ddc-f7c1-4fdd-be13-24b79cc082ef" />
 
 ---
