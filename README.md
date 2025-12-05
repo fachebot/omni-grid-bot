@@ -2,6 +2,8 @@
 
 一个用 **Golang** 编写的网格交易 Telegram 机器人框架，用于连接多家 **Perp DEX**，并以可配置策略自动执行网格交易。
 
+<img width="574" height="588" alt="Snipaste_2025-12-05_22-10-10" src="https://github.com/user-attachments/assets/431f1ddc-f7c1-4fdd-be13-24b79cc082ef" />
+
 ---
 
 ## 🧭 项目概览
@@ -200,3 +202,4 @@ TelegramBot:
 ## 📜 许可证
 
 本项目基于 MIT License 开源发布，详见 [LICENSE](LICENSE) 文件。
+
