@@ -93,6 +93,11 @@ func (b *TeleBot) handleUpdate(c tele.Context) error {
 
 	// 私聊消息
 	if chat.Type == tele.ChatPrivate {
+		if !b.svcCtx.Config.TelegramBot.IsWhiteListUser(chat.ID) {
+			util.SendMarkdownMessage(b.svcCtx.Bot, chat, "🚫 非白名单用户, 不允许使用此机器人", nil)
+			return nil
+		}
+
 		// 处理文本消息
 		if update.Message != nil {
 			if strings.HasPrefix(update.Message.Text, "/start") {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"slices"
 
 	"gopkg.in/yaml.v2"
 )
@@ -17,6 +18,13 @@ type TelegramBot struct {
 	ApiToken     string  `yaml:"ApiToken"`
 	WhiteList    []int64 `yaml:"WhiteList"`
 	NotifyChatId int64   `yaml:"NotifyChatId"`
+}
+
+func (c *TelegramBot) IsWhiteListUser(userId int64) bool {
+	if len(c.WhiteList) == 0 {
+		return true
+	}
+	return slices.Contains(c.WhiteList, userId)
 }
 
 type Config struct {
