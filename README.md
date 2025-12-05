@@ -83,7 +83,7 @@ OminiGrid Bot 专注于做一件事：
 ### 2. 克隆仓库
 
 ```bash
-git clone https://github.com/your-org/omni-grid-bot.git
+git clone https://github.com/fachebot/omni-grid-bot.git
 cd omni-grid-bot
 ```
 
@@ -202,4 +202,3 @@ TelegramBot:
 ## 📜 许可证
 
 本项目基于 MIT License 开源发布，详见 [LICENSE](LICENSE) 文件。
-
