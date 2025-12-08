@@ -25,7 +25,7 @@ func (s *GridStrategy) Update(entStrategy *ent.Strategy) {
 	s.strategy = entStrategy
 }
 
-func (s *GridStrategy) OnUpdate(ctx context.Context) error {
+func (s *GridStrategy) OnOrdersChanged(ctx context.Context) error {
 	state, err := LoadGridStrategyState(ctx, s.svcCtx, s.strategy)
 	if err != nil {
 		logger.Errorf("[GridStrategy] 加载策略状态失败, id: %s, symbol: %s, account: %s, %v",

@@ -26,7 +26,7 @@ type OrderCancelled func(ctx context.Context, svcCtx *svc.ServiceContext, engine
 type Strategy interface {
 	Get() *ent.Strategy
 	Update(s *ent.Strategy)
-	OnUpdate(ctx context.Context) error
+	OnOrdersChanged(ctx context.Context) error
 }
 
 // StrategyEngine 策略引擎
@@ -582,7 +582,7 @@ func (engine *StrategyEngine) executeStrategy(strategy Strategy) {
 	logger.Debugf("[StrategyEngine] 执行用户策略开始, id: %s, account: %s, symbol: %s",
 		s.GUID, s.Account, s.Symbol)
 
-	err := strategy.OnUpdate(engine.ctx)
+	err := strategy.OnOrdersChanged(engine.ctx)
 	if err != nil {
 		// 处理订单取消错误
 		if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
