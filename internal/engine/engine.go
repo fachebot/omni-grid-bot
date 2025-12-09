@@ -1,10 +1,12 @@
 package engine
 
 import (
+	"container/heap"
 	"context"
 	"errors"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
@@ -49,6 +51,10 @@ type StrategyEngine struct {
 	mutex           sync.RWMutex
 	strategyMap     map[string]Strategy // 策略ID -> 策略实例
 	userStrategyMap map[string][]string // 用户账户 -> 策略ID列表
+
+	// 重试管理
+	retryHeap *retryHeap            // 最小堆
+	retrySet  map[string]*retryItem // 快速查找是否在重试队列
 }
 
 // NewStrategyEngine 创建策略引擎实例
@@ -59,6 +65,9 @@ func NewStrategyEngine(
 	variationalSubscriber *variational.VariationalSubscriber,
 	onOrderCancelled OrderCancelled,
 ) *StrategyEngine {
+	h := make(retryHeap, 0)
+	heap.Init(&h)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	return &StrategyEngine{
 		ctx:                   ctx,
@@ -70,6 +79,8 @@ func NewStrategyEngine(
 		variationalSubscriber: variationalSubscriber,
 		strategyMap:           make(map[string]Strategy),
 		userStrategyMap:       make(map[string][]string),
+		retryHeap:             &h,
+		retrySet:              make(map[string]*retryItem),
 	}
 }
 
@@ -136,14 +147,77 @@ func (engine *StrategyEngine) UpdateStrategy(entStrategy *ent.Strategy) {
 	}
 }
 
+// addToRetryQueue 添加策略到重试队列
+func (engine *StrategyEngine) addToRetryQueue(strategyID string, retryTime time.Time) {
+	// 如果已经在队列中，先移除
+	if item, exists := engine.retrySet[strategyID]; exists {
+		heap.Remove(engine.retryHeap, item.index)
+	}
+
+	// 添加新的重试项
+	item := &retryItem{
+		strategyID: strategyID,
+		retryTime:  retryTime,
+	}
+	heap.Push(engine.retryHeap, item)
+	engine.retrySet[strategyID] = item
+
+	logger.Debugf("[StrategyEngine] 策略已加入重试队列, id: %s, retryTime: %s",
+		strategyID, retryTime.Format(time.RFC3339))
+}
+
+// removeFromRetryQueue 从重试队列移除策略
+func (engine *StrategyEngine) removeFromRetryQueue(strategyID string) {
+	if item, exists := engine.retrySet[strategyID]; exists {
+		heap.Remove(engine.retryHeap, item.index)
+		delete(engine.retrySet, strategyID)
+
+		logger.Debugf("[StrategyEngine] 策略已从重试队列移除, id: %s", strategyID)
+	}
+}
+
+// processRetries 处理重试队列
+func (engine *StrategyEngine) processRetries() {
+	for engine.retryHeap.Len() > 0 {
+		item := (*engine.retryHeap)[0]
+		if time.Now().Before(item.retryTime) {
+			break
+		}
+
+		// 从堆中移除
+		heap.Pop(engine.retryHeap)
+		delete(engine.retrySet, item.strategyID)
+
+		// 获取策略并重试
+		engine.mutex.RLock()
+		strategy, exists := engine.strategyMap[item.strategyID]
+		engine.mutex.RUnlock()
+
+		if !exists {
+			logger.Warnf("[StrategyEngine] 重试时策略不存在, id: %s", item.strategyID)
+			continue
+		}
+
+		logger.Infof("[StrategyEngine] 开始重试策略, id: %s", item.strategyID)
+		engine.executeStrategy(strategy)
+	}
+}
+
 // run 主运行循环
 func (engine *StrategyEngine) run() {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+
 	lighterOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
 	paradexOrdersChan := engine.paradexSubscriber.GetAccountOrdersChan()
 	variationalOrdersChan := engine.variationalSubscriber.GetAccountOrdersChan()
 
 	for {
 		select {
+		case <-timer.C:
+			engine.processRetries()
+			timer.Reset(time.Second * 1)
+
 		case <-engine.ctx.Done():
 			engine.stopChan <- struct{}{}
 			return
@@ -584,14 +658,19 @@ func (engine *StrategyEngine) executeStrategy(strategy Strategy) {
 
 	err := strategy.OnOrdersChanged(engine.ctx)
 	if err != nil {
+		engine.addToRetryQueue(s.GUID, time.Now().Add(15*time.Second))
+
 		// 处理订单取消错误
 		if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
 			engine.onOrderCancelled(engine.ctx, engine.svcCtx, engine, s)
 		}
+
 		logger.Errorf("[StrategyEngine] 执行用户策略失败, id: %s, account: %s, symbol: %s, %v",
 			s.GUID, s.Account, s.Symbol, err)
 		return
 	}
+
+	engine.removeFromRetryQueue(s.GUID)
 
 	logger.Debugf("[StrategyEngine] 执行用户策略结束, id: %s, account: %s, symbol: %s",
 		s.GUID, s.Account, s.Symbol)
