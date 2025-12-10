@@ -162,7 +162,7 @@ func (c *Signer) SignCreateOrder(ctx context.Context, req *CreateOrderTxReq, non
 	return txInfoStr, nil
 }
 
-func (c *Signer) SignCancelOrder(ctx context.Context, marketIndex uint8, orderIndex, nonce int64) (string, error) {
+func (c *Signer) SignCancelOrder(ctx context.Context, marketIndex int16, orderIndex, nonce int64) (string, error) {
 	tx := &types.CancelOrderTxReq{
 		MarketIndex: marketIndex,
 		Index:       orderIndex,

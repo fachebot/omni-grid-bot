@@ -11,19 +11,19 @@ import (
 type LighterCache struct {
 	client     *lighter.Client
 	mutex      sync.Mutex
-	markets    map[uint8]string
+	markets    map[int16]string
 	orderBooks map[string]*lighter.OrderBookMetadata
 }
 
 func NewLighterCache(client *lighter.Client) *LighterCache {
 	return &LighterCache{
 		client:     client,
-		markets:    map[uint8]string{},
+		markets:    map[int16]string{},
 		orderBooks: make(map[string]*lighter.OrderBookMetadata),
 	}
 }
 
-func (cache *LighterCache) GetSymbolByMarketId(ctx context.Context, marketIndex uint8) (string, error) {
+func (cache *LighterCache) GetSymbolByMarketId(ctx context.Context, marketIndex int16) (string, error) {
 	err := cache.ensureLoadCache(ctx)
 	if err != nil {
 		return "", err

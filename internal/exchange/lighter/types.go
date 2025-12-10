@@ -27,7 +27,7 @@ const (
 
 // Position 持仓结构体
 type Position struct {
-	MarketID               uint8           `json:"market_id"`                        // 市场ID
+	MarketID               int16           `json:"market_id"`                        // 市场ID
 	Symbol                 string          `json:"symbol"`                           // 交易对符号
 	InitialMarginFraction  decimal.Decimal `json:"initial_margin_fraction"`          // 初始保证金比例
 	OpenOrderCount         int64           `json:"open_order_count"`                 // 开放订单数量
@@ -145,7 +145,7 @@ const (
 // OrderBookMetadata 订单簿元数据
 type OrderBookMetadata struct {
 	Symbol                 string          `json:"symbol"`                   // 交易对符号
-	MarketID               uint8           `json:"market_id"`                // 市场ID
+	MarketID               int16           `json:"market_id"`                // 市场ID
 	Status                 OrderBookStatus `json:"status"`                   // 状态：inactive/active
 	TakerFee               decimal.Decimal `json:"taker_fee"`                // 吃单手续费
 	MakerFee               decimal.Decimal `json:"maker_fee"`                // 挂单手续费
@@ -228,7 +228,7 @@ type Order struct {
 	ClientOrderIndex    int64           `json:"client_order_index"`    // 客户端订单索引
 	OrderID             string          `json:"order_id"`              // 订单ID
 	ClientOrderID       string          `json:"client_order_id"`       // 客户端订单ID
-	MarketIndex         uint8           `json:"market_index"`          // 市场索引，标识交易市场
+	MarketIndex         int16           `json:"market_index"`          // 市场索引，标识交易市场
 	OwnerAccountIndex   int64           `json:"owner_account_index"`   // 账户拥有者索引
 	InitialBaseAmount   decimal.Decimal `json:"initial_base_amount"`   // 初始基础资产数量
 	Price               decimal.Decimal `json:"price"`                 // 订单价格
@@ -289,7 +289,7 @@ const (
 
 // CreateOrderTxReq 创建订单交易请求
 type CreateOrderTxReq struct {
-	MarketIndex      uint8               // 市场索引，标识交易对
+	MarketIndex      int16               // 市场索引，标识交易对
 	ClientOrderIndex int64               // 客户端订单索引，用于客户端跟踪订单
 	BaseAmount       int64               // 基础资产数量（通常以最小单位表示）
 	Price            uint32              // 订单价格（对于限价单）
@@ -314,7 +314,7 @@ type OrderBookDetails struct {
 
 // UpdateLeverageTxReq 更新杠杆交易请求
 type UpdateLeverageTxReq struct {
-	MarketIndex uint8               // 市场索引，标识交易对
+	MarketIndex int16               // 市场索引，标识交易对
 	Leverage    uint                // 杠杆级别
 	MarginMode  exchange.MarginMode // 保证金模式
 }

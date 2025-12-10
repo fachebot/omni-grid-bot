@@ -348,6 +348,7 @@ func (h *StrategySettingsHandler) handleMarketSymbol(ctx context.Context, userId
 		if err != nil {
 			text := "❌ 交易平台不支持此币种，请检查后重试"
 			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
+			logger.Debugf("[StrategySettingsHandler] 获取市场元数据失败, exchange: %s, symbol: %s, %v", record.Exchange, symbol, err)
 			return nil
 		}
 
@@ -420,6 +421,7 @@ func (h *StrategySettingsHandler) handleOrderSize(ctx context.Context, userId in
 		if err != nil {
 			text := "❌ 交易平台不支持此币种，请检查后重试"
 			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
+			logger.Debugf("[StrategySettingsHandler] 获取市场元数据失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
 			return nil
 		}
 
@@ -499,6 +501,7 @@ func (h *StrategySettingsHandler) handlePriceLower(ctx context.Context, userId i
 		if err != nil {
 			text := "❌ 交易平台不支持此币种，请检查后重试"
 			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
+			logger.Debugf("[StrategySettingsHandler] 获取市场元数据失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
 			return nil
 		}
 
@@ -573,6 +576,7 @@ func (h *StrategySettingsHandler) handlePriceUpper(ctx context.Context, userId i
 		if err != nil {
 			text := "❌ 交易平台不支持此币种，请检查后重试"
 			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 3)
+			logger.Debugf("[StrategySettingsHandler] 获取市场元数据失败, exchange: %s, symbol: %s, %v", record.Exchange, record.Symbol, err)
 			return nil
 		}
 

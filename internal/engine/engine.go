@@ -620,7 +620,7 @@ func (engine *StrategyEngine) parseLighterOrders(userOrders exchange.UserOrders)
 			return nil, err
 		}
 
-		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, uint8(marketIndex))
+		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, int16(marketIndex))
 		if err != nil {
 			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d",
 				userOrders.Account, marketIndex)

@@ -325,7 +325,7 @@ exit:
 	}
 
 	// 查询市场ID对应的symbol
-	markets := make(map[uint8]string)
+	markets := make(map[int16]string)
 	for _, item := range inactiveOrders {
 		symbol, err := h.svcCtx.LighterCache.GetSymbolByMarketId(ctx, item.MarketIndex)
 		if err != nil {
