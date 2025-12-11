@@ -230,8 +230,6 @@ func (engine *StrategyEngine) run() {
 			if msg.UserOrders != nil {
 				if msg.UserOrders.Exchange != exchange.Lighter {
 					engine.processOrders(*msg.UserOrders)
-				} else {
-					engine.processLighterOrders(*msg.UserOrders)
 				}
 			}
 		}

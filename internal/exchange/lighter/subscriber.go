@@ -26,6 +26,8 @@ const (
 	reconnectMax     = 30 * time.Second
 )
 
+type GetSymbolByMarketIdFunc func(ctx context.Context, marketIndex int16) (string, error)
+
 type LighterSubscriber struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -36,21 +38,23 @@ type LighterSubscriber struct {
 	proxy     config.Sock5Proxy
 	reconnect chan struct{}
 
-	mutex    sync.Mutex
-	accounts map[int64]*Signer
+	mutex               sync.Mutex
+	accounts            map[int64]*Signer
+	getSymbolByMarketId GetSymbolByMarketIdFunc
 
 	subMsgChan chan exchange.SubMessage
 }
 
-func NewLighterSubscriber(proxy config.Sock5Proxy) *LighterSubscriber {
+func NewLighterSubscriber(getSymbolByMarketId GetSymbolByMarketIdFunc, proxy config.Sock5Proxy) *LighterSubscriber {
 	ctx, cancel := context.WithCancel(context.Background())
 	subscriber := &LighterSubscriber{
-		ctx:       ctx,
-		cancel:    cancel,
-		url:       "wss://mainnet.zklighter.elliot.ai/stream",
-		proxy:     proxy,
-		reconnect: make(chan struct{}, 1),
-		accounts:  make(map[int64]*Signer),
+		ctx:                 ctx,
+		cancel:              cancel,
+		url:                 "wss://mainnet.zklighter.elliot.ai/stream",
+		proxy:               proxy,
+		reconnect:           make(chan struct{}, 1),
+		accounts:            make(map[int64]*Signer),
+		getSymbolByMarketId: getSymbolByMarketId,
 	}
 	return subscriber
 }
@@ -278,9 +282,21 @@ func (subscriber *LighterSubscriber) readMessages() {
 				}
 
 				for marketIndex, marketOrders := range message.Orders {
+					marketIndexN, err := strconv.Atoi(marketIndex)
+					if err != nil {
+						logger.Errorf("[LighterSubscriber] 解析MarketIndex失败, marketIndex: %s, %v", marketIndex, err)
+						continue
+					}
+
+					symbol, err := subscriber.getSymbolByMarketId(subscriber.ctx, int16(marketIndexN))
+					if err != nil {
+						logger.Errorf("[LighterSubscriber] 解析MarketIndex失败, marketIndex: %s, %v", marketIndex, err)
+						continue
+					}
+
 					for _, ord := range marketOrders {
 						userOrders.Orders = append(userOrders.Orders, &exchange.Order{
-							Symbol:            marketIndex,
+							Symbol:            symbol,
 							OrderID:           strconv.FormatInt(ord.OrderIndex, 10),
 							ClientOrderID:     strconv.FormatInt(ord.ClientOrderIndex, 10),
 							Side:              lo.If(ord.IsAsk, order.SideSell).Else(order.SideBuy),

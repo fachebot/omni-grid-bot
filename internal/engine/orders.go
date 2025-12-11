@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
@@ -12,18 +11,6 @@ import (
 	gridstrategy "github.com/fachebot/omni-grid-bot/internal/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/util"
 )
-
-// processLighterOrders 处理 Lighter 订单
-func (engine *StrategyEngine) processLighterOrders(userOrders exchange.UserOrders) {
-	orders, err := engine.parseLighterOrders(userOrders)
-	if err != nil {
-		return
-	}
-
-	if err = engine.handleUserOrders(userOrders, orders); err != nil {
-		engine.resubscribe(userOrders.Account)
-	}
-}
 
 // processOrders 处理订单
 func (engine *StrategyEngine) processOrders(userOrders exchange.UserOrders) {
@@ -141,30 +128,6 @@ func (engine *StrategyEngine) toEntOrders(userOrders exchange.UserOrders) ([]ent
 	}
 
 	return entOrders, nil
-}
-
-// parseLighterOrders 解析 Lighter 订单
-func (engine *StrategyEngine) parseLighterOrders(userOrders exchange.UserOrders) ([]ent.Order, error) {
-	// 转换市场ID为交易对符号
-	for i := range userOrders.Orders {
-		marketIndex, err := strconv.ParseInt(userOrders.Orders[i].Symbol, 10, 64)
-		if err != nil {
-			logger.Fatalf("[StrategyEngine] 解析市场ID失败, account: %s, symbol: %s",
-				userOrders.Account, userOrders.Orders[i].Symbol)
-			return nil, err
-		}
-
-		symbol, err := engine.svcCtx.LighterCache.GetSymbolByMarketId(engine.ctx, int16(marketIndex))
-		if err != nil {
-			logger.Fatalf("[StrategyEngine] 查询市场代币符号失败, account: %s, marketIndex: %d",
-				userOrders.Account, marketIndex)
-			return nil, err
-		}
-
-		userOrders.Orders[i].Symbol = symbol
-	}
-
-	return engine.toEntOrders(userOrders)
 }
 
 // handleUserOrders 处理用户订单

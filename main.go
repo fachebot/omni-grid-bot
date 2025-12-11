@@ -127,7 +127,8 @@ func main() {
 	svcCtx := svc.NewServiceContext(c)
 
 	// 启动Lighter订阅器
-	lighterSubscriber := lighter.NewLighterSubscriber(c.Sock5Proxy)
+	lighterSubscriber := lighter.NewLighterSubscriber(
+		svcCtx.LighterCache.GetSymbolByMarketId, c.Sock5Proxy)
 	lighterSubscriber.Start()
 	lighterSubscriber.WaitUntilConnected()
 
