@@ -23,8 +23,8 @@ type VariationalSubscriber struct {
 	userConns map[string]*VariationalWS
 	stopped   atomic.Bool
 
+	subMsgChan         chan exchange.SubMessage
 	userOrdersInChan   chan exchange.UserOrders
-	userOrdersOutChan  chan exchange.UserOrders
 	pendingOrdersCache *cache.PendingOrdersCache
 }
 
@@ -65,9 +65,9 @@ func (subscriber *VariationalSubscriber) Stop() {
 	// 清理服务资源
 	subscriber.cancel()
 	close(subscriber.userOrdersInChan)
-	if subscriber.userOrdersOutChan != nil {
-		close(subscriber.userOrdersOutChan)
-		subscriber.userOrdersOutChan = nil
+	if subscriber.subMsgChan != nil {
+		close(subscriber.subMsgChan)
+		subscriber.subMsgChan = nil
 	}
 
 	logger.Infof("[VariationalSubscriber] 服务已经停止")
@@ -78,11 +78,11 @@ func (subscriber *VariationalSubscriber) Start() {
 	go subscriber.run()
 }
 
-func (subscriber *VariationalSubscriber) GetAccountOrdersChan() <-chan exchange.UserOrders {
-	if subscriber.userOrdersOutChan == nil {
-		subscriber.userOrdersOutChan = make(chan exchange.UserOrders, 1024*8)
+func (subscriber *VariationalSubscriber) SubscriptionChan() <-chan exchange.SubMessage {
+	if subscriber.subMsgChan == nil {
+		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024*8)
 	}
-	return subscriber.userOrdersOutChan
+	return subscriber.subMsgChan
 }
 
 func (subscriber *VariationalSubscriber) SubscribeAccountOrders(userClient *UserClient) error {
@@ -144,8 +144,8 @@ func (subscriber *VariationalSubscriber) run() {
 		case <-subscriber.ctx.Done():
 			return
 		case data := <-subscriber.userOrdersInChan:
-			if subscriber.userOrdersOutChan != nil {
-				subscriber.userOrdersOutChan <- data
+			if subscriber.subMsgChan != nil {
+				subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &data}
 			}
 		}
 	}

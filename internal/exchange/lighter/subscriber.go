@@ -39,7 +39,7 @@ type LighterSubscriber struct {
 	mutex    sync.Mutex
 	accounts map[int64]*Signer
 
-	userOrdersChan chan exchange.UserOrders
+	subMsgChan chan exchange.SubMessage
 }
 
 func NewLighterSubscriber(proxy config.Sock5Proxy) *LighterSubscriber {
@@ -69,10 +69,10 @@ func (subscriber *LighterSubscriber) Stop() {
 	close(subscriber.stopChan)
 	subscriber.stopChan = nil
 
-	if subscriber.userOrdersChan != nil {
-		close(subscriber.userOrdersChan)
+	if subscriber.subMsgChan != nil {
+		close(subscriber.subMsgChan)
 	}
-	subscriber.userOrdersChan = nil
+	subscriber.subMsgChan = nil
 
 	logger.Infof("[LighterSubscriber] 服务已经停止")
 }
@@ -96,11 +96,11 @@ func (subscriber *LighterSubscriber) WaitUntilConnected() {
 	}
 }
 
-func (subscriber *LighterSubscriber) GetAccountOrdersChan() <-chan exchange.UserOrders {
-	if subscriber.userOrdersChan == nil {
-		subscriber.userOrdersChan = make(chan exchange.UserOrders, 1024)
+func (subscriber *LighterSubscriber) SubscriptionChan() <-chan exchange.SubMessage {
+	if subscriber.subMsgChan == nil {
+		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024)
 	}
-	return subscriber.userOrdersChan
+	return subscriber.subMsgChan
 }
 
 func (subscriber *LighterSubscriber) SubscribeAccountOrders(signer *Signer) error {
@@ -268,7 +268,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 				continue
 			}
 
-			if subscriber.userOrdersChan != nil {
+			if subscriber.subMsgChan != nil {
 				_, ok := processedAccounts[accountIndex]
 				userOrders := exchange.UserOrders{
 					Exchange:   exchange.Lighter,
@@ -295,7 +295,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 				}
 
 				logger.Debugf("[LighterSubscriber] 分发 UserOders 数据, account: %d, isSnapshot: %v", accountIndex, userOrders.IsSnapshot)
-				subscriber.userOrdersChan <- userOrders
+				subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &userOrders}
 			}
 
 			processedAccounts[accountIndex] = struct{}{}

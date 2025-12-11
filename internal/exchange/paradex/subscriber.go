@@ -22,8 +22,8 @@ type ParadexSubscriber struct {
 	userConns map[string]*ParadexWS
 	stopped   atomic.Bool
 
-	userOrdersInChan  chan exchange.UserOrders
-	userOrdersOutChan chan exchange.UserOrders
+	subMsgChan       chan exchange.SubMessage
+	userOrdersInChan chan exchange.UserOrders
 }
 
 func NewParadexSubscriber(proxy config.Sock5Proxy) *ParadexSubscriber {
@@ -62,9 +62,9 @@ func (subscriber *ParadexSubscriber) Stop() {
 	// 清理服务资源
 	subscriber.cancel()
 	close(subscriber.userOrdersInChan)
-	if subscriber.userOrdersOutChan != nil {
-		close(subscriber.userOrdersOutChan)
-		subscriber.userOrdersOutChan = nil
+	if subscriber.subMsgChan != nil {
+		close(subscriber.subMsgChan)
+		subscriber.subMsgChan = nil
 	}
 
 	logger.Infof("[ParadexSubscriber] 服务已经停止")
@@ -75,11 +75,11 @@ func (subscriber *ParadexSubscriber) Start() {
 	go subscriber.run()
 }
 
-func (subscriber *ParadexSubscriber) GetAccountOrdersChan() <-chan exchange.UserOrders {
-	if subscriber.userOrdersOutChan == nil {
-		subscriber.userOrdersOutChan = make(chan exchange.UserOrders, 1024*8)
+func (subscriber *ParadexSubscriber) SubscriptionChan() <-chan exchange.SubMessage {
+	if subscriber.subMsgChan == nil {
+		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024*8)
 	}
-	return subscriber.userOrdersOutChan
+	return subscriber.subMsgChan
 }
 
 func (subscriber *ParadexSubscriber) SubscribeAccountOrders(userClient *UserClient) error {
@@ -140,8 +140,8 @@ func (subscriber *ParadexSubscriber) run() {
 		case <-subscriber.ctx.Done():
 			return
 		case data := <-subscriber.userOrdersInChan:
-			if subscriber.userOrdersOutChan != nil {
-				subscriber.userOrdersOutChan <- data
+			if subscriber.subMsgChan != nil {
+				subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &data}
 			}
 		}
 	}

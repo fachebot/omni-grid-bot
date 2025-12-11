@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
@@ -202,11 +203,12 @@ func (engine *StrategyEngine) run() {
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 
-	lighterOrdersChan := engine.lighterSubscriber.GetAccountOrdersChan()
-	paradexOrdersChan := engine.paradexSubscriber.GetAccountOrdersChan()
-	variationalOrdersChan := engine.variationalSubscriber.GetAccountOrdersChan()
+	lighterChan := engine.lighterSubscriber.SubscriptionChan()
+	paradexChan := engine.paradexSubscriber.SubscriptionChan()
+	variationalChan := engine.variationalSubscriber.SubscriptionChan()
 
 	for {
+		var msg *exchange.SubMessage
 		select {
 		case <-timer.C:
 			engine.processRetries()
@@ -216,14 +218,22 @@ func (engine *StrategyEngine) run() {
 			engine.stopChan <- struct{}{}
 			return
 
-		case data := <-lighterOrdersChan:
-			engine.processLighterOrders(data)
+		case data := <-lighterChan:
+			msg = &data
+		case data := <-paradexChan:
+			msg = &data
+		case data := <-variationalChan:
+			msg = &data
+		}
 
-		case data := <-paradexOrdersChan:
-			engine.processOrders(data)
-
-		case data := <-variationalOrdersChan:
-			engine.processOrders(data)
+		if msg != nil {
+			if msg.UserOrders != nil {
+				if msg.UserOrders.Exchange != exchange.Lighter {
+					engine.processOrders(*msg.UserOrders)
+				} else {
+					engine.processLighterOrders(*msg.UserOrders)
+				}
+			}
 		}
 	}
 }
