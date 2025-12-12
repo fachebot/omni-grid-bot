@@ -19,22 +19,27 @@ type ParadexSubscriber struct {
 	mutex     sync.Mutex
 	wg        sync.WaitGroup
 	sf        singleflight.Group
+	publicWs  *ParadexPubWS
 	userConns map[string]*ParadexWS
 	stopped   atomic.Bool
 
-	subMsgChan       chan exchange.SubMessage
-	userOrdersInChan chan exchange.UserOrders
+	subMsgChan        chan exchange.SubMessage
+	userOrdersInChan  chan exchange.UserOrders
+	marketStatsInChan chan exchange.MarketStats
 }
 
 func NewParadexSubscriber(proxy config.Sock5Proxy) *ParadexSubscriber {
 	ctx, cancel := context.WithCancel(context.Background())
 	subscriber := &ParadexSubscriber{
-		ctx:              ctx,
-		cancel:           cancel,
-		proxy:            proxy,
-		userConns:        make(map[string]*ParadexWS),
-		userOrdersInChan: make(chan exchange.UserOrders, 1024*8),
+		ctx:               ctx,
+		cancel:            cancel,
+		proxy:             proxy,
+		userConns:         make(map[string]*ParadexWS),
+		userOrdersInChan:  make(chan exchange.UserOrders, 1024*8),
+		marketStatsInChan: make(chan exchange.MarketStats, 1024*8),
 	}
+	subscriber.publicWs = NewParadexPubWS(ctx, subscriber.marketStatsInChan, proxy)
+
 	return subscriber
 }
 
@@ -59,6 +64,8 @@ func (subscriber *ParadexSubscriber) Stop() {
 	}
 	subscriber.wg.Wait()
 
+	subscriber.publicWs.Stop()
+
 	// 清理服务资源
 	subscriber.cancel()
 	close(subscriber.userOrdersInChan)
@@ -71,7 +78,11 @@ func (subscriber *ParadexSubscriber) Stop() {
 }
 
 func (subscriber *ParadexSubscriber) Start() {
+	subscriber.publicWs.Start()
+	subscriber.publicWs.WaitUntilConnected()
+
 	logger.Infof("[ParadexSubscriber] 开始运行服务")
+
 	go subscriber.run()
 }
 
@@ -80,6 +91,14 @@ func (subscriber *ParadexSubscriber) SubscriptionChan() <-chan exchange.SubMessa
 		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024*8)
 	}
 	return subscriber.subMsgChan
+}
+
+func (subscriber *ParadexSubscriber) SubscribeMarketStats(symbol string) error {
+	return subscriber.publicWs.SubscribeMarketStats(symbol)
+}
+
+func (subscriber *ParadexSubscriber) UnsubscribeMarketStats(symbol string) error {
+	return subscriber.publicWs.UnsubscribeMarketStats(symbol)
 }
 
 func (subscriber *ParadexSubscriber) SubscribeAccountOrders(userClient *UserClient) error {

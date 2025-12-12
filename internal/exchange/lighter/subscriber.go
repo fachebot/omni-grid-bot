@@ -111,7 +111,7 @@ func (subscriber *LighterSubscriber) SubscriptionChan() <-chan exchange.SubMessa
 	return subscriber.subMsgChan
 }
 
-func (subscriber *LighterSubscriber) SubscribePriceTicker(symbol string) error {
+func (subscriber *LighterSubscriber) SubscribeMarketStats(symbol string) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
 	}
@@ -125,7 +125,7 @@ func (subscriber *LighterSubscriber) SubscribePriceTicker(symbol string) error {
 	return subscriber.conn.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
-func (subscriber *LighterSubscriber) UnsubscribePriceTicker(symbol string) error {
+func (subscriber *LighterSubscriber) UnsubscribeMarketStats(symbol string) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
 	}
@@ -292,7 +292,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 
 			delete(processedAccounts, accountIndex)
 		case "update/market_stats":
-			subscriber.handlePriceTickerMessage(message)
+			subscriber.handleMarketStatsMessage(message)
 		case "subscribed/account_all_orders", "update/account_all_orders":
 			subscriber.handleOrdersMessage(processedAccounts, message)
 		}
@@ -308,7 +308,7 @@ func (subscriber *LighterSubscriber) scheduleReconnect() {
 	}
 }
 
-func (subscriber *LighterSubscriber) handlePriceTickerMessage(message WebSocketMessage) {
+func (subscriber *LighterSubscriber) handleMarketStatsMessage(message WebSocketMessage) {
 	const prefix = "market_stats:"
 	if !strings.HasPrefix(message.Channel, prefix) {
 		logger.Errorf("[LighterSubscriber] 解析channel失败, channel: %s", message.Channel)
