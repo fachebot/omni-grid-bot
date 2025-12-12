@@ -208,6 +208,15 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
+	// 检查入场价格
+	if record.EntryPrice != nil && record.EntryPrice.GreaterThan(decimal.Zero) {
+		if record.EntryPrice.LessThan(record.PriceLower) || record.EntryPrice.GreaterThan(record.PriceUpper) {
+			text := "❌ 策略入场价格必须在价格区间内，请检查配置后重试"
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+			return nil
+		}
+	}
+
 	// 初始化网格策略
 	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record, prices)
 	if err != nil {

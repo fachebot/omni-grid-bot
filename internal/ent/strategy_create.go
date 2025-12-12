@@ -171,6 +171,20 @@ func (_c *StrategyCreate) SetNillableSlippageBps(v *int) *StrategyCreate {
 	return _c
 }
 
+// SetEntryPrice sets the "entryPrice" field.
+func (_c *StrategyCreate) SetEntryPrice(v decimal.Decimal) *StrategyCreate {
+	_c.mutation.SetEntryPrice(v)
+	return _c
+}
+
+// SetNillableEntryPrice sets the "entryPrice" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableEntryPrice(v *decimal.Decimal) *StrategyCreate {
+	if v != nil {
+		_c.SetEntryPrice(*v)
+	}
+	return _c
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (_c *StrategyCreate) SetEnableAutoExit(v bool) *StrategyCreate {
 	_c.mutation.SetEnableAutoExit(v)
@@ -536,6 +550,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
 		_node.SlippageBps = &value
 	}
+	if value, ok := _c.mutation.EntryPrice(); ok {
+		_spec.SetField(strategy.FieldEntryPrice, field.TypeString, value)
+		_node.EntryPrice = &value
+	}
 	if value, ok := _c.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
 		_node.EnableAutoExit = value
@@ -859,6 +877,24 @@ func (u *StrategyUpsert) AddSlippageBps(v int) *StrategyUpsert {
 // ClearSlippageBps clears the value of the "slippageBps" field.
 func (u *StrategyUpsert) ClearSlippageBps() *StrategyUpsert {
 	u.SetNull(strategy.FieldSlippageBps)
+	return u
+}
+
+// SetEntryPrice sets the "entryPrice" field.
+func (u *StrategyUpsert) SetEntryPrice(v decimal.Decimal) *StrategyUpsert {
+	u.Set(strategy.FieldEntryPrice, v)
+	return u
+}
+
+// UpdateEntryPrice sets the "entryPrice" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateEntryPrice() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldEntryPrice)
+	return u
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (u *StrategyUpsert) ClearEntryPrice() *StrategyUpsert {
+	u.SetNull(strategy.FieldEntryPrice)
 	return u
 }
 
@@ -1321,6 +1357,27 @@ func (u *StrategyUpsertOne) UpdateSlippageBps() *StrategyUpsertOne {
 func (u *StrategyUpsertOne) ClearSlippageBps() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.ClearSlippageBps()
+	})
+}
+
+// SetEntryPrice sets the "entryPrice" field.
+func (u *StrategyUpsertOne) SetEntryPrice(v decimal.Decimal) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetEntryPrice(v)
+	})
+}
+
+// UpdateEntryPrice sets the "entryPrice" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateEntryPrice() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateEntryPrice()
+	})
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (u *StrategyUpsertOne) ClearEntryPrice() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearEntryPrice()
 	})
 }
 
@@ -1973,6 +2030,27 @@ func (u *StrategyUpsertBulk) UpdateSlippageBps() *StrategyUpsertBulk {
 func (u *StrategyUpsertBulk) ClearSlippageBps() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.ClearSlippageBps()
+	})
+}
+
+// SetEntryPrice sets the "entryPrice" field.
+func (u *StrategyUpsertBulk) SetEntryPrice(v decimal.Decimal) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetEntryPrice(v)
+	})
+}
+
+// UpdateEntryPrice sets the "entryPrice" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateEntryPrice() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateEntryPrice()
+	})
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (u *StrategyUpsertBulk) ClearEntryPrice() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearEntryPrice()
 	})
 }
 

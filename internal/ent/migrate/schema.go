@@ -156,6 +156,7 @@ var (
 		{Name: "stop_loss_ratio", Type: field.TypeString},
 		{Name: "take_profit_ratio", Type: field.TypeString},
 		{Name: "slippage_bps", Type: field.TypeInt, Nullable: true},
+		{Name: "entry_price", Type: field.TypeString, Nullable: true},
 		{Name: "enable_auto_exit", Type: field.TypeBool},
 		{Name: "enable_push_notification", Type: field.TypeBool},
 		{Name: "enable_push_matched_notification", Type: field.TypeBool, Nullable: true},

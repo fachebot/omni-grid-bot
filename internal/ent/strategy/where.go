@@ -130,6 +130,11 @@ func SlippageBps(v int) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldSlippageBps, v))
 }
 
+// EntryPrice applies equality check predicate on the "entryPrice" field. It's identical to EntryPriceEQ.
+func EntryPrice(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldEntryPrice, v))
+}
+
 // EnableAutoExit applies equality check predicate on the "enableAutoExit" field. It's identical to EnableAutoExitEQ.
 func EnableAutoExit(v bool) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoExit, v))
@@ -1093,6 +1098,86 @@ func SlippageBpsIsNil() predicate.Strategy {
 // SlippageBpsNotNil applies the NotNil predicate on the "slippageBps" field.
 func SlippageBpsNotNil() predicate.Strategy {
 	return predicate.Strategy(sql.FieldNotNull(FieldSlippageBps))
+}
+
+// EntryPriceEQ applies the EQ predicate on the "entryPrice" field.
+func EntryPriceEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldEntryPrice, v))
+}
+
+// EntryPriceNEQ applies the NEQ predicate on the "entryPrice" field.
+func EntryPriceNEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldEntryPrice, v))
+}
+
+// EntryPriceIn applies the In predicate on the "entryPrice" field.
+func EntryPriceIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldEntryPrice, vs...))
+}
+
+// EntryPriceNotIn applies the NotIn predicate on the "entryPrice" field.
+func EntryPriceNotIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldEntryPrice, vs...))
+}
+
+// EntryPriceGT applies the GT predicate on the "entryPrice" field.
+func EntryPriceGT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldEntryPrice, v))
+}
+
+// EntryPriceGTE applies the GTE predicate on the "entryPrice" field.
+func EntryPriceGTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldEntryPrice, v))
+}
+
+// EntryPriceLT applies the LT predicate on the "entryPrice" field.
+func EntryPriceLT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldEntryPrice, v))
+}
+
+// EntryPriceLTE applies the LTE predicate on the "entryPrice" field.
+func EntryPriceLTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldEntryPrice, v))
+}
+
+// EntryPriceContains applies the Contains predicate on the "entryPrice" field.
+func EntryPriceContains(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContains(FieldEntryPrice, vc))
+}
+
+// EntryPriceHasPrefix applies the HasPrefix predicate on the "entryPrice" field.
+func EntryPriceHasPrefix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasPrefix(FieldEntryPrice, vc))
+}
+
+// EntryPriceHasSuffix applies the HasSuffix predicate on the "entryPrice" field.
+func EntryPriceHasSuffix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasSuffix(FieldEntryPrice, vc))
+}
+
+// EntryPriceIsNil applies the IsNil predicate on the "entryPrice" field.
+func EntryPriceIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldEntryPrice))
+}
+
+// EntryPriceNotNil applies the NotNil predicate on the "entryPrice" field.
+func EntryPriceNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldEntryPrice))
+}
+
+// EntryPriceEqualFold applies the EqualFold predicate on the "entryPrice" field.
+func EntryPriceEqualFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldEqualFold(FieldEntryPrice, vc))
+}
+
+// EntryPriceContainsFold applies the ContainsFold predicate on the "entryPrice" field.
+func EntryPriceContainsFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContainsFold(FieldEntryPrice, vc))
 }
 
 // EnableAutoExitEQ applies the EQ predicate on the "enableAutoExit" field.

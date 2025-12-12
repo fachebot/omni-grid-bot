@@ -50,6 +50,8 @@ const (
 	FieldTakeProfitRatio = "take_profit_ratio"
 	// FieldSlippageBps holds the string denoting the slippagebps field in the database.
 	FieldSlippageBps = "slippage_bps"
+	// FieldEntryPrice holds the string denoting the entryprice field in the database.
+	FieldEntryPrice = "entry_price"
 	// FieldEnableAutoExit holds the string denoting the enableautoexit field in the database.
 	FieldEnableAutoExit = "enable_auto_exit"
 	// FieldEnablePushNotification holds the string denoting the enablepushnotification field in the database.
@@ -95,6 +97,7 @@ var Columns = []string{
 	FieldStopLossRatio,
 	FieldTakeProfitRatio,
 	FieldSlippageBps,
+	FieldEntryPrice,
 	FieldEnableAutoExit,
 	FieldEnablePushNotification,
 	FieldEnablePushMatchedNotification,
@@ -330,6 +333,11 @@ func ByTakeProfitRatio(opts ...sql.OrderTermOption) OrderOption {
 // BySlippageBps orders the results by the slippageBps field.
 func BySlippageBps(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSlippageBps, opts...).ToFunc()
+}
+
+// ByEntryPrice orders the results by the entryPrice field.
+func ByEntryPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEntryPrice, opts...).ToFunc()
 }
 
 // ByEnableAutoExit orders the results by the enableAutoExit field.

@@ -54,6 +54,8 @@ type Strategy struct {
 	TakeProfitRatio decimal.Decimal `json:"takeProfitRatio,omitempty"`
 	// SlippageBps holds the value of the "slippageBps" field.
 	SlippageBps *int `json:"slippageBps,omitempty"`
+	// EntryPrice holds the value of the "entryPrice" field.
+	EntryPrice *decimal.Decimal `json:"entryPrice,omitempty"`
 	// EnableAutoExit holds the value of the "enableAutoExit" field.
 	EnableAutoExit bool `json:"enableAutoExit,omitempty"`
 	// EnablePushNotification holds the value of the "enablePushNotification" field.
@@ -82,6 +84,8 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case strategy.FieldEntryPrice:
+			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
 		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize, strategy.FieldStopLossRatio, strategy.FieldTakeProfitRatio:
 			values[i] = new(decimal.Decimal)
 		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification:
@@ -221,6 +225,13 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SlippageBps = new(int)
 				*_m.SlippageBps = int(value.Int64)
+			}
+		case strategy.FieldEntryPrice:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field entryPrice", values[i])
+			} else if value.Valid {
+				_m.EntryPrice = new(decimal.Decimal)
+				*_m.EntryPrice = *value.S.(*decimal.Decimal)
 			}
 		case strategy.FieldEnableAutoExit:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -375,6 +386,11 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	if v := _m.SlippageBps; v != nil {
 		builder.WriteString("slippageBps=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.EntryPrice; v != nil {
+		builder.WriteString("entryPrice=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

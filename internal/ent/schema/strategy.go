@@ -38,6 +38,7 @@ func (Strategy) Fields() []ent.Field {
 		field.String("stopLossRatio").GoType(decimal.Decimal{}),
 		field.String("takeProfitRatio").GoType(decimal.Decimal{}),
 		field.Int("slippageBps").Min(0).Max(10000).Nillable().Optional(),
+		field.String("entryPrice").GoType(decimal.Decimal{}).Nillable().Optional(),
 		field.Bool("enableAutoExit"),
 		field.Bool("enablePushNotification"),
 		field.Bool("enablePushMatchedNotification").Nillable().Optional(),

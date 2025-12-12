@@ -3592,6 +3592,7 @@ type StrategyMutation struct {
 	takeProfitRatio               *decimal.Decimal
 	slippageBps                   *int
 	addslippageBps                *int
+	entryPrice                    *decimal.Decimal
 	enableAutoExit                *bool
 	enablePushNotification        *bool
 	enablePushMatchedNotification *bool
@@ -4448,6 +4449,55 @@ func (m *StrategyMutation) ResetSlippageBps() {
 	delete(m.clearedFields, strategy.FieldSlippageBps)
 }
 
+// SetEntryPrice sets the "entryPrice" field.
+func (m *StrategyMutation) SetEntryPrice(d decimal.Decimal) {
+	m.entryPrice = &d
+}
+
+// EntryPrice returns the value of the "entryPrice" field in the mutation.
+func (m *StrategyMutation) EntryPrice() (r decimal.Decimal, exists bool) {
+	v := m.entryPrice
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntryPrice returns the old "entryPrice" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldEntryPrice(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntryPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntryPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntryPrice: %w", err)
+	}
+	return oldValue.EntryPrice, nil
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (m *StrategyMutation) ClearEntryPrice() {
+	m.entryPrice = nil
+	m.clearedFields[strategy.FieldEntryPrice] = struct{}{}
+}
+
+// EntryPriceCleared returns if the "entryPrice" field was cleared in this mutation.
+func (m *StrategyMutation) EntryPriceCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldEntryPrice]
+	return ok
+}
+
+// ResetEntryPrice resets all changes to the "entryPrice" field.
+func (m *StrategyMutation) ResetEntryPrice() {
+	m.entryPrice = nil
+	delete(m.clearedFields, strategy.FieldEntryPrice)
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (m *StrategyMutation) SetEnableAutoExit(b bool) {
 	m.enableAutoExit = &b
@@ -4894,7 +4944,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 29)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -4948,6 +4998,9 @@ func (m *StrategyMutation) Fields() []string {
 	}
 	if m.slippageBps != nil {
 		fields = append(fields, strategy.FieldSlippageBps)
+	}
+	if m.entryPrice != nil {
+		fields = append(fields, strategy.FieldEntryPrice)
 	}
 	if m.enableAutoExit != nil {
 		fields = append(fields, strategy.FieldEnableAutoExit)
@@ -5023,6 +5076,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.TakeProfitRatio()
 	case strategy.FieldSlippageBps:
 		return m.SlippageBps()
+	case strategy.FieldEntryPrice:
+		return m.EntryPrice()
 	case strategy.FieldEnableAutoExit:
 		return m.EnableAutoExit()
 	case strategy.FieldEnablePushNotification:
@@ -5088,6 +5143,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTakeProfitRatio(ctx)
 	case strategy.FieldSlippageBps:
 		return m.OldSlippageBps(ctx)
+	case strategy.FieldEntryPrice:
+		return m.OldEntryPrice(ctx)
 	case strategy.FieldEnableAutoExit:
 		return m.OldEnableAutoExit(ctx)
 	case strategy.FieldEnablePushNotification:
@@ -5243,6 +5300,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSlippageBps(v)
 		return nil
+	case strategy.FieldEntryPrice:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntryPrice(v)
+		return nil
 	case strategy.FieldEnableAutoExit:
 		v, ok := value.(bool)
 		if !ok {
@@ -5397,6 +5461,9 @@ func (m *StrategyMutation) ClearedFields() []string {
 	if m.FieldCleared(strategy.FieldSlippageBps) {
 		fields = append(fields, strategy.FieldSlippageBps)
 	}
+	if m.FieldCleared(strategy.FieldEntryPrice) {
+		fields = append(fields, strategy.FieldEntryPrice)
+	}
 	if m.FieldCleared(strategy.FieldEnablePushMatchedNotification) {
 		fields = append(fields, strategy.FieldEnablePushMatchedNotification)
 	}
@@ -5425,6 +5492,9 @@ func (m *StrategyMutation) ClearField(name string) error {
 	switch name {
 	case strategy.FieldSlippageBps:
 		m.ClearSlippageBps()
+		return nil
+	case strategy.FieldEntryPrice:
+		m.ClearEntryPrice()
 		return nil
 	case strategy.FieldEnablePushMatchedNotification:
 		m.ClearEnablePushMatchedNotification()
@@ -5499,6 +5569,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldSlippageBps:
 		m.ResetSlippageBps()
+		return nil
+	case strategy.FieldEntryPrice:
+		m.ResetEntryPrice()
 		return nil
 	case strategy.FieldEnableAutoExit:
 		m.ResetEnableAutoExit()

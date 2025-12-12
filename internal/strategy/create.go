@@ -84,6 +84,25 @@ func InitGridStrategy(ctx context.Context, svcCtx *svc.ServiceContext, record *e
 	})
 }
 
+func getLevelPrice(record *ent.Strategy, level *ent.Grid) decimal.Decimal {
+	if record.EntryPrice == nil || record.EntryPrice.IsZero() {
+		return level.Price
+	}
+
+	switch record.Mode {
+	case strategy.ModeLong:
+		if level.Price.GreaterThan(*record.EntryPrice) {
+			return *record.EntryPrice
+		}
+	case strategy.ModeShort:
+		if level.Price.LessThan(*record.EntryPrice) {
+			return *record.EntryPrice
+		}
+	}
+
+	return level.Price
+}
+
 func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *helper.ExchangeAdapter, record *ent.Strategy, gridLevels []ent.Grid) error {
 	// 获取最新价格
 	lastPrice, err := helper.GetLastTradePrice(ctx, svcCtx, record.Exchange, record.Symbol)
@@ -109,14 +128,16 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 	switch record.Mode {
 	case strategy.ModeLong:
 		for idx := 0; idx < len(gridLevels)-1; idx++ {
-			if record.Exchange != exchange.Paradex || gridLevels[idx].Price.LessThan(lastPrice) {
+			lvl := &gridLevels[idx]
+			price := getLevelPrice(record, lvl)
+			if record.Exchange != exchange.Paradex || price.LessThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
 					IsAsk:      false,
 					ReduceOnly: false,
-					Price:      gridLevels[idx].Price,
-					Size:       gridLevels[idx].Quantity,
+					Price:      price,
+					Size:       lvl.Quantity,
 				})
 			} else {
 				marketOrderIndexMap[len(marketOrders)] = idx
@@ -126,20 +147,22 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 					ReduceOnly:               false,
 					SlippageBps:              slippageBps,
 					AcceptableExecutionPrice: longMarketPrice,
-					Size:                     gridLevels[idx].Quantity,
+					Size:                     lvl.Quantity,
 				})
 			}
 		}
 	case strategy.ModeShort:
 		for idx := len(gridLevels) - 1; idx > 0; idx-- {
-			if record.Exchange != exchange.Paradex || gridLevels[idx].Price.GreaterThan(lastPrice) {
+			lvl := &gridLevels[idx]
+			price := getLevelPrice(record, lvl)
+			if record.Exchange != exchange.Paradex || price.GreaterThan(lastPrice) {
 				limitOrderIndexMap[len(limitOrders)] = idx
 				limitOrders = append(limitOrders, helper.CreateLimitOrderParams{
 					Symbol:     record.Symbol,
 					IsAsk:      true,
 					ReduceOnly: false,
-					Price:      gridLevels[idx].Price,
-					Size:       gridLevels[idx].Quantity,
+					Price:      price,
+					Size:       lvl.Quantity,
 				})
 			} else {
 				marketOrderIndexMap[len(marketOrders)] = idx
@@ -149,7 +172,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 					ReduceOnly:               false,
 					SlippageBps:              slippageBps,
 					AcceptableExecutionPrice: shortMarketPrice,
-					Size:                     gridLevels[idx].Quantity,
+					Size:                     lvl.Quantity,
 				})
 			}
 

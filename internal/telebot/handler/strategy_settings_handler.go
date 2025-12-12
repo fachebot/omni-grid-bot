@@ -38,6 +38,7 @@ var (
 	SettingsOptionSlippage                      SettingsOption = 11
 	SettingsOptionEnablePushNotification        SettingsOption = 12
 	SettingsOptionEnablePushMatchedNotification SettingsOption = 13
+	SettingsOptionEntryPrice                    SettingsOption = 14
 )
 
 const (
@@ -131,6 +132,8 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 		return h.handleEnablePushNotificatione(ctx, userId, update, record)
 	case SettingsOptionEnablePushMatchedNotification:
 		return h.handleEnablePushMatchedNotification(ctx, userId, update, record)
+	case SettingsOptionEntryPrice:
+		return h.handleEntryPrice(ctx, userId, update, record)
 	}
 
 	return nil
@@ -714,6 +717,52 @@ func (h *StrategySettingsHandler) handleEnablePushMatchedNotification(ctx contex
 	return h.refreshSettingsMessage(ctx, userId, update, record)
 }
 
+func (h *StrategySettingsHandler) handleEntryPrice(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	// 步骤1
+	if update.Callback != nil {
+		chatId := update.Callback.Message.Chat.ID
+		text := "🌳 填写策略入场价格（单位: USD），如果填0则市价入场"
+		msg, err := h.svcCtx.Bot.Send(util.ChatId(chatId), text, defaultSendOptions())
+		if err != nil {
+			logger.Debugf("[StrategySettingsHandler] 发送消息失败, %v", err)
+			return err
+		}
+
+		route := cache.RouteInfo{Path: h.FormatPath(record.GUID, SettingsOptionEntryPrice), Context: update.Callback.Message}
+		h.svcCtx.MessageCache.SetRoute(chatId, msg.ID, route)
+
+		return nil
+	}
+
+	// 步骤2
+	if update.Message != nil {
+		deleteMessageAndReply(h.svcCtx.Bot, update.Message)
+
+		// 检查输入数量
+		chatId := update.Message.Chat.ID
+		d, err := decimal.NewFromString(update.Message.Text)
+		if err != nil || d.LessThan(decimal.Zero) {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效价格数值，并且不能小于0", 3)
+			return nil
+		}
+
+		// 发送成功提示
+		text := "✅ 配置修改成功"
+		err = h.svcCtx.StrategyModel.UpdateEntryPrice(ctx, record.ID, d)
+		if err == nil {
+			record.EntryPrice = &d
+		} else {
+			text = "❌ 配置修改失败, 请稍后重试"
+			logger.Errorf("[StrategySettingsHandler] 更新配置[EntryPrice]失败, %v", err)
+		}
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+		return h.refreshSettingsMessage(ctx, userId, update, record)
+	}
+
+	return nil
+}
+
 func GenerateGridList(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) []decimal.Decimal {
 	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
@@ -839,6 +888,11 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 		slippageBps = *record.SlippageBps
 	}
 
+	entryPrice := "未设置"
+	if record.EntryPrice != nil && record.EntryPrice.GreaterThan(decimal.Zero) {
+		entryPrice = record.EntryPrice.String()
+	}
+
 	h := StrategySettingsHandler{}
 	replyMarkup := &tele.ReplyMarkup{
 		InlineKeyboard: [][]tele.InlineButton{
@@ -865,6 +919,9 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 			},
 			{
 				{Text: fmt.Sprintf("⬇️ 价格下限: %s", priceLower), Data: h.FormatPath(record.GUID, SettingsOptionPriceLower)},
+			},
+			{
+				{Text: fmt.Sprintf("💲 策略入场价格: %s", entryPrice), Data: h.FormatPath(record.GUID, SettingsOptionEntryPrice)},
 			},
 			{
 				{Text: fmt.Sprintf("⚖️ 市价交易滑点: %v%%", float64(slippageBps)/10000*100.0), Data: h.FormatPath(record.GUID, SettingsOptionSlippage)},

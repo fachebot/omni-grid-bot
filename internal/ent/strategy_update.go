@@ -293,6 +293,26 @@ func (_u *StrategyUpdate) ClearSlippageBps() *StrategyUpdate {
 	return _u
 }
 
+// SetEntryPrice sets the "entryPrice" field.
+func (_u *StrategyUpdate) SetEntryPrice(v decimal.Decimal) *StrategyUpdate {
+	_u.mutation.SetEntryPrice(v)
+	return _u
+}
+
+// SetNillableEntryPrice sets the "entryPrice" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableEntryPrice(v *decimal.Decimal) *StrategyUpdate {
+	if v != nil {
+		_u.SetEntryPrice(*v)
+	}
+	return _u
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (_u *StrategyUpdate) ClearEntryPrice() *StrategyUpdate {
+	_u.mutation.ClearEntryPrice()
+	return _u
+}
+
 // SetEnableAutoExit sets the "enableAutoExit" field.
 func (_u *StrategyUpdate) SetEnableAutoExit(v bool) *StrategyUpdate {
 	_u.mutation.SetEnableAutoExit(v)
@@ -631,6 +651,12 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.SlippageBpsCleared() {
 		_spec.ClearField(strategy.FieldSlippageBps, field.TypeInt)
 	}
+	if value, ok := _u.mutation.EntryPrice(); ok {
+		_spec.SetField(strategy.FieldEntryPrice, field.TypeString, value)
+	}
+	if _u.mutation.EntryPriceCleared() {
+		_spec.ClearField(strategy.FieldEntryPrice, field.TypeString)
+	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
 	}
@@ -954,6 +980,26 @@ func (_u *StrategyUpdateOne) AddSlippageBps(v int) *StrategyUpdateOne {
 // ClearSlippageBps clears the value of the "slippageBps" field.
 func (_u *StrategyUpdateOne) ClearSlippageBps() *StrategyUpdateOne {
 	_u.mutation.ClearSlippageBps()
+	return _u
+}
+
+// SetEntryPrice sets the "entryPrice" field.
+func (_u *StrategyUpdateOne) SetEntryPrice(v decimal.Decimal) *StrategyUpdateOne {
+	_u.mutation.SetEntryPrice(v)
+	return _u
+}
+
+// SetNillableEntryPrice sets the "entryPrice" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableEntryPrice(v *decimal.Decimal) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetEntryPrice(*v)
+	}
+	return _u
+}
+
+// ClearEntryPrice clears the value of the "entryPrice" field.
+func (_u *StrategyUpdateOne) ClearEntryPrice() *StrategyUpdateOne {
+	_u.mutation.ClearEntryPrice()
 	return _u
 }
 
@@ -1324,6 +1370,12 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if _u.mutation.SlippageBpsCleared() {
 		_spec.ClearField(strategy.FieldSlippageBps, field.TypeInt)
+	}
+	if value, ok := _u.mutation.EntryPrice(); ok {
+		_spec.SetField(strategy.FieldEntryPrice, field.TypeString, value)
+	}
+	if _u.mutation.EntryPriceCleared() {
+		_spec.ClearField(strategy.FieldEntryPrice, field.TypeString)
 	}
 	if value, ok := _u.mutation.EnableAutoExit(); ok {
 		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
