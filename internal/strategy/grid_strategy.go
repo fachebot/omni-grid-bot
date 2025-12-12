@@ -6,6 +6,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/shopspring/decimal"
 )
 
 type GridStrategy struct {
@@ -23,6 +24,11 @@ func (s *GridStrategy) Get() *ent.Strategy {
 
 func (s *GridStrategy) Update(entStrategy *ent.Strategy) {
 	s.strategy = entStrategy
+}
+
+func (s *GridStrategy) OnTicker(ctx context.Context, price decimal.Decimal) {
+	logger.Tracef("[GridStrategy] 收到行情更新, id: %s, symbol: %s, account: %s, price: %s",
+		s.strategy.GUID, s.strategy.Symbol, s.strategy.Account, price.String())
 }
 
 func (s *GridStrategy) OnOrdersChanged(ctx context.Context) error {

@@ -255,7 +255,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 			return
 		}
 
-		logger.Debugf("[LighterSubscriber] 收到新消息, %s", data)
+		logger.Tracef("[LighterSubscriber] 收到新消息, %s", data)
 
 		var message WebSocketMessage
 		if err = json.Unmarshal(data, &message); err != nil {
@@ -334,7 +334,7 @@ func (subscriber *LighterSubscriber) handleMarketStatsMessage(message WebSocketM
 			MarkPrice: message.MarketStats.MarkPrice,
 		}
 
-		logger.Debugf("[LighterSubscriber] 分发 MarketStats 数据, %+v", marketStats)
+		logger.Tracef("[LighterSubscriber] 分发 MarketStats 数据, %+v", marketStats)
 		subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Lighter, MarketStats: &marketStats}
 	}
 }
@@ -390,7 +390,7 @@ func (subscriber *LighterSubscriber) handleOrdersMessage(processedAccounts map[i
 			}
 		}
 
-		logger.Debugf("[LighterSubscriber] 分发 UserOders 数据, account: %d, isSnapshot: %v", accountIndex, userOrders.IsSnapshot)
+		logger.Tracef("[LighterSubscriber] 分发 UserOders 数据, account: %d, isSnapshot: %v", accountIndex, userOrders.IsSnapshot)
 		subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Lighter, UserOrders: &userOrders}
 	}
 

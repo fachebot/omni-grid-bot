@@ -7,6 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type Log struct {
+	Level string `yaml:"Level"`
+}
+
 type Sock5Proxy struct {
 	Host   string `yaml:"Host"`
 	Port   int32  `yaml:"Port"`
@@ -28,6 +32,7 @@ func (c *TelegramBot) IsWhiteListUser(userId int64) bool {
 }
 
 type Config struct {
+	Log         Log         `yaml:"Log"`
 	AppName     string      `yaml:"AppName"`
 	Sock5Proxy  Sock5Proxy  `yaml:"Sock5Proxy"`
 	TelegramBot TelegramBot `yaml:"TelegramBot"`
@@ -47,6 +52,10 @@ func LoadFromFile(filename string) (*Config, error) {
 
 	if c.AppName == "" {
 		c.AppName = "OmniGrid"
+	}
+
+	if c.Log.Level == "" {
+		c.Log.Level = "info"
 	}
 
 	return &c, nil

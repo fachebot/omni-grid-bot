@@ -23,6 +23,20 @@ func (engine *StrategyEngine) subscribeUserOrders(record *ent.Strategy) error {
 	}
 }
 
+// subscribeMarketStatus 订阅市场状态
+func (engine *StrategyEngine) subscribeMarketStatus(record *ent.Strategy) error {
+	switch record.Exchange {
+	case exchange.Lighter:
+		return engine.lighterSubscriber.SubscribeMarketStats(record.Symbol)
+	case exchange.Paradex:
+		return engine.paradexSubscriber.SubscribeMarketStats(record.Symbol)
+	case exchange.Variational:
+		return engine.variationalSubscriber.SubscribeMarketStats(record.Symbol)
+	default:
+		return errors.New("exchange unsupported")
+	}
+}
+
 // unsubscribeUserOrders 取消订阅用户订单
 func (engine *StrategyEngine) unsubscribeUserOrders(record *ent.Strategy) {
 	switch record.Exchange {

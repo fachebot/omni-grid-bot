@@ -23,6 +23,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/telebot"
 	"github.com/fachebot/omni-grid-bot/internal/telebot/handler"
 	"github.com/fachebot/omni-grid-bot/internal/util"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -113,6 +114,9 @@ func main() {
 	c, err := config.LoadFromFile(*configFile)
 	if err != nil {
 		logger.Fatalf("读取配置文件失败, %s", err)
+	}
+	if lvl, err := logrus.ParseLevel(c.Log.Level); err == nil {
+		logger.SetLogLevel(lvl)
 	}
 
 	// 创建数据目录

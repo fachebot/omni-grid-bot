@@ -190,7 +190,7 @@ func (ws *VariationalPubWS) readMessages() {
 			return
 		}
 
-		logger.Debugf("[VariationalPubWS] 收到新消息, %s", data)
+		logger.Tracef("[VariationalPubWS] 收到新消息, %s", data)
 
 		var subscription SubscriptionPayload
 		if err = json.Unmarshal(data, &subscription); err != nil {
@@ -212,7 +212,7 @@ func (ws *VariationalPubWS) readMessages() {
 				MarkPrice: subscription.Pricing.Price,
 			}
 
-			logger.Debugf("[VariationalPubWS] 分发 MarketStats 数据, %+v", marketStats)
+			logger.Tracef("[VariationalPubWS] 分发 MarketStats 数据, %+v", marketStats)
 			ws.marketStatsChan <- marketStats
 		}
 	}

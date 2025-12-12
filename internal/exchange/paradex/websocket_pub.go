@@ -192,7 +192,7 @@ func (ws *ParadexPubWS) readMessages() {
 			return
 		}
 
-		logger.Debugf("[ParadexPubWS] 收到新消息, %s", data)
+		logger.Tracef("[ParadexPubWS] 收到新消息, %s", data)
 
 		var res JsonRpcMessage
 		if err = json.Unmarshal(data, &res); err != nil {
@@ -231,7 +231,7 @@ func (ws *ParadexPubWS) readMessages() {
 					MarkPrice: v.MarkPrice,
 				}
 
-				logger.Debugf("[ParadexPubWS] 分发 MarketStats 数据, %+v", marketStats)
+				logger.Tracef("[ParadexPubWS] 分发 MarketStats 数据, %+v", marketStats)
 				ws.marketStatsChan <- marketStats
 			}
 		}

@@ -14,6 +14,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 )
 
 // OrderCancelled 订单取消回调函数类型
@@ -23,6 +24,7 @@ type OrderCancelled func(ctx context.Context, svcCtx *svc.ServiceContext, engine
 type Strategy interface {
 	Get() *ent.Strategy
 	Update(s *ent.Strategy)
+	OnTicker(ctx context.Context, price decimal.Decimal)
 	OnOrdersChanged(ctx context.Context) error
 }
 
@@ -111,11 +113,20 @@ func (engine *StrategyEngine) Stop() {
 func (engine *StrategyEngine) StartStrategy(s Strategy) error {
 	record := s.Get()
 
+	// 订阅用户订单
+	if err := engine.subscribeUserOrders(record); err != nil {
+		return err
+	}
+
+	// 订阅市场状态
+	if err := engine.subscribeMarketStatus(record); err != nil {
+		return err
+	}
+
 	// 添加策略到引擎
 	engine.addStrategyToEngine(record.GUID, record.Account, s)
 
-	// 订阅用户订单
-	return engine.subscribeUserOrders(record)
+	return nil
 }
 
 // StopStrategy 停止策略
@@ -236,6 +247,7 @@ func (engine *StrategyEngine) run() {
 		}
 
 		if msg.MarketStats != nil {
+			engine.processMarketStats(msg.Exchange, *msg.MarketStats)
 			continue
 		}
 	}

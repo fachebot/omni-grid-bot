@@ -80,3 +80,12 @@ func Debugf(format string, args ...any) {
 	defaultLogger.Logger.Debugf(format, args...)
 	defaultLogger.fileLogger.Debugf(format, args...)
 }
+
+func Tracef(format string, args ...any) {
+	defaultLogger.Logger.Tracef(format, args...)
+	defaultLogger.fileLogger.Tracef(format, args...)
+}
+
+func SetLogLevel(level logrus.Level) {
+	defaultLogger.Logger.SetLevel(level)
+}

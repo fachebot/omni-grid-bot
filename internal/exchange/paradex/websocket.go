@@ -220,7 +220,7 @@ func (ws *ParadexWS) readMessages() {
 			return
 		}
 
-		logger.Debugf("[ParadexWS-%s] 收到新消息, %s", account, data)
+		logger.Tracef("[ParadexWS-%s] 收到新消息, %s", account, data)
 
 		var res JsonRpcMessage
 		if err = json.Unmarshal(data, &res); err != nil {

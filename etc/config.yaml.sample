@@ -1,3 +1,7 @@
+# 日志设置
+Log:
+  Level: info # 日志级别，可选值：trace, debug, info, warn, error
+
 # 代理服务器配置
 Sock5Proxy:
   Host: 127.0.0.1 # 代理服务器地址
