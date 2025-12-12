@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fachebot/omni-grid-bot/internal/cache"
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
@@ -34,31 +33,28 @@ type VariationalWS struct {
 	proxy     config.Sock5Proxy
 	reconnect chan struct{}
 
-	userClient         *UserClient
-	userOrdersChan     chan<- exchange.UserOrders
-	callback           StoppedCallback
-	pendingOrdersCache *cache.PendingOrdersCache
+	userClient     *UserClient
+	userOrdersChan chan<- exchange.UserOrders
+	callback       StoppedCallback
 }
 
 func NewVariationalWS(
 	ctx context.Context,
 	userClient *UserClient,
 	userOrdersChan chan<- exchange.UserOrders,
-	pendingOrdersCache *cache.PendingOrdersCache,
 	proxy config.Sock5Proxy,
 	callback StoppedCallback,
 ) *VariationalWS {
 	ctx, cancel := context.WithCancel(ctx)
 	ws := &VariationalWS{
-		ctx:                ctx,
-		cancel:             cancel,
-		url:                "wss://omni-ws-server.prod.ap-northeast-1.variational.io/portfolio",
-		proxy:              proxy,
-		reconnect:          make(chan struct{}, 1),
-		userClient:         userClient,
-		userOrdersChan:     userOrdersChan,
-		pendingOrdersCache: pendingOrdersCache,
-		callback:           callback,
+		ctx:            ctx,
+		cancel:         cancel,
+		url:            "wss://omni-ws-server.prod.ap-northeast-1.variational.io/portfolio",
+		proxy:          proxy,
+		reconnect:      make(chan struct{}, 1),
+		userClient:     userClient,
+		userOrdersChan: userOrdersChan,
+		callback:       callback,
 	}
 	return ws
 }
@@ -193,7 +189,6 @@ func (ws *VariationalWS) readMessages() {
 
 	// 消息循环
 	first := true
-	// pendingOrders := make(map[string]struct{})
 	localSequenceMap := make(map[string]int64)
 	for {
 		_, data, err := ws.conn.ReadMessage()
@@ -211,21 +206,6 @@ func (ws *VariationalWS) readMessages() {
 			logger.Warnf("[VariationalWS-%s] 解析结果失败, %s, %v", account, string(data), err)
 			continue
 		}
-
-		// 检测新订单
-		// newOrders := make([]string, 0)
-		// ids := ws.pendingOrdersCache.List(exchange.Variational, account)
-		// for _, id := range ids {
-		// 	_, ok := pendingOrders[id]
-		// 	if !ok {
-		// 		newOrders = append(newOrders, id)
-		// 	}
-		// }
-
-		// pendingOrders = make(map[string]struct{})
-		// for _, id := range ids {
-		// 	pendingOrders[id] = struct{}{}
-		// }
 
 		// 检查仓位变化
 		positionChanged := false

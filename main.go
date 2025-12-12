@@ -136,7 +136,7 @@ func main() {
 	paradexSubscriber.Start()
 
 	// 启动Variational订阅器
-	variationalSubscriber := variational.NewVariationalSubscriber(svcCtx.PendingOrdersCache, c.Sock5Proxy)
+	variationalSubscriber := variational.NewVariationalSubscriber(c.Sock5Proxy)
 	variationalSubscriber.Start()
 
 	// 启动网格策略引擎

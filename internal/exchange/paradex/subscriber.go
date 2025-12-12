@@ -160,7 +160,11 @@ func (subscriber *ParadexSubscriber) run() {
 			return
 		case data := <-subscriber.userOrdersInChan:
 			if subscriber.subMsgChan != nil {
-				subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &data}
+				subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Paradex, UserOrders: &data}
+			}
+		case data := <-subscriber.marketStatsInChan:
+			if subscriber.subMsgChan != nil {
+				subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Paradex, MarketStats: &data}
 			}
 		}
 	}

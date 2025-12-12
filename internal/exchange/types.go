@@ -52,6 +52,7 @@ type MarketStats struct {
 
 // 订阅消息
 type SubMessage struct {
+	Exchange    string       `json:"exchange"`    // 交易所名称
 	UserOrders  *UserOrders  `json:"userOrders"`  // 用户订单信息
 	MarketStats *MarketStats `json:"marketStats"` // 市场统计信息
 }

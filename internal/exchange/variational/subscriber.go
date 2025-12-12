@@ -5,7 +5,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/fachebot/omni-grid-bot/internal/cache"
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
@@ -20,24 +19,27 @@ type VariationalSubscriber struct {
 	mutex     sync.Mutex
 	wg        sync.WaitGroup
 	sf        singleflight.Group
+	publicWs  *VariationalPubWS
 	userConns map[string]*VariationalWS
 	stopped   atomic.Bool
 
-	subMsgChan         chan exchange.SubMessage
-	userOrdersInChan   chan exchange.UserOrders
-	pendingOrdersCache *cache.PendingOrdersCache
+	subMsgChan        chan exchange.SubMessage
+	userOrdersInChan  chan exchange.UserOrders
+	marketStatsInChan chan exchange.MarketStats
 }
 
-func NewVariationalSubscriber(pendingOrdersCache *cache.PendingOrdersCache, proxy config.Sock5Proxy) *VariationalSubscriber {
+func NewVariationalSubscriber(proxy config.Sock5Proxy) *VariationalSubscriber {
 	ctx, cancel := context.WithCancel(context.Background())
 	subscriber := &VariationalSubscriber{
-		ctx:                ctx,
-		cancel:             cancel,
-		proxy:              proxy,
-		userConns:          make(map[string]*VariationalWS),
-		userOrdersInChan:   make(chan exchange.UserOrders, 1024*8),
-		pendingOrdersCache: pendingOrdersCache,
+		ctx:               ctx,
+		cancel:            cancel,
+		proxy:             proxy,
+		userConns:         make(map[string]*VariationalWS),
+		userOrdersInChan:  make(chan exchange.UserOrders, 1024*8),
+		marketStatsInChan: make(chan exchange.MarketStats, 1024*8),
 	}
+	subscriber.publicWs = NewVariationalPubWS(ctx, subscriber.marketStatsInChan, proxy)
+
 	return subscriber
 }
 
@@ -62,6 +64,8 @@ func (subscriber *VariationalSubscriber) Stop() {
 	}
 	subscriber.wg.Wait()
 
+	subscriber.publicWs.Stop()
+
 	// 清理服务资源
 	subscriber.cancel()
 	close(subscriber.userOrdersInChan)
@@ -74,6 +78,9 @@ func (subscriber *VariationalSubscriber) Stop() {
 }
 
 func (subscriber *VariationalSubscriber) Start() {
+	subscriber.publicWs.Start()
+	subscriber.publicWs.WaitUntilConnected()
+
 	logger.Infof("[VariationalSubscriber] 开始运行服务")
 	go subscriber.run()
 }
@@ -83,6 +90,14 @@ func (subscriber *VariationalSubscriber) SubscriptionChan() <-chan exchange.SubM
 		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024*8)
 	}
 	return subscriber.subMsgChan
+}
+
+func (subscriber *VariationalSubscriber) SubscribeMarketStats(symbol string) error {
+	return subscriber.publicWs.SubscribeMarketStats(symbol)
+}
+
+func (subscriber *VariationalSubscriber) UnsubscribeMarketStats(symbol string) error {
+	return subscriber.publicWs.UnsubscribeMarketStats(symbol)
 }
 
 func (subscriber *VariationalSubscriber) SubscribeAccountOrders(userClient *UserClient) error {
@@ -101,7 +116,6 @@ func (subscriber *VariationalSubscriber) SubscribeAccountOrders(userClient *User
 			subscriber.ctx,
 			userClient,
 			subscriber.userOrdersInChan,
-			subscriber.pendingOrdersCache,
 			subscriber.proxy,
 			subscriber.onWsServiceStopped,
 		)
@@ -145,7 +159,11 @@ func (subscriber *VariationalSubscriber) run() {
 			return
 		case data := <-subscriber.userOrdersInChan:
 			if subscriber.subMsgChan != nil {
-				subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &data}
+				subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Variational, UserOrders: &data}
+			}
+		case data := <-subscriber.marketStatsInChan:
+			if subscriber.subMsgChan != nil {
+				subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Variational, MarketStats: &data}
 			}
 		}
 	}

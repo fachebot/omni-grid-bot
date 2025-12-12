@@ -335,7 +335,7 @@ func (subscriber *LighterSubscriber) handleMarketStatsMessage(message WebSocketM
 		}
 
 		logger.Debugf("[LighterSubscriber] 分发 MarketStats 数据, %+v", marketStats)
-		subscriber.subMsgChan <- exchange.SubMessage{MarketStats: &marketStats}
+		subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Lighter, MarketStats: &marketStats}
 	}
 }
 
@@ -391,7 +391,7 @@ func (subscriber *LighterSubscriber) handleOrdersMessage(processedAccounts map[i
 		}
 
 		logger.Debugf("[LighterSubscriber] 分发 UserOders 数据, account: %d, isSnapshot: %v", accountIndex, userOrders.IsSnapshot)
-		subscriber.subMsgChan <- exchange.SubMessage{UserOrders: &userOrders}
+		subscriber.subMsgChan <- exchange.SubMessage{Exchange: exchange.Lighter, UserOrders: &userOrders}
 	}
 
 	processedAccounts[accountIndex] = struct{}{}

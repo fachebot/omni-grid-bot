@@ -297,3 +297,24 @@ type PoolPortfolioResult struct {
 	Positions   []Position      `json:"positions"`    // 持仓列表
 	PublishedAt string          `json:"published_at"` // 数据发布时间
 }
+
+// 标的价格数据
+type UnderlyingPricing struct {
+	Price           decimal.Decimal `json:"price"`            // 价格
+	NativePrice     decimal.Decimal `json:"native_price"`     // 本地计价价格
+	Delta           decimal.Decimal `json:"delta"`            // Delta值
+	Gamma           decimal.Decimal `json:"gamma"`            // Gamma值
+	Theta           decimal.Decimal `json:"theta"`            // Theta值
+	Vega            decimal.Decimal `json:"vega"`             // Vega值
+	Rho             decimal.Decimal `json:"rho"`              // Rho值
+	Iv              decimal.Decimal `json:"iv"`               // 隐含波动率
+	UnderlyingPrice decimal.Decimal `json:"underlying_price"` // 标的资产价格
+	InterestRate    decimal.Decimal `json:"interest_rate"`    // 利率
+	Timestamp       time.Time       `json:"timestamp"`        // 时间戳
+}
+
+// 订阅消息
+type SubscriptionPayload struct {
+	Channel string             `json:"channel"`           // 频道标识
+	Pricing *UnderlyingPricing `json:"pricing,omitempty"` // 价格数据
+}

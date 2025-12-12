@@ -226,10 +226,17 @@ func (engine *StrategyEngine) run() {
 			msg = &data
 		}
 
-		if msg != nil {
-			if msg.UserOrders != nil {
-				engine.processOrders(*msg.UserOrders)
-			}
+		if msg == nil {
+			continue
+		}
+
+		if msg.UserOrders != nil {
+			engine.processOrders(*msg.UserOrders)
+			continue
+		}
+
+		if msg.MarketStats != nil {
+			continue
 		}
 	}
 }
