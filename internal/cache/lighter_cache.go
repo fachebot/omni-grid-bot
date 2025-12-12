@@ -23,6 +23,15 @@ func NewLighterCache(client *lighter.Client) *LighterCache {
 	}
 }
 
+func (cache *LighterCache) GetMarketIdBySymbol(ctx context.Context, symbol string) (int16, error) {
+	metadata, err := cache.GetOrderBookMetadata(ctx, symbol)
+	if err != nil {
+		return 0, err
+	}
+
+	return metadata.MarketID, nil
+}
+
 func (cache *LighterCache) GetSymbolByMarketId(ctx context.Context, marketIndex int16) (string, error) {
 	err := cache.ensureLoadCache(ctx)
 	if err != nil {

@@ -319,6 +319,23 @@ type UpdateLeverageTxReq struct {
 	MarginMode  exchange.MarginMode // 保证金模式
 }
 
+// MarketStats 市场状态数据
+type MarketStats struct {
+	MarketID              int16           `json:"market_id"`                // 市场ID
+	IndexPrice            decimal.Decimal `json:"index_price"`              // 指数价格
+	MarkPrice             decimal.Decimal `json:"mark_price"`               // 标记价格
+	OpenInterest          decimal.Decimal `json:"open_interest"`            // 持仓量
+	LastTradePrice        decimal.Decimal `json:"last_trade_price"`         // 最后交易价格
+	CurrentFundingRate    decimal.Decimal `json:"current_funding_rate"`     // 当前资金费率
+	FundingRate           decimal.Decimal `json:"funding_rate"`             // 资金费率
+	FundingTimestamp      int64           `json:"funding_timestamp"`        // 资金费时间戳
+	DailyBaseTokenVolume  decimal.Decimal `json:"daily_base_token_volume"`  // 日基础代币交易量
+	DailyQuoteTokenVolume decimal.Decimal `json:"daily_quote_token_volume"` // 日计价代币交易量
+	DailyPriceLow         decimal.Decimal `json:"daily_price_low"`          // 日最低价
+	DailyPriceHigh        decimal.Decimal `json:"daily_price_high"`         // 日最高价
+	DailyPriceChange      decimal.Decimal `json:"daily_price_change"`       // 日价格变化
+}
+
 // TxHash 交易hash
 type TxHash struct {
 	lighterhttp.ResultCode
@@ -334,7 +351,8 @@ type RespSendTxBatch struct {
 
 // WebSocketMessage 推送消息
 type WebSocketMessage struct {
-	Type    string              `json:"type"`
-	Channel string              `json:"channel"`
-	Orders  map[string][]*Order `json:"orders,omitempty"`
+	Type        string              `json:"type"`
+	Channel     string              `json:"channel"`
+	Orders      map[string][]*Order `json:"orders,omitempty"`
+	MarketStats *MarketStats        `json:"market_stats,omitempty"`
 }
