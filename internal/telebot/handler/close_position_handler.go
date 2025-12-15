@@ -97,10 +97,10 @@ func (h *ClosePositionHandler) handle(ctx context.Context, vars map[string]strin
 	}
 
 	// 执行平仓操作
-	text := fmt.Sprintf("✅ *%s* 平仓成功", StrategyName(record))
+	text := fmt.Sprintf("✅ *%s* 平仓成功", util.StrategyName(record))
 	err = ClosePosition(ctx, h.svcCtx, record)
 	if err != nil {
-		text = fmt.Sprintf("❌ *%s* 平仓失败, 请稍后再试", StrategyName(record))
+		text = fmt.Sprintf("❌ *%s* 平仓失败, 请稍后再试", util.StrategyName(record))
 		logger.Errorf("[ClosePositionHandler] 平仓失败, id: %d, %v", record.ID, err)
 	} else {
 		err = DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)

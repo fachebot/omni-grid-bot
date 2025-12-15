@@ -6,12 +6,20 @@ import (
 	"strconv"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
+	entstrategy "github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
+	"github.com/fachebot/omni-grid-bot/internal/model"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
+	"github.com/fachebot/omni-grid-bot/internal/util"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+)
+
+const (
+	DefaultSlippageBps = 50
 )
 
 type MarketMetadata struct {
@@ -20,6 +28,10 @@ type MarketMetadata struct {
 	SupportedSizeDecimals  uint8           // 支持的数量小数位数
 	SupportedPriceDecimals uint8           // 支持的价格小数位数
 	SupportedQuoteDecimals uint8           // 支持的计价小数位数
+}
+
+type StrategyEngine interface {
+	StopStrategy(id string)
 }
 
 func GetAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
@@ -278,4 +290,54 @@ func GetLastTradePrice(ctx context.Context, svcCtx *svc.ServiceContext, exchange
 	default:
 		return decimal.Zero, errors.New("exchange unsupported")
 	}
+}
+
+func StopStrategyAndCancelOrders(ctx context.Context, svcCtx *svc.ServiceContext, strategyEngine StrategyEngine, record *ent.Strategy) error {
+	// 停止网格策略
+	strategyEngine.StopStrategy(record.GUID)
+
+	// 取消用户订单
+	adapter, err := NewExchangeAdapterFromStrategy(svcCtx, record)
+	if err != nil {
+		return err
+	}
+	err = adapter.CancalAllOrders(ctx, record.Symbol)
+	if err != nil {
+		return err
+	}
+
+	// 更新策略状态
+	return util.Tx(ctx, svcCtx.DbClient, func(tx *ent.Tx) error {
+		err = model.NewGridModel(tx.Grid).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
+		err = model.NewMatchedTradeModel(tx.MatchedTrade).DeleteByStrategyId(ctx, record.GUID)
+		if err != nil {
+			return err
+		}
+
+		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, entstrategy.StatusInactive)
+	})
+}
+
+func StopStrategyAndClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, strategyEngine StrategyEngine, record *ent.Strategy) error {
+	err := StopStrategyAndCancelOrders(ctx, svcCtx, strategyEngine, record)
+	if err != nil {
+		return err
+	}
+
+	adapter, err := NewExchangeAdapterFromStrategy(svcCtx, record)
+	if err != nil {
+		return err
+	}
+
+	slippageBps := DefaultSlippageBps
+	if record.SlippageBps != nil {
+		slippageBps = *record.SlippageBps
+	}
+
+	side := lo.If(record.Mode == strategy.ModeLong, LONG).Else(SHORT)
+	return adapter.ClosePosition(ctx, record.Symbol, side, slippageBps)
 }

@@ -60,7 +60,7 @@ func (h *CreateStrategyHandler) handle(ctx context.Context, vars map[string]stri
 		return err
 	}
 
-	text := fmt.Sprintf("✅ *%s* 策略创建成功", StrategyName(&record))
+	text := fmt.Sprintf("✅ *%s* 策略创建成功", util.StrategyName(&record))
 	util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
 
 	DisplayStrategSettings(ctx, h.svcCtx, userId, update, &record, true)

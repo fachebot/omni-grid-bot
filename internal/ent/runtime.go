@@ -118,7 +118,7 @@ func init() {
 	// strategy.LeverageValidator is a validator for the "leverage" field. It is called by the builders before save.
 	strategy.LeverageValidator = strategyDescLeverage.Validators[0].(func(int) error)
 	// strategyDescSlippageBps is the schema descriptor for slippageBps field.
-	strategyDescSlippageBps := strategyFields[15].Descriptor()
+	strategyDescSlippageBps := strategyFields[13].Descriptor()
 	// strategy.SlippageBpsValidator is a validator for the "slippageBps" field. It is called by the builders before save.
 	strategy.SlippageBpsValidator = func() func(int) error {
 		validators := strategyDescSlippageBps.Validators

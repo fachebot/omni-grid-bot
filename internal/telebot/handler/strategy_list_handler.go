@@ -92,7 +92,7 @@ func DisplayStrategyList(ctx context.Context, svcCtx *svc.ServiceContext, userId
 			label = fmt.Sprintf("%s | %s | %s", item.Exchange, item.Symbol, item.Mode)
 		}
 
-		name := StrategyName(item)
+		name := util.StrategyName(item)
 		inlineKeyboard = append(inlineKeyboard, []tele.InlineButton{
 			{Text: fmt.Sprintf("%s %s | %s", status, name, label), Data: StrategyDetailsHandler{}.FormatPath(item.GUID)},
 		})

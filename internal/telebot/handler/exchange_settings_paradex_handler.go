@@ -120,7 +120,7 @@ func DisplayExchangeSettingsParadexSettings(ctx context.Context, svcCtx *svc.Ser
 		return lo.If(s != "", "✅").Else("⬜")
 	}
 
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	text := fmt.Sprintf("*%s* | 交易所配置 `%s`", svcCtx.Config.AppName, name)
 	text += "\n\n「调整设置, 优化您的跟单体验」"
 

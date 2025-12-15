@@ -89,10 +89,10 @@ func (h *DeleteStrategyHandler) handle(ctx context.Context, vars map[string]stri
 	}
 
 	// 执行删除策略
-	text := fmt.Sprintf("✅ *%s* 策略删除成功", StrategyName(record))
+	text := fmt.Sprintf("✅ *%s* 策略删除成功", util.StrategyName(record))
 	err = h.svcCtx.StrategyModel.Delete(ctx, record.ID)
 	if err != nil {
-		text = fmt.Sprintf("❌ *%s* 策略删除失败, 请稍后再试", StrategyName(record))
+		text = fmt.Sprintf("❌ *%s* 策略删除失败, 请稍后再试", util.StrategyName(record))
 		logger.Errorf("[DeleteStrategyHandler] 删除策略失败, id: %d, %v", record.ID, err)
 	} else {
 		err = DisplayStrategyList(ctx, h.svcCtx, userId, update, 1)

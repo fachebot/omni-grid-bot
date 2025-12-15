@@ -15,19 +15,11 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
-const (
-	DefaultSlippageBps = 50
-)
-
 type ContextKey string
 
 const (
 	ContextKeyEngine ContextKey = "engine"
 )
-
-func StrategyName(record *ent.Strategy) string {
-	return record.GUID[len(record.GUID)-4:]
-}
 
 func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) error {
 	adapter, err := helper.NewExchangeAdapterFromStrategy(svcCtx, record)
@@ -35,7 +27,7 @@ func ClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.
 		return err
 	}
 
-	slippageBps := DefaultSlippageBps
+	slippageBps := helper.DefaultSlippageBps
 	if record.SlippageBps != nil {
 		slippageBps = *record.SlippageBps
 	}

@@ -34,11 +34,10 @@ func (m *StrategyModel) Save(ctx context.Context, args ent.Strategy) (*ent.Strat
 		SetGridNum(args.GridNum).
 		SetLeverage(args.Leverage).
 		SetInitialOrderSize(args.InitialOrderSize).
-		SetStopLossRatio(args.StopLossRatio).
-		SetTakeProfitRatio(args.TakeProfitRatio).
 		SetNillableSlippageBps(args.SlippageBps).
 		SetNillableEntryPrice(args.EntryPrice).
-		SetEnableAutoExit(args.EnableAutoExit).
+		SetNillableTriggerStopLossPrice(args.TriggerStopLossPrice).
+		SetNillableTriggerTakeProfitPrice(args.TriggerTakeProfitPrice).
 		SetEnablePushNotification(args.EnablePushNotification).
 		SetNillableEnablePushMatchedNotification(args.EnablePushMatchedNotification).
 		SetNillableLastLowerThresholdAlertTime(args.LastLowerThresholdAlertTime).
@@ -166,6 +165,14 @@ func (m *StrategyModel) UpdateEnablePushMatchedNotification(ctx context.Context,
 
 func (m *StrategyModel) UpdateStartTime(ctx context.Context, id int, newValue time.Time) error {
 	return m.client.UpdateOneID(id).SetStartTime(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateTriggerStopLossPrice(ctx context.Context, id int, newValue decimal.Decimal) error {
+	return m.client.UpdateOneID(id).SetTriggerStopLossPrice(newValue).Exec(ctx)
+}
+
+func (m *StrategyModel) UpdateTriggerTakeProfitPrice(ctx context.Context, id int, newValue decimal.Decimal) error {
+	return m.client.UpdateOneID(id).SetTriggerTakeProfitPrice(newValue).Exec(ctx)
 }
 
 func (m *StrategyModel) UpdateEntryPrice(ctx context.Context, id int, newValue decimal.Decimal) error {

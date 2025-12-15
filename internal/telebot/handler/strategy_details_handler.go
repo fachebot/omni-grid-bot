@@ -142,7 +142,7 @@ func marketSymbol(record *ent.Strategy) string {
 }
 
 func StrategyDetailsText(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) string {
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	text := fmt.Sprintf("*%s* | 策略详情 `%s`\n\n", svcCtx.Config.AppName, name)
 
 	// 查询网格列表

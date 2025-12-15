@@ -44,16 +44,14 @@ const (
 	FieldLeverage = "leverage"
 	// FieldInitialOrderSize holds the string denoting the initialordersize field in the database.
 	FieldInitialOrderSize = "initial_order_size"
-	// FieldStopLossRatio holds the string denoting the stoplossratio field in the database.
-	FieldStopLossRatio = "stop_loss_ratio"
-	// FieldTakeProfitRatio holds the string denoting the takeprofitratio field in the database.
-	FieldTakeProfitRatio = "take_profit_ratio"
 	// FieldSlippageBps holds the string denoting the slippagebps field in the database.
 	FieldSlippageBps = "slippage_bps"
 	// FieldEntryPrice holds the string denoting the entryprice field in the database.
 	FieldEntryPrice = "entry_price"
-	// FieldEnableAutoExit holds the string denoting the enableautoexit field in the database.
-	FieldEnableAutoExit = "enable_auto_exit"
+	// FieldTriggerStopLossPrice holds the string denoting the triggerstoplossprice field in the database.
+	FieldTriggerStopLossPrice = "trigger_stop_loss_price"
+	// FieldTriggerTakeProfitPrice holds the string denoting the triggertakeprofitprice field in the database.
+	FieldTriggerTakeProfitPrice = "trigger_take_profit_price"
 	// FieldEnablePushNotification holds the string denoting the enablepushnotification field in the database.
 	FieldEnablePushNotification = "enable_push_notification"
 	// FieldEnablePushMatchedNotification holds the string denoting the enablepushmatchednotification field in the database.
@@ -94,11 +92,10 @@ var Columns = []string{
 	FieldGridNum,
 	FieldLeverage,
 	FieldInitialOrderSize,
-	FieldStopLossRatio,
-	FieldTakeProfitRatio,
 	FieldSlippageBps,
 	FieldEntryPrice,
-	FieldEnableAutoExit,
+	FieldTriggerStopLossPrice,
+	FieldTriggerTakeProfitPrice,
 	FieldEnablePushNotification,
 	FieldEnablePushMatchedNotification,
 	FieldLastLowerThresholdAlertTime,
@@ -320,16 +317,6 @@ func ByInitialOrderSize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInitialOrderSize, opts...).ToFunc()
 }
 
-// ByStopLossRatio orders the results by the stopLossRatio field.
-func ByStopLossRatio(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStopLossRatio, opts...).ToFunc()
-}
-
-// ByTakeProfitRatio orders the results by the takeProfitRatio field.
-func ByTakeProfitRatio(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTakeProfitRatio, opts...).ToFunc()
-}
-
 // BySlippageBps orders the results by the slippageBps field.
 func BySlippageBps(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSlippageBps, opts...).ToFunc()
@@ -340,9 +327,14 @@ func ByEntryPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEntryPrice, opts...).ToFunc()
 }
 
-// ByEnableAutoExit orders the results by the enableAutoExit field.
-func ByEnableAutoExit(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEnableAutoExit, opts...).ToFunc()
+// ByTriggerStopLossPrice orders the results by the triggerStopLossPrice field.
+func ByTriggerStopLossPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerStopLossPrice, opts...).ToFunc()
+}
+
+// ByTriggerTakeProfitPrice orders the results by the triggerTakeProfitPrice field.
+func ByTriggerTakeProfitPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerTakeProfitPrice, opts...).ToFunc()
 }
 
 // ByEnablePushNotification orders the results by the enablePushNotification field.

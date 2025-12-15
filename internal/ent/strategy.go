@@ -48,16 +48,14 @@ type Strategy struct {
 	Leverage int `json:"leverage,omitempty"`
 	// InitialOrderSize holds the value of the "initialOrderSize" field.
 	InitialOrderSize decimal.Decimal `json:"initialOrderSize,omitempty"`
-	// StopLossRatio holds the value of the "stopLossRatio" field.
-	StopLossRatio decimal.Decimal `json:"stopLossRatio,omitempty"`
-	// TakeProfitRatio holds the value of the "takeProfitRatio" field.
-	TakeProfitRatio decimal.Decimal `json:"takeProfitRatio,omitempty"`
 	// SlippageBps holds the value of the "slippageBps" field.
 	SlippageBps *int `json:"slippageBps,omitempty"`
 	// EntryPrice holds the value of the "entryPrice" field.
 	EntryPrice *decimal.Decimal `json:"entryPrice,omitempty"`
-	// EnableAutoExit holds the value of the "enableAutoExit" field.
-	EnableAutoExit bool `json:"enableAutoExit,omitempty"`
+	// TriggerStopLossPrice holds the value of the "triggerStopLossPrice" field.
+	TriggerStopLossPrice *decimal.Decimal `json:"triggerStopLossPrice,omitempty"`
+	// TriggerTakeProfitPrice holds the value of the "triggerTakeProfitPrice" field.
+	TriggerTakeProfitPrice *decimal.Decimal `json:"triggerTakeProfitPrice,omitempty"`
 	// EnablePushNotification holds the value of the "enablePushNotification" field.
 	EnablePushNotification bool `json:"enablePushNotification,omitempty"`
 	// EnablePushMatchedNotification holds the value of the "enablePushMatchedNotification" field.
@@ -84,11 +82,11 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case strategy.FieldEntryPrice:
+		case strategy.FieldEntryPrice, strategy.FieldTriggerStopLossPrice, strategy.FieldTriggerTakeProfitPrice:
 			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
-		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize, strategy.FieldStopLossRatio, strategy.FieldTakeProfitRatio:
+		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize:
 			values[i] = new(decimal.Decimal)
-		case strategy.FieldEnableAutoExit, strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification:
+		case strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification:
 			values[i] = new(sql.NullBool)
 		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage, strategy.FieldSlippageBps:
 			values[i] = new(sql.NullInt64)
@@ -207,18 +205,6 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.InitialOrderSize = *value
 			}
-		case strategy.FieldStopLossRatio:
-			if value, ok := values[i].(*decimal.Decimal); !ok {
-				return fmt.Errorf("unexpected type %T for field stopLossRatio", values[i])
-			} else if value != nil {
-				_m.StopLossRatio = *value
-			}
-		case strategy.FieldTakeProfitRatio:
-			if value, ok := values[i].(*decimal.Decimal); !ok {
-				return fmt.Errorf("unexpected type %T for field takeProfitRatio", values[i])
-			} else if value != nil {
-				_m.TakeProfitRatio = *value
-			}
 		case strategy.FieldSlippageBps:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field slippageBps", values[i])
@@ -233,11 +219,19 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 				_m.EntryPrice = new(decimal.Decimal)
 				*_m.EntryPrice = *value.S.(*decimal.Decimal)
 			}
-		case strategy.FieldEnableAutoExit:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field enableAutoExit", values[i])
+		case strategy.FieldTriggerStopLossPrice:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field triggerStopLossPrice", values[i])
 			} else if value.Valid {
-				_m.EnableAutoExit = value.Bool
+				_m.TriggerStopLossPrice = new(decimal.Decimal)
+				*_m.TriggerStopLossPrice = *value.S.(*decimal.Decimal)
+			}
+		case strategy.FieldTriggerTakeProfitPrice:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field triggerTakeProfitPrice", values[i])
+			} else if value.Valid {
+				_m.TriggerTakeProfitPrice = new(decimal.Decimal)
+				*_m.TriggerTakeProfitPrice = *value.S.(*decimal.Decimal)
 			}
 		case strategy.FieldEnablePushNotification:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -378,12 +372,6 @@ func (_m *Strategy) String() string {
 	builder.WriteString("initialOrderSize=")
 	builder.WriteString(fmt.Sprintf("%v", _m.InitialOrderSize))
 	builder.WriteString(", ")
-	builder.WriteString("stopLossRatio=")
-	builder.WriteString(fmt.Sprintf("%v", _m.StopLossRatio))
-	builder.WriteString(", ")
-	builder.WriteString("takeProfitRatio=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TakeProfitRatio))
-	builder.WriteString(", ")
 	if v := _m.SlippageBps; v != nil {
 		builder.WriteString("slippageBps=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -394,8 +382,15 @@ func (_m *Strategy) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("enableAutoExit=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EnableAutoExit))
+	if v := _m.TriggerStopLossPrice; v != nil {
+		builder.WriteString("triggerStopLossPrice=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TriggerTakeProfitPrice; v != nil {
+		builder.WriteString("triggerTakeProfitPrice=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("enablePushNotification=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnablePushNotification))

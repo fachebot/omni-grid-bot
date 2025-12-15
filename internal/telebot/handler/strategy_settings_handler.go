@@ -39,6 +39,8 @@ var (
 	SettingsOptionEnablePushNotification        SettingsOption = 12
 	SettingsOptionEnablePushMatchedNotification SettingsOption = 13
 	SettingsOptionEntryPrice                    SettingsOption = 14
+	SettingsOptionTriggerStopLossPrice          SettingsOption = 15
+	SettingsOptionTriggerTakeProfitPrice        SettingsOption = 16
 )
 
 const (
@@ -134,6 +136,10 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 		return h.handleEnablePushMatchedNotification(ctx, userId, update, record)
 	case SettingsOptionEntryPrice:
 		return h.handleEntryPrice(ctx, userId, update, record)
+	case SettingsOptionTriggerStopLossPrice:
+		return h.handleTriggerStopLossPrice(ctx, userId, update, record)
+	case SettingsOptionTriggerTakeProfitPrice:
+		return h.handleTriggerTakeProfitPrice(ctx, userId, update, record)
 	}
 
 	return nil
@@ -763,6 +769,98 @@ func (h *StrategySettingsHandler) handleEntryPrice(ctx context.Context, userId i
 	return nil
 }
 
+func (h *StrategySettingsHandler) handleTriggerStopLossPrice(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	// 步骤1
+	if update.Callback != nil {
+		chatId := update.Callback.Message.Chat.ID
+		text := "🌳 填写触发止损价格，标记价格触及顶部止损价格或底部止损价格后，停止网格策略"
+		msg, err := h.svcCtx.Bot.Send(util.ChatId(chatId), text, defaultSendOptions())
+		if err != nil {
+			logger.Debugf("[StrategySettingsHandler] 发送消息失败, %v", err)
+			return err
+		}
+
+		route := cache.RouteInfo{Path: h.FormatPath(record.GUID, SettingsOptionTriggerStopLossPrice), Context: update.Callback.Message}
+		h.svcCtx.MessageCache.SetRoute(chatId, msg.ID, route)
+
+		return nil
+	}
+
+	// 步骤2
+	if update.Message != nil {
+		deleteMessageAndReply(h.svcCtx.Bot, update.Message)
+
+		// 检查输入数量
+		chatId := update.Message.Chat.ID
+		d, err := decimal.NewFromString(update.Message.Text)
+		if err != nil || d.LessThan(decimal.Zero) {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效价格数值，并且不能小于0", 3)
+			return nil
+		}
+
+		// 发送成功提示
+		text := "✅ 配置修改成功"
+		err = h.svcCtx.StrategyModel.UpdateTriggerStopLossPrice(ctx, record.ID, d)
+		if err == nil {
+			record.TriggerStopLossPrice = &d
+		} else {
+			text = "❌ 配置修改失败, 请稍后重试"
+			logger.Errorf("[StrategySettingsHandler] 更新配置[TriggerStopLossPrice]失败, %v", err)
+		}
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+		return h.refreshSettingsMessage(ctx, userId, update, record)
+	}
+
+	return nil
+}
+
+func (h *StrategySettingsHandler) handleTriggerTakeProfitPrice(ctx context.Context, userId int64, update tele.Update, record *ent.Strategy) error {
+	// 步骤1
+	if update.Callback != nil {
+		chatId := update.Callback.Message.Chat.ID
+		text := "🌳 填写触发止盈价格，标记价格触及顶部止盈价格或底部止盈价格后，停止网格策略"
+		msg, err := h.svcCtx.Bot.Send(util.ChatId(chatId), text, defaultSendOptions())
+		if err != nil {
+			logger.Debugf("[StrategySettingsHandler] 发送消息失败, %v", err)
+			return err
+		}
+
+		route := cache.RouteInfo{Path: h.FormatPath(record.GUID, SettingsOptionTriggerTakeProfitPrice), Context: update.Callback.Message}
+		h.svcCtx.MessageCache.SetRoute(chatId, msg.ID, route)
+
+		return nil
+	}
+
+	// 步骤2
+	if update.Message != nil {
+		deleteMessageAndReply(h.svcCtx.Bot, update.Message)
+
+		// 检查输入数量
+		chatId := update.Message.Chat.ID
+		d, err := decimal.NewFromString(update.Message.Text)
+		if err != nil || d.LessThan(decimal.Zero) {
+			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), "❌ 请输入有效价格数值，并且不能小于0", 3)
+			return nil
+		}
+
+		// 发送成功提示
+		text := "✅ 配置修改成功"
+		err = h.svcCtx.StrategyModel.UpdateTriggerTakeProfitPrice(ctx, record.ID, d)
+		if err == nil {
+			record.TriggerTakeProfitPrice = &d
+		} else {
+			text = "❌ 配置修改失败, 请稍后重试"
+			logger.Errorf("[StrategySettingsHandler] 更新配置[TriggerTakeProfitPrice]失败, %v", err)
+		}
+		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
+
+		return h.refreshSettingsMessage(ctx, userId, update, record)
+	}
+
+	return nil
+}
+
 func GenerateGridList(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) []decimal.Decimal {
 	mm, err := helper.GetMarketMetadata(ctx, svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
@@ -810,7 +908,7 @@ func CalculateProfitMargin(record *ent.Strategy, prices []decimal.Decimal) (deci
 }
 
 func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, userId int64, update tele.Update, record *ent.Strategy, newMessage bool) error {
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	text := fmt.Sprintf("*%s* | 编辑策略 `%s`\n\n", svcCtx.Config.AppName, name)
 
 	// 生成网格列表
@@ -883,7 +981,7 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 		priceUpper = format.Price(record.PriceUpper, 5)
 	}
 
-	slippageBps := DefaultSlippageBps
+	slippageBps := helper.DefaultSlippageBps
 	if record.SlippageBps != nil {
 		slippageBps = *record.SlippageBps
 	}
@@ -891,6 +989,16 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 	entryPrice := "未设置"
 	if record.EntryPrice != nil && record.EntryPrice.GreaterThan(decimal.Zero) {
 		entryPrice = record.EntryPrice.String()
+	}
+
+	triggerStopLossPrice := "未设置"
+	if record.TriggerStopLossPrice != nil && record.TriggerStopLossPrice.GreaterThan(decimal.Zero) {
+		triggerStopLossPrice = record.TriggerStopLossPrice.String()
+	}
+
+	triggerTakeProfitPrice := "未设置"
+	if record.TriggerTakeProfitPrice != nil && record.TriggerTakeProfitPrice.GreaterThan(decimal.Zero) {
+		triggerTakeProfitPrice = record.TriggerTakeProfitPrice.String()
 	}
 
 	h := StrategySettingsHandler{}
@@ -922,6 +1030,12 @@ func DisplayStrategSettings(ctx context.Context, svcCtx *svc.ServiceContext, use
 			},
 			{
 				{Text: fmt.Sprintf("💲 策略入场价格: %s", entryPrice), Data: h.FormatPath(record.GUID, SettingsOptionEntryPrice)},
+			},
+			{
+				{Text: fmt.Sprintf("🏃‍♂️ 触发止损价格: %s", triggerStopLossPrice), Data: h.FormatPath(record.GUID, SettingsOptionTriggerStopLossPrice)},
+			},
+			{
+				{Text: fmt.Sprintf("🏃‍♂️ 触发止盈价格: %s", triggerTakeProfitPrice), Data: h.FormatPath(record.GUID, SettingsOptionTriggerTakeProfitPrice)},
 			},
 			{
 				{Text: fmt.Sprintf("⚖️ 市价交易滑点: %v%%", float64(slippageBps)/10000*100.0), Data: h.FormatPath(record.GUID, SettingsOptionSlippage)},

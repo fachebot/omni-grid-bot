@@ -144,7 +144,7 @@ func (h *MatchedTradesHandler) handle(ctx context.Context, vars map[string]strin
 		},
 	}
 
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	text := fmt.Sprintf("*%s* | 匹配记录 `%s`\n\n", h.svcCtx.Config.AppName, name)
 	if len(items) == 0 {
 		text += "暂无网格匹配记录"

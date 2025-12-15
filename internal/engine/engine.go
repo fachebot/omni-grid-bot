@@ -30,16 +30,12 @@ type Strategy interface {
 
 // StrategyEngine 策略引擎
 type StrategyEngine struct {
-	// 上下文管理
 	ctx      context.Context
 	cancel   context.CancelFunc
 	stopChan chan struct{}
 
-	// 依赖服务
-	svcCtx           *svc.ServiceContext
-	onOrderCancelled OrderCancelled
+	svcCtx *svc.ServiceContext
 
-	// 交易所订阅器
 	lighterSubscriber     *lighter.LighterSubscriber
 	paradexSubscriber     *paradex.ParadexSubscriber
 	variationalSubscriber *variational.VariationalSubscriber
@@ -60,7 +56,6 @@ func NewStrategyEngine(
 	lighterSubscriber *lighter.LighterSubscriber,
 	paradexSubscriber *paradex.ParadexSubscriber,
 	variationalSubscriber *variational.VariationalSubscriber,
-	onOrderCancelled OrderCancelled,
 ) *StrategyEngine {
 	h := make(retryHeap, 0)
 	heap.Init(&h)
@@ -70,7 +65,6 @@ func NewStrategyEngine(
 		ctx:                   ctx,
 		cancel:                cancel,
 		svcCtx:                svcCtx,
-		onOrderCancelled:      onOrderCancelled,
 		lighterSubscriber:     lighterSubscriber,
 		paradexSubscriber:     paradexSubscriber,
 		variationalSubscriber: variationalSubscriber,

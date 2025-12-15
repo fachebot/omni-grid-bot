@@ -81,7 +81,7 @@ func (h *ExchangeSelectorHandler) handle(ctx context.Context, vars map[string]st
 		return nil
 	}
 
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	text := fmt.Sprintf("*%s* | 交易平台 `%s`", h.svcCtx.Config.AppName, name)
 	text += "\n\n请选择运行网格策略的交易平台:"
 

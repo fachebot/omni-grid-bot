@@ -145,18 +145,6 @@ func (_c *StrategyCreate) SetInitialOrderSize(v decimal.Decimal) *StrategyCreate
 	return _c
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (_c *StrategyCreate) SetStopLossRatio(v decimal.Decimal) *StrategyCreate {
-	_c.mutation.SetStopLossRatio(v)
-	return _c
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (_c *StrategyCreate) SetTakeProfitRatio(v decimal.Decimal) *StrategyCreate {
-	_c.mutation.SetTakeProfitRatio(v)
-	return _c
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (_c *StrategyCreate) SetSlippageBps(v int) *StrategyCreate {
 	_c.mutation.SetSlippageBps(v)
@@ -185,9 +173,31 @@ func (_c *StrategyCreate) SetNillableEntryPrice(v *decimal.Decimal) *StrategyCre
 	return _c
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (_c *StrategyCreate) SetEnableAutoExit(v bool) *StrategyCreate {
-	_c.mutation.SetEnableAutoExit(v)
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (_c *StrategyCreate) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyCreate {
+	_c.mutation.SetTriggerStopLossPrice(v)
+	return _c
+}
+
+// SetNillableTriggerStopLossPrice sets the "triggerStopLossPrice" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableTriggerStopLossPrice(v *decimal.Decimal) *StrategyCreate {
+	if v != nil {
+		_c.SetTriggerStopLossPrice(*v)
+	}
+	return _c
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (_c *StrategyCreate) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyCreate {
+	_c.mutation.SetTriggerTakeProfitPrice(v)
+	return _c
+}
+
+// SetNillableTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableTriggerTakeProfitPrice(v *decimal.Decimal) *StrategyCreate {
+	if v != nil {
+		_c.SetTriggerTakeProfitPrice(*v)
+	}
 	return _c
 }
 
@@ -417,19 +427,10 @@ func (_c *StrategyCreate) check() error {
 	if _, ok := _c.mutation.InitialOrderSize(); !ok {
 		return &ValidationError{Name: "initialOrderSize", err: errors.New(`ent: missing required field "Strategy.initialOrderSize"`)}
 	}
-	if _, ok := _c.mutation.StopLossRatio(); !ok {
-		return &ValidationError{Name: "stopLossRatio", err: errors.New(`ent: missing required field "Strategy.stopLossRatio"`)}
-	}
-	if _, ok := _c.mutation.TakeProfitRatio(); !ok {
-		return &ValidationError{Name: "takeProfitRatio", err: errors.New(`ent: missing required field "Strategy.takeProfitRatio"`)}
-	}
 	if v, ok := _c.mutation.SlippageBps(); ok {
 		if err := strategy.SlippageBpsValidator(v); err != nil {
 			return &ValidationError{Name: "slippageBps", err: fmt.Errorf(`ent: validator failed for field "Strategy.slippageBps": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.EnableAutoExit(); !ok {
-		return &ValidationError{Name: "enableAutoExit", err: errors.New(`ent: missing required field "Strategy.enableAutoExit"`)}
 	}
 	if _, ok := _c.mutation.EnablePushNotification(); !ok {
 		return &ValidationError{Name: "enablePushNotification", err: errors.New(`ent: missing required field "Strategy.enablePushNotification"`)}
@@ -538,14 +539,6 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 		_spec.SetField(strategy.FieldInitialOrderSize, field.TypeString, value)
 		_node.InitialOrderSize = value
 	}
-	if value, ok := _c.mutation.StopLossRatio(); ok {
-		_spec.SetField(strategy.FieldStopLossRatio, field.TypeString, value)
-		_node.StopLossRatio = value
-	}
-	if value, ok := _c.mutation.TakeProfitRatio(); ok {
-		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
-		_node.TakeProfitRatio = value
-	}
 	if value, ok := _c.mutation.SlippageBps(); ok {
 		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
 		_node.SlippageBps = &value
@@ -554,9 +547,13 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 		_spec.SetField(strategy.FieldEntryPrice, field.TypeString, value)
 		_node.EntryPrice = &value
 	}
-	if value, ok := _c.mutation.EnableAutoExit(); ok {
-		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
-		_node.EnableAutoExit = value
+	if value, ok := _c.mutation.TriggerStopLossPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerStopLossPrice, field.TypeString, value)
+		_node.TriggerStopLossPrice = &value
+	}
+	if value, ok := _c.mutation.TriggerTakeProfitPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerTakeProfitPrice, field.TypeString, value)
+		_node.TriggerTakeProfitPrice = &value
 	}
 	if value, ok := _c.mutation.EnablePushNotification(); ok {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)
@@ -832,30 +829,6 @@ func (u *StrategyUpsert) UpdateInitialOrderSize() *StrategyUpsert {
 	return u
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (u *StrategyUpsert) SetStopLossRatio(v decimal.Decimal) *StrategyUpsert {
-	u.Set(strategy.FieldStopLossRatio, v)
-	return u
-}
-
-// UpdateStopLossRatio sets the "stopLossRatio" field to the value that was provided on create.
-func (u *StrategyUpsert) UpdateStopLossRatio() *StrategyUpsert {
-	u.SetExcluded(strategy.FieldStopLossRatio)
-	return u
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (u *StrategyUpsert) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpsert {
-	u.Set(strategy.FieldTakeProfitRatio, v)
-	return u
-}
-
-// UpdateTakeProfitRatio sets the "takeProfitRatio" field to the value that was provided on create.
-func (u *StrategyUpsert) UpdateTakeProfitRatio() *StrategyUpsert {
-	u.SetExcluded(strategy.FieldTakeProfitRatio)
-	return u
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (u *StrategyUpsert) SetSlippageBps(v int) *StrategyUpsert {
 	u.Set(strategy.FieldSlippageBps, v)
@@ -898,15 +871,39 @@ func (u *StrategyUpsert) ClearEntryPrice() *StrategyUpsert {
 	return u
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (u *StrategyUpsert) SetEnableAutoExit(v bool) *StrategyUpsert {
-	u.Set(strategy.FieldEnableAutoExit, v)
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (u *StrategyUpsert) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyUpsert {
+	u.Set(strategy.FieldTriggerStopLossPrice, v)
 	return u
 }
 
-// UpdateEnableAutoExit sets the "enableAutoExit" field to the value that was provided on create.
-func (u *StrategyUpsert) UpdateEnableAutoExit() *StrategyUpsert {
-	u.SetExcluded(strategy.FieldEnableAutoExit)
+// UpdateTriggerStopLossPrice sets the "triggerStopLossPrice" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateTriggerStopLossPrice() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldTriggerStopLossPrice)
+	return u
+}
+
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (u *StrategyUpsert) ClearTriggerStopLossPrice() *StrategyUpsert {
+	u.SetNull(strategy.FieldTriggerStopLossPrice)
+	return u
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsert) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyUpsert {
+	u.Set(strategy.FieldTriggerTakeProfitPrice, v)
+	return u
+}
+
+// UpdateTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateTriggerTakeProfitPrice() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldTriggerTakeProfitPrice)
+	return u
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsert) ClearTriggerTakeProfitPrice() *StrategyUpsert {
+	u.SetNull(strategy.FieldTriggerTakeProfitPrice)
 	return u
 }
 
@@ -1304,34 +1301,6 @@ func (u *StrategyUpsertOne) UpdateInitialOrderSize() *StrategyUpsertOne {
 	})
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (u *StrategyUpsertOne) SetStopLossRatio(v decimal.Decimal) *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetStopLossRatio(v)
-	})
-}
-
-// UpdateStopLossRatio sets the "stopLossRatio" field to the value that was provided on create.
-func (u *StrategyUpsertOne) UpdateStopLossRatio() *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateStopLossRatio()
-	})
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (u *StrategyUpsertOne) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetTakeProfitRatio(v)
-	})
-}
-
-// UpdateTakeProfitRatio sets the "takeProfitRatio" field to the value that was provided on create.
-func (u *StrategyUpsertOne) UpdateTakeProfitRatio() *StrategyUpsertOne {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateTakeProfitRatio()
-	})
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (u *StrategyUpsertOne) SetSlippageBps(v int) *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
@@ -1381,17 +1350,45 @@ func (u *StrategyUpsertOne) ClearEntryPrice() *StrategyUpsertOne {
 	})
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (u *StrategyUpsertOne) SetEnableAutoExit(v bool) *StrategyUpsertOne {
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (u *StrategyUpsertOne) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoExit(v)
+		s.SetTriggerStopLossPrice(v)
 	})
 }
 
-// UpdateEnableAutoExit sets the "enableAutoExit" field to the value that was provided on create.
-func (u *StrategyUpsertOne) UpdateEnableAutoExit() *StrategyUpsertOne {
+// UpdateTriggerStopLossPrice sets the "triggerStopLossPrice" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateTriggerStopLossPrice() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoExit()
+		s.UpdateTriggerStopLossPrice()
+	})
+}
+
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (u *StrategyUpsertOne) ClearTriggerStopLossPrice() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearTriggerStopLossPrice()
+	})
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsertOne) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetTriggerTakeProfitPrice(v)
+	})
+}
+
+// UpdateTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateTriggerTakeProfitPrice() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateTriggerTakeProfitPrice()
+	})
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsertOne) ClearTriggerTakeProfitPrice() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearTriggerTakeProfitPrice()
 	})
 }
 
@@ -1977,34 +1974,6 @@ func (u *StrategyUpsertBulk) UpdateInitialOrderSize() *StrategyUpsertBulk {
 	})
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (u *StrategyUpsertBulk) SetStopLossRatio(v decimal.Decimal) *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetStopLossRatio(v)
-	})
-}
-
-// UpdateStopLossRatio sets the "stopLossRatio" field to the value that was provided on create.
-func (u *StrategyUpsertBulk) UpdateStopLossRatio() *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateStopLossRatio()
-	})
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (u *StrategyUpsertBulk) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.SetTakeProfitRatio(v)
-	})
-}
-
-// UpdateTakeProfitRatio sets the "takeProfitRatio" field to the value that was provided on create.
-func (u *StrategyUpsertBulk) UpdateTakeProfitRatio() *StrategyUpsertBulk {
-	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateTakeProfitRatio()
-	})
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (u *StrategyUpsertBulk) SetSlippageBps(v int) *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
@@ -2054,17 +2023,45 @@ func (u *StrategyUpsertBulk) ClearEntryPrice() *StrategyUpsertBulk {
 	})
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (u *StrategyUpsertBulk) SetEnableAutoExit(v bool) *StrategyUpsertBulk {
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (u *StrategyUpsertBulk) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
-		s.SetEnableAutoExit(v)
+		s.SetTriggerStopLossPrice(v)
 	})
 }
 
-// UpdateEnableAutoExit sets the "enableAutoExit" field to the value that was provided on create.
-func (u *StrategyUpsertBulk) UpdateEnableAutoExit() *StrategyUpsertBulk {
+// UpdateTriggerStopLossPrice sets the "triggerStopLossPrice" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateTriggerStopLossPrice() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
-		s.UpdateEnableAutoExit()
+		s.UpdateTriggerStopLossPrice()
+	})
+}
+
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (u *StrategyUpsertBulk) ClearTriggerStopLossPrice() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearTriggerStopLossPrice()
+	})
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsertBulk) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetTriggerTakeProfitPrice(v)
+	})
+}
+
+// UpdateTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateTriggerTakeProfitPrice() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateTriggerTakeProfitPrice()
+	})
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (u *StrategyUpsertBulk) ClearTriggerTakeProfitPrice() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.ClearTriggerTakeProfitPrice()
 	})
 }
 

@@ -2,6 +2,8 @@ package engine
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
@@ -147,6 +149,29 @@ func (engine *StrategyEngine) handleUserOrders(userOrders exchange.UserOrders, n
 	return nil
 }
 
+// handleOrderCancelled 处理订单被取消的情况
+func (engine *StrategyEngine) handleOrderCancelled(record *ent.Strategy) {
+	// 停止网格策略
+	err := helper.StopStrategyAndCancelOrders(engine.ctx, engine.svcCtx, engine, record)
+	if err != nil {
+		logger.Warnf("[StrategyEngine] 停止策略并取消订单失败, exchange: %s, account: %s, symbol: %s, side: %s, %v",
+			record.Exchange, record.Account, record.Symbol, record.Mode, err)
+	}
+
+	// 发送通知消息
+	chatId := util.ChatId(record.Owner)
+	name := util.StrategyName(record)
+	link := fmt.Sprintf("[%s](https://t.me/%s?start=%s)",
+		name, engine.svcCtx.Bot.Me.Username, record.GUID)
+	text := fmt.Sprintf("🚨 **%s %s** 策略已停止 %s\n\n",
+		record.Symbol, strings.ToUpper(string(record.Mode)), link)
+	text += "由于订单被意外取消，策略已自动停止，请手动关闭仓位。\n\n**注意**：`策略运行中请勿手动进行操作，以免干扰策略正常运行。`"
+	_, err = util.SendMarkdownMessage(engine.svcCtx.Bot, chatId, text, nil)
+	if err != nil {
+		logger.Debugf("[StrategyEngine] 发送策略已停止通知失败, chat: %d, %v", chatId, err)
+	}
+}
+
 // executeStrategy 执行策略
 func (engine *StrategyEngine) executeStrategy(strategy Strategy) {
 	s := strategy.Get()
@@ -158,8 +183,8 @@ func (engine *StrategyEngine) executeStrategy(strategy Strategy) {
 		engine.addToRetryQueue(s.GUID, time.Now().Add(15*time.Second))
 
 		// 处理订单取消错误
-		if errors.Is(err, gridstrategy.ErrOrderCanceled) && engine.onOrderCancelled != nil {
-			engine.onOrderCancelled(engine.ctx, engine.svcCtx, engine, s)
+		if errors.Is(err, gridstrategy.ErrOrderCanceled) {
+			engine.handleOrderCancelled(s)
 		}
 
 		logger.Errorf("[StrategyEngine] 执行用户策略失败, id: %s, account: %s, symbol: %s, %v",

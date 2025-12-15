@@ -110,7 +110,7 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 		return err
 	}
 
-	slippageBps := 50
+	slippageBps := helper.DefaultSlippageBps
 	if record.SlippageBps != nil {
 		slippageBps = *record.SlippageBps
 	}

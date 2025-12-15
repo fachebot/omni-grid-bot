@@ -238,34 +238,6 @@ func (_u *StrategyUpdate) SetNillableInitialOrderSize(v *decimal.Decimal) *Strat
 	return _u
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (_u *StrategyUpdate) SetStopLossRatio(v decimal.Decimal) *StrategyUpdate {
-	_u.mutation.SetStopLossRatio(v)
-	return _u
-}
-
-// SetNillableStopLossRatio sets the "stopLossRatio" field if the given value is not nil.
-func (_u *StrategyUpdate) SetNillableStopLossRatio(v *decimal.Decimal) *StrategyUpdate {
-	if v != nil {
-		_u.SetStopLossRatio(*v)
-	}
-	return _u
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (_u *StrategyUpdate) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpdate {
-	_u.mutation.SetTakeProfitRatio(v)
-	return _u
-}
-
-// SetNillableTakeProfitRatio sets the "takeProfitRatio" field if the given value is not nil.
-func (_u *StrategyUpdate) SetNillableTakeProfitRatio(v *decimal.Decimal) *StrategyUpdate {
-	if v != nil {
-		_u.SetTakeProfitRatio(*v)
-	}
-	return _u
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (_u *StrategyUpdate) SetSlippageBps(v int) *StrategyUpdate {
 	_u.mutation.ResetSlippageBps()
@@ -313,17 +285,43 @@ func (_u *StrategyUpdate) ClearEntryPrice() *StrategyUpdate {
 	return _u
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (_u *StrategyUpdate) SetEnableAutoExit(v bool) *StrategyUpdate {
-	_u.mutation.SetEnableAutoExit(v)
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (_u *StrategyUpdate) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyUpdate {
+	_u.mutation.SetTriggerStopLossPrice(v)
 	return _u
 }
 
-// SetNillableEnableAutoExit sets the "enableAutoExit" field if the given value is not nil.
-func (_u *StrategyUpdate) SetNillableEnableAutoExit(v *bool) *StrategyUpdate {
+// SetNillableTriggerStopLossPrice sets the "triggerStopLossPrice" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableTriggerStopLossPrice(v *decimal.Decimal) *StrategyUpdate {
 	if v != nil {
-		_u.SetEnableAutoExit(*v)
+		_u.SetTriggerStopLossPrice(*v)
 	}
+	return _u
+}
+
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (_u *StrategyUpdate) ClearTriggerStopLossPrice() *StrategyUpdate {
+	_u.mutation.ClearTriggerStopLossPrice()
+	return _u
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (_u *StrategyUpdate) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyUpdate {
+	_u.mutation.SetTriggerTakeProfitPrice(v)
+	return _u
+}
+
+// SetNillableTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableTriggerTakeProfitPrice(v *decimal.Decimal) *StrategyUpdate {
+	if v != nil {
+		_u.SetTriggerTakeProfitPrice(*v)
+	}
+	return _u
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (_u *StrategyUpdate) ClearTriggerTakeProfitPrice() *StrategyUpdate {
+	_u.mutation.ClearTriggerTakeProfitPrice()
 	return _u
 }
 
@@ -636,12 +634,6 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.InitialOrderSize(); ok {
 		_spec.SetField(strategy.FieldInitialOrderSize, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.StopLossRatio(); ok {
-		_spec.SetField(strategy.FieldStopLossRatio, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.TakeProfitRatio(); ok {
-		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.SlippageBps(); ok {
 		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
 	}
@@ -657,8 +649,17 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.EntryPriceCleared() {
 		_spec.ClearField(strategy.FieldEntryPrice, field.TypeString)
 	}
-	if value, ok := _u.mutation.EnableAutoExit(); ok {
-		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
+	if value, ok := _u.mutation.TriggerStopLossPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerStopLossPrice, field.TypeString, value)
+	}
+	if _u.mutation.TriggerStopLossPriceCleared() {
+		_spec.ClearField(strategy.FieldTriggerStopLossPrice, field.TypeString)
+	}
+	if value, ok := _u.mutation.TriggerTakeProfitPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerTakeProfitPrice, field.TypeString, value)
+	}
+	if _u.mutation.TriggerTakeProfitPriceCleared() {
+		_spec.ClearField(strategy.FieldTriggerTakeProfitPrice, field.TypeString)
 	}
 	if value, ok := _u.mutation.EnablePushNotification(); ok {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)
@@ -928,34 +929,6 @@ func (_u *StrategyUpdateOne) SetNillableInitialOrderSize(v *decimal.Decimal) *St
 	return _u
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (_u *StrategyUpdateOne) SetStopLossRatio(v decimal.Decimal) *StrategyUpdateOne {
-	_u.mutation.SetStopLossRatio(v)
-	return _u
-}
-
-// SetNillableStopLossRatio sets the "stopLossRatio" field if the given value is not nil.
-func (_u *StrategyUpdateOne) SetNillableStopLossRatio(v *decimal.Decimal) *StrategyUpdateOne {
-	if v != nil {
-		_u.SetStopLossRatio(*v)
-	}
-	return _u
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (_u *StrategyUpdateOne) SetTakeProfitRatio(v decimal.Decimal) *StrategyUpdateOne {
-	_u.mutation.SetTakeProfitRatio(v)
-	return _u
-}
-
-// SetNillableTakeProfitRatio sets the "takeProfitRatio" field if the given value is not nil.
-func (_u *StrategyUpdateOne) SetNillableTakeProfitRatio(v *decimal.Decimal) *StrategyUpdateOne {
-	if v != nil {
-		_u.SetTakeProfitRatio(*v)
-	}
-	return _u
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (_u *StrategyUpdateOne) SetSlippageBps(v int) *StrategyUpdateOne {
 	_u.mutation.ResetSlippageBps()
@@ -1003,17 +976,43 @@ func (_u *StrategyUpdateOne) ClearEntryPrice() *StrategyUpdateOne {
 	return _u
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (_u *StrategyUpdateOne) SetEnableAutoExit(v bool) *StrategyUpdateOne {
-	_u.mutation.SetEnableAutoExit(v)
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (_u *StrategyUpdateOne) SetTriggerStopLossPrice(v decimal.Decimal) *StrategyUpdateOne {
+	_u.mutation.SetTriggerStopLossPrice(v)
 	return _u
 }
 
-// SetNillableEnableAutoExit sets the "enableAutoExit" field if the given value is not nil.
-func (_u *StrategyUpdateOne) SetNillableEnableAutoExit(v *bool) *StrategyUpdateOne {
+// SetNillableTriggerStopLossPrice sets the "triggerStopLossPrice" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableTriggerStopLossPrice(v *decimal.Decimal) *StrategyUpdateOne {
 	if v != nil {
-		_u.SetEnableAutoExit(*v)
+		_u.SetTriggerStopLossPrice(*v)
 	}
+	return _u
+}
+
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (_u *StrategyUpdateOne) ClearTriggerStopLossPrice() *StrategyUpdateOne {
+	_u.mutation.ClearTriggerStopLossPrice()
+	return _u
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (_u *StrategyUpdateOne) SetTriggerTakeProfitPrice(v decimal.Decimal) *StrategyUpdateOne {
+	_u.mutation.SetTriggerTakeProfitPrice(v)
+	return _u
+}
+
+// SetNillableTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableTriggerTakeProfitPrice(v *decimal.Decimal) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetTriggerTakeProfitPrice(*v)
+	}
+	return _u
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (_u *StrategyUpdateOne) ClearTriggerTakeProfitPrice() *StrategyUpdateOne {
+	_u.mutation.ClearTriggerTakeProfitPrice()
 	return _u
 }
 
@@ -1356,12 +1355,6 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	if value, ok := _u.mutation.InitialOrderSize(); ok {
 		_spec.SetField(strategy.FieldInitialOrderSize, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.StopLossRatio(); ok {
-		_spec.SetField(strategy.FieldStopLossRatio, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.TakeProfitRatio(); ok {
-		_spec.SetField(strategy.FieldTakeProfitRatio, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.SlippageBps(); ok {
 		_spec.SetField(strategy.FieldSlippageBps, field.TypeInt, value)
 	}
@@ -1377,8 +1370,17 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	if _u.mutation.EntryPriceCleared() {
 		_spec.ClearField(strategy.FieldEntryPrice, field.TypeString)
 	}
-	if value, ok := _u.mutation.EnableAutoExit(); ok {
-		_spec.SetField(strategy.FieldEnableAutoExit, field.TypeBool, value)
+	if value, ok := _u.mutation.TriggerStopLossPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerStopLossPrice, field.TypeString, value)
+	}
+	if _u.mutation.TriggerStopLossPriceCleared() {
+		_spec.ClearField(strategy.FieldTriggerStopLossPrice, field.TypeString)
+	}
+	if value, ok := _u.mutation.TriggerTakeProfitPrice(); ok {
+		_spec.SetField(strategy.FieldTriggerTakeProfitPrice, field.TypeString, value)
+	}
+	if _u.mutation.TriggerTakeProfitPriceCleared() {
+		_spec.ClearField(strategy.FieldTriggerTakeProfitPrice, field.TypeString)
 	}
 	if value, ok := _u.mutation.EnablePushNotification(); ok {
 		_spec.SetField(strategy.FieldEnablePushNotification, field.TypeBool, value)

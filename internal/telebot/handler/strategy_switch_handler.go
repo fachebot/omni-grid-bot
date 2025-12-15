@@ -228,7 +228,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	record.Status = strategy.StatusActive
 
 	// 开始运行策略
-	err = strategyEngine.StartStrategy(gridstrategy.NewGridStrategy(h.svcCtx, record))
+	err = strategyEngine.StartStrategy(gridstrategy.NewGridStrategy(h.svcCtx, strategyEngine, record))
 	if err != nil {
 		logger.Warnf("[StrategySwitchHandler] 运行策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "❌ 运行策略失败，请联系管理员", 3)
@@ -261,7 +261,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	strategyEngine.StopStrategy(record.GUID)
 
 	// 取消用户订单
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	err := CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
 		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
@@ -314,7 +314,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	}
 
 	// 取消用户订单
-	name := StrategyName(record)
+	name := util.StrategyName(record)
 	err := CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
 		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)

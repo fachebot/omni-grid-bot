@@ -115,16 +115,6 @@ func InitialOrderSize(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldInitialOrderSize, v))
 }
 
-// StopLossRatio applies equality check predicate on the "stopLossRatio" field. It's identical to StopLossRatioEQ.
-func StopLossRatio(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldStopLossRatio, v))
-}
-
-// TakeProfitRatio applies equality check predicate on the "takeProfitRatio" field. It's identical to TakeProfitRatioEQ.
-func TakeProfitRatio(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldTakeProfitRatio, v))
-}
-
 // SlippageBps applies equality check predicate on the "slippageBps" field. It's identical to SlippageBpsEQ.
 func SlippageBps(v int) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldSlippageBps, v))
@@ -135,9 +125,14 @@ func EntryPrice(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldEntryPrice, v))
 }
 
-// EnableAutoExit applies equality check predicate on the "enableAutoExit" field. It's identical to EnableAutoExitEQ.
-func EnableAutoExit(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoExit, v))
+// TriggerStopLossPrice applies equality check predicate on the "triggerStopLossPrice" field. It's identical to TriggerStopLossPriceEQ.
+func TriggerStopLossPrice(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerTakeProfitPrice applies equality check predicate on the "triggerTakeProfitPrice" field. It's identical to TriggerTakeProfitPriceEQ.
+func TriggerTakeProfitPrice(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldTriggerTakeProfitPrice, v))
 }
 
 // EnablePushNotification applies equality check predicate on the "enablePushNotification" field. It's identical to EnablePushNotificationEQ.
@@ -910,146 +905,6 @@ func InitialOrderSizeContainsFold(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldContainsFold(FieldInitialOrderSize, vc))
 }
 
-// StopLossRatioEQ applies the EQ predicate on the "stopLossRatio" field.
-func StopLossRatioEQ(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldStopLossRatio, v))
-}
-
-// StopLossRatioNEQ applies the NEQ predicate on the "stopLossRatio" field.
-func StopLossRatioNEQ(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNEQ(FieldStopLossRatio, v))
-}
-
-// StopLossRatioIn applies the In predicate on the "stopLossRatio" field.
-func StopLossRatioIn(vs ...decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldIn(FieldStopLossRatio, vs...))
-}
-
-// StopLossRatioNotIn applies the NotIn predicate on the "stopLossRatio" field.
-func StopLossRatioNotIn(vs ...decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNotIn(FieldStopLossRatio, vs...))
-}
-
-// StopLossRatioGT applies the GT predicate on the "stopLossRatio" field.
-func StopLossRatioGT(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldGT(FieldStopLossRatio, v))
-}
-
-// StopLossRatioGTE applies the GTE predicate on the "stopLossRatio" field.
-func StopLossRatioGTE(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldGTE(FieldStopLossRatio, v))
-}
-
-// StopLossRatioLT applies the LT predicate on the "stopLossRatio" field.
-func StopLossRatioLT(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldLT(FieldStopLossRatio, v))
-}
-
-// StopLossRatioLTE applies the LTE predicate on the "stopLossRatio" field.
-func StopLossRatioLTE(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldLTE(FieldStopLossRatio, v))
-}
-
-// StopLossRatioContains applies the Contains predicate on the "stopLossRatio" field.
-func StopLossRatioContains(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldContains(FieldStopLossRatio, vc))
-}
-
-// StopLossRatioHasPrefix applies the HasPrefix predicate on the "stopLossRatio" field.
-func StopLossRatioHasPrefix(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldHasPrefix(FieldStopLossRatio, vc))
-}
-
-// StopLossRatioHasSuffix applies the HasSuffix predicate on the "stopLossRatio" field.
-func StopLossRatioHasSuffix(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldHasSuffix(FieldStopLossRatio, vc))
-}
-
-// StopLossRatioEqualFold applies the EqualFold predicate on the "stopLossRatio" field.
-func StopLossRatioEqualFold(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldEqualFold(FieldStopLossRatio, vc))
-}
-
-// StopLossRatioContainsFold applies the ContainsFold predicate on the "stopLossRatio" field.
-func StopLossRatioContainsFold(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldContainsFold(FieldStopLossRatio, vc))
-}
-
-// TakeProfitRatioEQ applies the EQ predicate on the "takeProfitRatio" field.
-func TakeProfitRatioEQ(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioNEQ applies the NEQ predicate on the "takeProfitRatio" field.
-func TakeProfitRatioNEQ(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNEQ(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioIn applies the In predicate on the "takeProfitRatio" field.
-func TakeProfitRatioIn(vs ...decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldIn(FieldTakeProfitRatio, vs...))
-}
-
-// TakeProfitRatioNotIn applies the NotIn predicate on the "takeProfitRatio" field.
-func TakeProfitRatioNotIn(vs ...decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNotIn(FieldTakeProfitRatio, vs...))
-}
-
-// TakeProfitRatioGT applies the GT predicate on the "takeProfitRatio" field.
-func TakeProfitRatioGT(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldGT(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioGTE applies the GTE predicate on the "takeProfitRatio" field.
-func TakeProfitRatioGTE(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldGTE(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioLT applies the LT predicate on the "takeProfitRatio" field.
-func TakeProfitRatioLT(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldLT(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioLTE applies the LTE predicate on the "takeProfitRatio" field.
-func TakeProfitRatioLTE(v decimal.Decimal) predicate.Strategy {
-	return predicate.Strategy(sql.FieldLTE(FieldTakeProfitRatio, v))
-}
-
-// TakeProfitRatioContains applies the Contains predicate on the "takeProfitRatio" field.
-func TakeProfitRatioContains(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldContains(FieldTakeProfitRatio, vc))
-}
-
-// TakeProfitRatioHasPrefix applies the HasPrefix predicate on the "takeProfitRatio" field.
-func TakeProfitRatioHasPrefix(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldHasPrefix(FieldTakeProfitRatio, vc))
-}
-
-// TakeProfitRatioHasSuffix applies the HasSuffix predicate on the "takeProfitRatio" field.
-func TakeProfitRatioHasSuffix(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldHasSuffix(FieldTakeProfitRatio, vc))
-}
-
-// TakeProfitRatioEqualFold applies the EqualFold predicate on the "takeProfitRatio" field.
-func TakeProfitRatioEqualFold(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldEqualFold(FieldTakeProfitRatio, vc))
-}
-
-// TakeProfitRatioContainsFold applies the ContainsFold predicate on the "takeProfitRatio" field.
-func TakeProfitRatioContainsFold(v decimal.Decimal) predicate.Strategy {
-	vc := v.String()
-	return predicate.Strategy(sql.FieldContainsFold(FieldTakeProfitRatio, vc))
-}
-
 // SlippageBpsEQ applies the EQ predicate on the "slippageBps" field.
 func SlippageBpsEQ(v int) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldSlippageBps, v))
@@ -1180,14 +1035,164 @@ func EntryPriceContainsFold(v decimal.Decimal) predicate.Strategy {
 	return predicate.Strategy(sql.FieldContainsFold(FieldEntryPrice, vc))
 }
 
-// EnableAutoExitEQ applies the EQ predicate on the "enableAutoExit" field.
-func EnableAutoExitEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldEQ(FieldEnableAutoExit, v))
+// TriggerStopLossPriceEQ applies the EQ predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldTriggerStopLossPrice, v))
 }
 
-// EnableAutoExitNEQ applies the NEQ predicate on the "enableAutoExit" field.
-func EnableAutoExitNEQ(v bool) predicate.Strategy {
-	return predicate.Strategy(sql.FieldNEQ(FieldEnableAutoExit, v))
+// TriggerStopLossPriceNEQ applies the NEQ predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceNEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerStopLossPriceIn applies the In predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldTriggerStopLossPrice, vs...))
+}
+
+// TriggerStopLossPriceNotIn applies the NotIn predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceNotIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldTriggerStopLossPrice, vs...))
+}
+
+// TriggerStopLossPriceGT applies the GT predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceGT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerStopLossPriceGTE applies the GTE predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceGTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerStopLossPriceLT applies the LT predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceLT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerStopLossPriceLTE applies the LTE predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceLTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldTriggerStopLossPrice, v))
+}
+
+// TriggerStopLossPriceContains applies the Contains predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceContains(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContains(FieldTriggerStopLossPrice, vc))
+}
+
+// TriggerStopLossPriceHasPrefix applies the HasPrefix predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceHasPrefix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasPrefix(FieldTriggerStopLossPrice, vc))
+}
+
+// TriggerStopLossPriceHasSuffix applies the HasSuffix predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceHasSuffix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasSuffix(FieldTriggerStopLossPrice, vc))
+}
+
+// TriggerStopLossPriceIsNil applies the IsNil predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldTriggerStopLossPrice))
+}
+
+// TriggerStopLossPriceNotNil applies the NotNil predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldTriggerStopLossPrice))
+}
+
+// TriggerStopLossPriceEqualFold applies the EqualFold predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceEqualFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldEqualFold(FieldTriggerStopLossPrice, vc))
+}
+
+// TriggerStopLossPriceContainsFold applies the ContainsFold predicate on the "triggerStopLossPrice" field.
+func TriggerStopLossPriceContainsFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContainsFold(FieldTriggerStopLossPrice, vc))
+}
+
+// TriggerTakeProfitPriceEQ applies the EQ predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceNEQ applies the NEQ predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceNEQ(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceIn applies the In predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldIn(FieldTriggerTakeProfitPrice, vs...))
+}
+
+// TriggerTakeProfitPriceNotIn applies the NotIn predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceNotIn(vs ...decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotIn(FieldTriggerTakeProfitPrice, vs...))
+}
+
+// TriggerTakeProfitPriceGT applies the GT predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceGT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGT(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceGTE applies the GTE predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceGTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldGTE(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceLT applies the LT predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceLT(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLT(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceLTE applies the LTE predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceLTE(v decimal.Decimal) predicate.Strategy {
+	return predicate.Strategy(sql.FieldLTE(FieldTriggerTakeProfitPrice, v))
+}
+
+// TriggerTakeProfitPriceContains applies the Contains predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceContains(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContains(FieldTriggerTakeProfitPrice, vc))
+}
+
+// TriggerTakeProfitPriceHasPrefix applies the HasPrefix predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceHasPrefix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasPrefix(FieldTriggerTakeProfitPrice, vc))
+}
+
+// TriggerTakeProfitPriceHasSuffix applies the HasSuffix predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceHasSuffix(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldHasSuffix(FieldTriggerTakeProfitPrice, vc))
+}
+
+// TriggerTakeProfitPriceIsNil applies the IsNil predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceIsNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldIsNull(FieldTriggerTakeProfitPrice))
+}
+
+// TriggerTakeProfitPriceNotNil applies the NotNil predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceNotNil() predicate.Strategy {
+	return predicate.Strategy(sql.FieldNotNull(FieldTriggerTakeProfitPrice))
+}
+
+// TriggerTakeProfitPriceEqualFold applies the EqualFold predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceEqualFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldEqualFold(FieldTriggerTakeProfitPrice, vc))
+}
+
+// TriggerTakeProfitPriceContainsFold applies the ContainsFold predicate on the "triggerTakeProfitPrice" field.
+func TriggerTakeProfitPriceContainsFold(v decimal.Decimal) predicate.Strategy {
+	vc := v.String()
+	return predicate.Strategy(sql.FieldContainsFold(FieldTriggerTakeProfitPrice, vc))
 }
 
 // EnablePushNotificationEQ applies the EQ predicate on the "enablePushNotification" field.

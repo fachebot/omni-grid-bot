@@ -3588,12 +3588,11 @@ type StrategyMutation struct {
 	leverage                      *int
 	addleverage                   *int
 	initialOrderSize              *decimal.Decimal
-	stopLossRatio                 *decimal.Decimal
-	takeProfitRatio               *decimal.Decimal
 	slippageBps                   *int
 	addslippageBps                *int
 	entryPrice                    *decimal.Decimal
-	enableAutoExit                *bool
+	triggerStopLossPrice          *decimal.Decimal
+	triggerTakeProfitPrice        *decimal.Decimal
 	enablePushNotification        *bool
 	enablePushMatchedNotification *bool
 	lastLowerThresholdAlertTime   *time.Time
@@ -4307,78 +4306,6 @@ func (m *StrategyMutation) ResetInitialOrderSize() {
 	m.initialOrderSize = nil
 }
 
-// SetStopLossRatio sets the "stopLossRatio" field.
-func (m *StrategyMutation) SetStopLossRatio(d decimal.Decimal) {
-	m.stopLossRatio = &d
-}
-
-// StopLossRatio returns the value of the "stopLossRatio" field in the mutation.
-func (m *StrategyMutation) StopLossRatio() (r decimal.Decimal, exists bool) {
-	v := m.stopLossRatio
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStopLossRatio returns the old "stopLossRatio" field's value of the Strategy entity.
-// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StrategyMutation) OldStopLossRatio(ctx context.Context) (v decimal.Decimal, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStopLossRatio is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStopLossRatio requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStopLossRatio: %w", err)
-	}
-	return oldValue.StopLossRatio, nil
-}
-
-// ResetStopLossRatio resets all changes to the "stopLossRatio" field.
-func (m *StrategyMutation) ResetStopLossRatio() {
-	m.stopLossRatio = nil
-}
-
-// SetTakeProfitRatio sets the "takeProfitRatio" field.
-func (m *StrategyMutation) SetTakeProfitRatio(d decimal.Decimal) {
-	m.takeProfitRatio = &d
-}
-
-// TakeProfitRatio returns the value of the "takeProfitRatio" field in the mutation.
-func (m *StrategyMutation) TakeProfitRatio() (r decimal.Decimal, exists bool) {
-	v := m.takeProfitRatio
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTakeProfitRatio returns the old "takeProfitRatio" field's value of the Strategy entity.
-// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StrategyMutation) OldTakeProfitRatio(ctx context.Context) (v decimal.Decimal, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTakeProfitRatio is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTakeProfitRatio requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTakeProfitRatio: %w", err)
-	}
-	return oldValue.TakeProfitRatio, nil
-}
-
-// ResetTakeProfitRatio resets all changes to the "takeProfitRatio" field.
-func (m *StrategyMutation) ResetTakeProfitRatio() {
-	m.takeProfitRatio = nil
-}
-
 // SetSlippageBps sets the "slippageBps" field.
 func (m *StrategyMutation) SetSlippageBps(i int) {
 	m.slippageBps = &i
@@ -4498,40 +4425,102 @@ func (m *StrategyMutation) ResetEntryPrice() {
 	delete(m.clearedFields, strategy.FieldEntryPrice)
 }
 
-// SetEnableAutoExit sets the "enableAutoExit" field.
-func (m *StrategyMutation) SetEnableAutoExit(b bool) {
-	m.enableAutoExit = &b
+// SetTriggerStopLossPrice sets the "triggerStopLossPrice" field.
+func (m *StrategyMutation) SetTriggerStopLossPrice(d decimal.Decimal) {
+	m.triggerStopLossPrice = &d
 }
 
-// EnableAutoExit returns the value of the "enableAutoExit" field in the mutation.
-func (m *StrategyMutation) EnableAutoExit() (r bool, exists bool) {
-	v := m.enableAutoExit
+// TriggerStopLossPrice returns the value of the "triggerStopLossPrice" field in the mutation.
+func (m *StrategyMutation) TriggerStopLossPrice() (r decimal.Decimal, exists bool) {
+	v := m.triggerStopLossPrice
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEnableAutoExit returns the old "enableAutoExit" field's value of the Strategy entity.
+// OldTriggerStopLossPrice returns the old "triggerStopLossPrice" field's value of the Strategy entity.
 // If the Strategy object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StrategyMutation) OldEnableAutoExit(ctx context.Context) (v bool, err error) {
+func (m *StrategyMutation) OldTriggerStopLossPrice(ctx context.Context) (v *decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnableAutoExit is only allowed on UpdateOne operations")
+		return v, errors.New("OldTriggerStopLossPrice is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnableAutoExit requires an ID field in the mutation")
+		return v, errors.New("OldTriggerStopLossPrice requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnableAutoExit: %w", err)
+		return v, fmt.Errorf("querying old value for OldTriggerStopLossPrice: %w", err)
 	}
-	return oldValue.EnableAutoExit, nil
+	return oldValue.TriggerStopLossPrice, nil
 }
 
-// ResetEnableAutoExit resets all changes to the "enableAutoExit" field.
-func (m *StrategyMutation) ResetEnableAutoExit() {
-	m.enableAutoExit = nil
+// ClearTriggerStopLossPrice clears the value of the "triggerStopLossPrice" field.
+func (m *StrategyMutation) ClearTriggerStopLossPrice() {
+	m.triggerStopLossPrice = nil
+	m.clearedFields[strategy.FieldTriggerStopLossPrice] = struct{}{}
+}
+
+// TriggerStopLossPriceCleared returns if the "triggerStopLossPrice" field was cleared in this mutation.
+func (m *StrategyMutation) TriggerStopLossPriceCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldTriggerStopLossPrice]
+	return ok
+}
+
+// ResetTriggerStopLossPrice resets all changes to the "triggerStopLossPrice" field.
+func (m *StrategyMutation) ResetTriggerStopLossPrice() {
+	m.triggerStopLossPrice = nil
+	delete(m.clearedFields, strategy.FieldTriggerStopLossPrice)
+}
+
+// SetTriggerTakeProfitPrice sets the "triggerTakeProfitPrice" field.
+func (m *StrategyMutation) SetTriggerTakeProfitPrice(d decimal.Decimal) {
+	m.triggerTakeProfitPrice = &d
+}
+
+// TriggerTakeProfitPrice returns the value of the "triggerTakeProfitPrice" field in the mutation.
+func (m *StrategyMutation) TriggerTakeProfitPrice() (r decimal.Decimal, exists bool) {
+	v := m.triggerTakeProfitPrice
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggerTakeProfitPrice returns the old "triggerTakeProfitPrice" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldTriggerTakeProfitPrice(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggerTakeProfitPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggerTakeProfitPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggerTakeProfitPrice: %w", err)
+	}
+	return oldValue.TriggerTakeProfitPrice, nil
+}
+
+// ClearTriggerTakeProfitPrice clears the value of the "triggerTakeProfitPrice" field.
+func (m *StrategyMutation) ClearTriggerTakeProfitPrice() {
+	m.triggerTakeProfitPrice = nil
+	m.clearedFields[strategy.FieldTriggerTakeProfitPrice] = struct{}{}
+}
+
+// TriggerTakeProfitPriceCleared returns if the "triggerTakeProfitPrice" field was cleared in this mutation.
+func (m *StrategyMutation) TriggerTakeProfitPriceCleared() bool {
+	_, ok := m.clearedFields[strategy.FieldTriggerTakeProfitPrice]
+	return ok
+}
+
+// ResetTriggerTakeProfitPrice resets all changes to the "triggerTakeProfitPrice" field.
+func (m *StrategyMutation) ResetTriggerTakeProfitPrice() {
+	m.triggerTakeProfitPrice = nil
+	delete(m.clearedFields, strategy.FieldTriggerTakeProfitPrice)
 }
 
 // SetEnablePushNotification sets the "enablePushNotification" field.
@@ -4944,7 +4933,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 29)
+	fields := make([]string, 0, 28)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -4990,20 +4979,17 @@ func (m *StrategyMutation) Fields() []string {
 	if m.initialOrderSize != nil {
 		fields = append(fields, strategy.FieldInitialOrderSize)
 	}
-	if m.stopLossRatio != nil {
-		fields = append(fields, strategy.FieldStopLossRatio)
-	}
-	if m.takeProfitRatio != nil {
-		fields = append(fields, strategy.FieldTakeProfitRatio)
-	}
 	if m.slippageBps != nil {
 		fields = append(fields, strategy.FieldSlippageBps)
 	}
 	if m.entryPrice != nil {
 		fields = append(fields, strategy.FieldEntryPrice)
 	}
-	if m.enableAutoExit != nil {
-		fields = append(fields, strategy.FieldEnableAutoExit)
+	if m.triggerStopLossPrice != nil {
+		fields = append(fields, strategy.FieldTriggerStopLossPrice)
+	}
+	if m.triggerTakeProfitPrice != nil {
+		fields = append(fields, strategy.FieldTriggerTakeProfitPrice)
 	}
 	if m.enablePushNotification != nil {
 		fields = append(fields, strategy.FieldEnablePushNotification)
@@ -5070,16 +5056,14 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.Leverage()
 	case strategy.FieldInitialOrderSize:
 		return m.InitialOrderSize()
-	case strategy.FieldStopLossRatio:
-		return m.StopLossRatio()
-	case strategy.FieldTakeProfitRatio:
-		return m.TakeProfitRatio()
 	case strategy.FieldSlippageBps:
 		return m.SlippageBps()
 	case strategy.FieldEntryPrice:
 		return m.EntryPrice()
-	case strategy.FieldEnableAutoExit:
-		return m.EnableAutoExit()
+	case strategy.FieldTriggerStopLossPrice:
+		return m.TriggerStopLossPrice()
+	case strategy.FieldTriggerTakeProfitPrice:
+		return m.TriggerTakeProfitPrice()
 	case strategy.FieldEnablePushNotification:
 		return m.EnablePushNotification()
 	case strategy.FieldEnablePushMatchedNotification:
@@ -5137,16 +5121,14 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldLeverage(ctx)
 	case strategy.FieldInitialOrderSize:
 		return m.OldInitialOrderSize(ctx)
-	case strategy.FieldStopLossRatio:
-		return m.OldStopLossRatio(ctx)
-	case strategy.FieldTakeProfitRatio:
-		return m.OldTakeProfitRatio(ctx)
 	case strategy.FieldSlippageBps:
 		return m.OldSlippageBps(ctx)
 	case strategy.FieldEntryPrice:
 		return m.OldEntryPrice(ctx)
-	case strategy.FieldEnableAutoExit:
-		return m.OldEnableAutoExit(ctx)
+	case strategy.FieldTriggerStopLossPrice:
+		return m.OldTriggerStopLossPrice(ctx)
+	case strategy.FieldTriggerTakeProfitPrice:
+		return m.OldTriggerTakeProfitPrice(ctx)
 	case strategy.FieldEnablePushNotification:
 		return m.OldEnablePushNotification(ctx)
 	case strategy.FieldEnablePushMatchedNotification:
@@ -5279,20 +5261,6 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetInitialOrderSize(v)
 		return nil
-	case strategy.FieldStopLossRatio:
-		v, ok := value.(decimal.Decimal)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStopLossRatio(v)
-		return nil
-	case strategy.FieldTakeProfitRatio:
-		v, ok := value.(decimal.Decimal)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTakeProfitRatio(v)
-		return nil
 	case strategy.FieldSlippageBps:
 		v, ok := value.(int)
 		if !ok {
@@ -5307,12 +5275,19 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEntryPrice(v)
 		return nil
-	case strategy.FieldEnableAutoExit:
-		v, ok := value.(bool)
+	case strategy.FieldTriggerStopLossPrice:
+		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEnableAutoExit(v)
+		m.SetTriggerStopLossPrice(v)
+		return nil
+	case strategy.FieldTriggerTakeProfitPrice:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggerTakeProfitPrice(v)
 		return nil
 	case strategy.FieldEnablePushNotification:
 		v, ok := value.(bool)
@@ -5464,6 +5439,12 @@ func (m *StrategyMutation) ClearedFields() []string {
 	if m.FieldCleared(strategy.FieldEntryPrice) {
 		fields = append(fields, strategy.FieldEntryPrice)
 	}
+	if m.FieldCleared(strategy.FieldTriggerStopLossPrice) {
+		fields = append(fields, strategy.FieldTriggerStopLossPrice)
+	}
+	if m.FieldCleared(strategy.FieldTriggerTakeProfitPrice) {
+		fields = append(fields, strategy.FieldTriggerTakeProfitPrice)
+	}
 	if m.FieldCleared(strategy.FieldEnablePushMatchedNotification) {
 		fields = append(fields, strategy.FieldEnablePushMatchedNotification)
 	}
@@ -5495,6 +5476,12 @@ func (m *StrategyMutation) ClearField(name string) error {
 		return nil
 	case strategy.FieldEntryPrice:
 		m.ClearEntryPrice()
+		return nil
+	case strategy.FieldTriggerStopLossPrice:
+		m.ClearTriggerStopLossPrice()
+		return nil
+	case strategy.FieldTriggerTakeProfitPrice:
+		m.ClearTriggerTakeProfitPrice()
 		return nil
 	case strategy.FieldEnablePushMatchedNotification:
 		m.ClearEnablePushMatchedNotification()
@@ -5561,20 +5548,17 @@ func (m *StrategyMutation) ResetField(name string) error {
 	case strategy.FieldInitialOrderSize:
 		m.ResetInitialOrderSize()
 		return nil
-	case strategy.FieldStopLossRatio:
-		m.ResetStopLossRatio()
-		return nil
-	case strategy.FieldTakeProfitRatio:
-		m.ResetTakeProfitRatio()
-		return nil
 	case strategy.FieldSlippageBps:
 		m.ResetSlippageBps()
 		return nil
 	case strategy.FieldEntryPrice:
 		m.ResetEntryPrice()
 		return nil
-	case strategy.FieldEnableAutoExit:
-		m.ResetEnableAutoExit()
+	case strategy.FieldTriggerStopLossPrice:
+		m.ResetTriggerStopLossPrice()
+		return nil
+	case strategy.FieldTriggerTakeProfitPrice:
+		m.ResetTriggerTakeProfitPrice()
 		return nil
 	case strategy.FieldEnablePushNotification:
 		m.ResetEnablePushNotification()
