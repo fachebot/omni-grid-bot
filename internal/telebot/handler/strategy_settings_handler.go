@@ -101,6 +101,8 @@ func (h *StrategySettingsHandler) handle(ctx context.Context, vars map[string]st
 			SettingsOptionSlippage,
 			SettingsOptionEnablePushNotification,
 			SettingsOptionEnablePushMatchedNotification,
+			SettingsOptionTriggerStopLossPrice,
+			SettingsOptionTriggerTakeProfitPrice,
 		}
 		if lo.IndexOf(allowList, SettingsOption(optionValue)) == -1 {
 			chatId := util.ChatId(update.Callback.Message.Chat.ID)
