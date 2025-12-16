@@ -809,6 +809,13 @@ func (h *StrategySettingsHandler) handleTriggerStopLossPrice(ctx context.Context
 			text = "❌ 配置修改失败, 请稍后重试"
 			logger.Errorf("[StrategySettingsHandler] 更新配置[TriggerStopLossPrice]失败, %v", err)
 		}
+
+		// 更新缓存数据
+		strategyEngine, ok := GetStrategyEngine(ctx)
+		if ok {
+			strategyEngine.UpdateStrategy(record)
+		}
+
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
 
 		return h.refreshSettingsMessage(ctx, userId, update, record)
@@ -855,6 +862,13 @@ func (h *StrategySettingsHandler) handleTriggerTakeProfitPrice(ctx context.Conte
 			text = "❌ 配置修改失败, 请稍后重试"
 			logger.Errorf("[StrategySettingsHandler] 更新配置[TriggerTakeProfitPrice]失败, %v", err)
 		}
+
+		// 更新缓存数据
+		strategyEngine, ok := GetStrategyEngine(ctx)
+		if ok {
+			strategyEngine.UpdateStrategy(record)
+		}
+
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
 
 		return h.refreshSettingsMessage(ctx, userId, update, record)
