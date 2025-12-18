@@ -38,5 +38,6 @@ etc/*.yaml
 
 # bin file
 omni-grid-bot
+__debug_bin.exe*
 
 cmd/test

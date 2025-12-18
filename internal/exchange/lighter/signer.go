@@ -22,9 +22,11 @@ func NewSigner(client *Client, accountIndex int64, apiKeyPrivateKey string, apiK
 	if len(apiKeyPrivateKey) < 2 {
 		return nil, fmt.Errorf("empty private key")
 	}
-	if apiKeyPrivateKey[:2] == "0x" {
+	if apiKeyPrivateKey[:2] == "0x" ||
+		apiKeyPrivateKey[:2] == "0X" {
 		apiKeyPrivateKey = apiKeyPrivateKey[2:]
 	}
+
 	b, err := hex.DecodeString(apiKeyPrivateKey)
 	if err != nil {
 		return nil, err
