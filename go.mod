@@ -10,7 +10,7 @@ require (
 	github.com/consensys/gnark-crypto v0.14.0
 	github.com/dontpanicdao/caigo v0.4.1
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elliottech/lighter-go v1.0.1
+	github.com/elliottech/lighter-go v1.0.2
 	github.com/enetx/surf v1.0.143
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
