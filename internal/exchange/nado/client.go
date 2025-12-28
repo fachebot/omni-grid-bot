@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/carlmjohnson/requests"
@@ -15,12 +17,14 @@ import (
 const (
 	GATEWAY_ENDPOINT = "https://gateway.prod.nado.xyz/v1"
 	ARCHIVE_ENDPOINT = "https://archive.prod.nado.xyz/v1"
+	TRIGGER_ENDPOINT = "https://trigger.prod.nado.xyz/v1"
 )
 
 type Client struct {
 	httpClient      *http.Client
 	gatewayEndpoint string
 	archiveEndpoint string
+	triggerEndpoint string
 
 	mutex     sync.Mutex
 	contracts *ContractsRes
@@ -31,6 +35,7 @@ func NewClient(httpClient *http.Client) *Client {
 		httpClient:      httpClient,
 		gatewayEndpoint: GATEWAY_ENDPOINT,
 		archiveEndpoint: ARCHIVE_ENDPOINT,
+		triggerEndpoint: TRIGGER_ENDPOINT,
 	}
 	return &c
 }
@@ -105,6 +110,44 @@ func (c *Client) FindSubaccountsByAddress(ctx context.Context, address common.Ad
 	return &v, nil
 }
 
+func (c *Client) GetOpenOrders(ctx context.Context, sender Sender, productId int) (*OpenOrdersRes, error) {
+	var v OpenOrdersRes
+
+	params := make(url.Values, 0)
+	params.Add("type", "subaccount_orders")
+	params.Add("sender", sender.String())
+	params.Add("product_id", strconv.Itoa(productId))
+	if err := c.doGatewayQuery(ctx, params, &v); err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func (c *Client) GetArchiveOrders(ctx context.Context, sender Sender, submissionIdx *big.Int, limit int) (*ArchiveOrdersRes, error) {
+	var v ArchiveOrdersRes
+
+	if limit > 500 {
+		limit = 500
+	}
+
+	var idx *string
+	if submissionIdx != nil {
+		s := submissionIdx.String()
+		idx = &s
+	}
+	payload := map[string]any{
+		"orders": map[string]any{
+			"subaccounts": []Sender{sender},
+			"idx":         idx,
+			"limit":       limit,
+		},
+	}
+	if err := c.doArchiveQuery(ctx, payload, &v); err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
 func (c *Client) doArchiveQuery(ctx context.Context, payload any, res any) error {
 	var errorMessage string
 	errorString := requests.ValidatorHandler(
@@ -113,6 +156,29 @@ func (c *Client) doArchiveQuery(ctx context.Context, payload any, res any) error
 	)
 
 	err := requests.URL(c.archiveEndpoint).Client(c.httpClient).Post().
+		Header("Content-Type", "application/json").
+		BodyJSON(payload).
+		AddValidator(errorString).
+		ToJSON(res).
+		Fetch(ctx)
+	if err != nil {
+		if errorMessage != "" {
+			return fmt.Errorf("nado gateway error: %s", errorMessage)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) doTriggerQuery(ctx context.Context, payload any, res any) error {
+	var errorMessage string
+	errorString := requests.ValidatorHandler(
+		requests.DefaultValidator,
+		requests.ToString(&errorMessage),
+	)
+
+	err := requests.URL(c.triggerEndpoint+"/query").Client(c.httpClient).Post().
 		Header("Content-Type", "application/json").
 		BodyJSON(payload).
 		AddValidator(errorString).

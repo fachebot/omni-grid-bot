@@ -104,6 +104,40 @@ func SignPlaceOrder(signer *ecdsa.PrivateKey, chainId int64, verifyingContract c
 	return "0x" + hex.EncodeToString(signature), nil
 }
 
+func SignListTriggerOrders(signer *ecdsa.PrivateKey, chainId int64, verifyingContract common.Address, sender Sender, recvTime uint64) (string, error) {
+	typedData := apitypes.TypedData{
+		Types: apitypes.Types{
+			"EIP712Domain": []apitypes.Type{
+				{Name: "name", Type: "string"},
+				{Name: "version", Type: "string"},
+				{Name: "chainId", Type: "uint256"},
+				{Name: "verifyingContract", Type: "address"},
+			},
+			"ListTriggerOrders": []apitypes.Type{
+				{Name: "sender", Type: "bytes32"},
+				{Name: "recvTime", Type: "uint64"},
+			},
+		},
+		PrimaryType: "ListTriggerOrders",
+		Domain: apitypes.TypedDataDomain{
+			Name:              "Nado",
+			Version:           "0.0.1",
+			ChainId:           math.NewHexOrDecimal256(chainId),
+			VerifyingContract: verifyingContract.Hex(),
+		},
+		Message: apitypes.TypedDataMessage{
+			"sender":   sender.String(),
+			"recvTime": big.NewInt(0).SetUint64(recvTime),
+		},
+	}
+
+	signature, err := SignTypedData(typedData, signer)
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(signature), nil
+}
+
 func SignCancellationProducts(signer *ecdsa.PrivateKey, chainId int64, verifyingContract common.Address, params SignCancellationProductsParams) (string, error) {
 	typedData := apitypes.TypedData{
 		Types: apitypes.Types{

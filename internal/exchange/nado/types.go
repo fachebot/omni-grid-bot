@@ -40,29 +40,51 @@ type ContractsRes struct {
 	EndpointAddr common.Address  `json:"endpoint_addr"` // 交易所端点合约地址
 }
 
-// Order 订单信息
+// OpenOrder 活跃订单信息
+type OpenOrder struct {
+	ProductID      int64           `json:"product_id"`      // 订单执行的产品ID
+	Sender         Sender          `json:"sender"`          // 下单的子账户
+	PriceX18       decimal.Decimal `json:"price_x18"`       // 原始订单价格（18位精度）
+	Amount         decimal.Decimal `json:"amount"`          // 原始买入或卖出的基础货币数量
+	Expiration     decimal.Decimal `json:"expiration"`      // 原始订单过期时间
+	Nonce          decimal.Decimal `json:"nonce"`           // 原始订单随机数
+	UnfilledAmount decimal.Decimal `json:"unfilled_amount"` // 未成交基础货币数量
+	Digest         string          `json:"digest"`          // 订单的唯一哈希值
+	PlacedAt       int64           `json:"placed_at"`       // 下单时间
+	Appendix       Appendix        `json:"appendix"`        // 原始订单附加信息
+	OrderType      string          `json:"order_type"`      // 订单类型
+}
+
+// OpenOrdersRes 活跃订单列表响应
+// 包含订单列表的响应结构
+type OpenOrdersRes struct {
+	Orders []OpenOrder `json:"orders"` // 订单列表
+}
+
+// ArchiveOrder 归档订单信息
 // 包含订单的完整状态和成交信息
-type Order struct {
+type ArchiveOrder struct {
 	Digest                string          `json:"digest"`                   // 订单的唯一哈希值
-	Subaccount            string          `json:"subaccount"`               // 下单的子账户
+	Subaccount            Sender          `json:"subaccount"`               // 下单的子账户
 	ProductID             int64           `json:"product_id"`               // 订单执行的产品ID
-	SubmissionIdx         string          `json:"submission_idx"`           // 生成订单的区块链交易唯一标识，多笔成交订单为第一笔的submission_idx
-	LastFillSubmissionIdx string          `json:"last_fill_submission_idx"` // 多笔成交订单为最后一笔的submission_idx，单笔成交与submission_idx相同
+	SubmissionIdx         decimal.Decimal `json:"submission_idx"`           // 生成订单的区块链交易唯一标识，多笔成交订单为第一笔的submission_idx
+	LastFillSubmissionIdx decimal.Decimal `json:"last_fill_submission_idx"` // 多笔成交订单为最后一笔的submission_idx，单笔成交与submission_idx相同
 	Amount                decimal.Decimal `json:"amount"`                   // 原始买入或卖出的基础货币数量
 	PriceX18              decimal.Decimal `json:"price_x18"`                // 原始订单价格（18位精度）
 	BaseFilled            decimal.Decimal `json:"base_filled"`              // 该订单已成交的基础货币总量（如：BTC）
 	QuoteFilled           decimal.Decimal `json:"quote_filled"`             // 该订单已成交的计价货币总量（如：USDT）
 	Fee                   decimal.Decimal `json:"fee"`                      // 该订单支付的总手续费
-	Expiration            string          `json:"expiration"`               // 原始订单过期时间
-	Nonce                 string          `json:"nonce"`                    // 原始订单随机数
+	ClosedAmount          decimal.Decimal `json:"closed_amount"`            // 该订单结清金额
+	RealizedPnl           decimal.Decimal `json:"realized_pnl"`             // 已实现利润
+	Expiration            decimal.Decimal `json:"expiration"`               // 原始订单过期时间
+	Nonce                 decimal.Decimal `json:"nonce"`                    // 原始订单随机数
 	Appendix              string          `json:"appendix"`                 // 原始订单附加信息
-	Isolated              bool            `json:"isolated"`                 // 是否为隔离仓位订单
 }
 
-// OrdersRes 订单响应
+// ArchiveOrdersRes 归档订单列表响应
 // 包含订单列表的响应结构
-type OrdersRes struct {
-	Orders []Order `json:"orders"` // 订单列表
+type ArchiveOrdersRes struct {
+	Orders []ArchiveOrder `json:"orders"` // 订单列表
 }
 
 // HealthInfo 健康度信息
@@ -271,6 +293,4 @@ type CancelProductOrdersReq struct {
 }
 
 // CancelProductOrdersRes 取消多个产品订单响应
-type CancelProductOrdersRes struct {
-	CancelledOrders []*Order `json:"cancelled_orders"` // 已取消的订单列表
-}
+type CancelProductOrdersRes struct{}
