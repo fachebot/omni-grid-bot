@@ -220,7 +220,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	// 初始化网格策略
 	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record, prices)
 	if err != nil {
-		text := fmt.Sprintf("❌ 初始化网格策略失败，请检查配置后重试\n\n错误信息: `%s`", err.Error())
+		text := fmt.Sprintf("❌ 初始化网格策略失败，请检查配置后重试\n\n`%s`", err.Error())
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		logger.Warnf("[StrategySwitchHandler] 初始化网格策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
 		return nil
