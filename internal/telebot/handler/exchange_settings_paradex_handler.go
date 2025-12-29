@@ -197,8 +197,7 @@ func (h *ExchangeSettingsParadexHandler) handleDexAccount(ctx context.Context, u
 			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndAccountAndSymbol(ctx, exchange.Paradex, dexAccount, record.Symbol)
 			if err != nil || len(result) > 0 {
 				text := "❌ 此Paradex账户地址已被其他网格策略使用"
-				chatId := util.ChatId(update.Callback.Message.Chat.ID)
-				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chatId, text, 1)
+				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, util.ChatId(chatId), text, 1)
 				return nil
 			}
 		}
