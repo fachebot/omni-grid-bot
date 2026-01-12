@@ -268,10 +268,8 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 	upperLevel := getUpperLevel(state.sortedGrids, level.Level)
 	if upperLevel != nil {
 		if upperLevel.SellClientOrderId == nil && !state.isActiveOrder(upperLevel.BuyClientOrderId) {
+			// 使用实际成交数量，确保买卖数量匹配
 			quantity := buyOrder.FilledBaseAmount
-			if state.strategy.Mode == strategy.ModeShort {
-				quantity = upperLevel.Quantity
-			}
 
 			adapter := helper.NewExchangeAdapter(state.svcCtx, state.account)
 			sellOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, true, false, upperLevel.Price, quantity)
@@ -339,10 +337,8 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 	lowerLevel := getLowerLevel(state.sortedGrids, level.Level)
 	if lowerLevel != nil {
 		if lowerLevel.BuyClientOrderId == nil && !state.isActiveOrder(lowerLevel.SellClientOrderId) {
+			// 使用实际成交数量，确保买卖数量匹配
 			quantity := sellOrder.FilledBaseAmount
-			if state.strategy.Mode == strategy.ModeLong {
-				quantity = lowerLevel.Quantity
-			}
 
 			adapter := helper.NewExchangeAdapter(state.svcCtx, state.account)
 			buyOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, false, false, lowerLevel.Price, quantity)
