@@ -256,7 +256,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 	logger.Infof("[%s %s] #%d 买单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, buyOrder.ClientOrderId, buyOrder.Price, buyOrder.FilledBaseAmount)
 
-	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchBuyOrder(state.ctx, state.strategy, buyOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeService.RecordAndMatchBuyOrder(state.ctx, state.strategy, buyOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, buyClientOrderId: %s, %v", state.strategy.GUID, buyOrder.ClientOrderId, err)
 		return err
@@ -327,7 +327,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 	logger.Infof("[%s %s] #%d 卖单成交, ID: %s, 价格: %s, 数量: %s",
 		state.strategy.Symbol, state.strategy.Mode, level.Level, sellOrder.ClientOrderId, sellOrder.Price, sellOrder.FilledBaseAmount)
 
-	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeModel.RecordAndMatchSellOrder(state.ctx, state.strategy, sellOrder)
+	isFirstRecord, completedPair, err := state.svcCtx.MatchedTradeService.RecordAndMatchSellOrder(state.ctx, state.strategy, sellOrder)
 	if err != nil {
 		logger.Errorf("[GridStrategyState] 保存匹配记录失败, strategy: %s, sellClientOrderId: %s, %v", state.strategy.GUID, sellOrder.ClientOrderId, err)
 		return err

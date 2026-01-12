@@ -16,6 +16,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
+	"github.com/fachebot/omni-grid-bot/internal/service"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/net/proxy"
@@ -41,6 +42,8 @@ type ServiceContext struct {
 	StrategyModel     *model.StrategyModel
 	SyncProgressModel *model.SyncProgressModel
 	MatchedTradeModel *model.MatchedTradeModel
+
+	MatchedTradeService *service.MatchedTradeService
 
 	userLocks  map[int64]*sync.Mutex
 	locksMutex sync.RWMutex
@@ -122,6 +125,8 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		StrategyModel:     model.NewStrategyModel(client.Strategy),
 		SyncProgressModel: model.NewSyncProgressModel(client.SyncProgress),
 		MatchedTradeModel: model.NewMatchedTradeModel(client.MatchedTrade),
+
+		MatchedTradeService: service.NewMatchedTradeService(model.NewMatchedTradeModel(client.MatchedTrade)),
 
 		userLocks: make(map[int64]*sync.Mutex),
 	}

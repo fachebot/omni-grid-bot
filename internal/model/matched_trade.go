@@ -6,7 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/matchedtrade"
-	"github.com/fachebot/omni-grid-bot/internal/ent/predicate"
 	"github.com/shopspring/decimal"
 )
 
@@ -105,107 +104,62 @@ func (m *MatchedTradeModel) QueryOpenShortPositionAndCost(ctx context.Context, s
 	return position, cost, nil
 }
 
-func (m *MatchedTradeModel) RecordAndMatchBuyOrder(
-	ctx context.Context, s *ent.Strategy, buyOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
-
-	ps := []predicate.MatchedTrade{
-		matchedtrade.StrategyIdEQ(s.GUID),
-		matchedtrade.BuyClientOrderIdEQ(buyOrder.ClientOrderId),
-	}
-	r, err := m.client.Query().Where(ps...).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return isFirstRecord, completedPair, err
-	}
-
-	if err == nil {
-		err = m.client.Update().
-			Where(ps...).
-			SetBuyBaseAmount(buyOrder.FilledBaseAmount).
-			SetBuyQuoteAmount(buyOrder.FilledQuoteAmount).
-			SetBuyOrderTimestamp(buyOrder.Timestamp).
-			Exec(ctx)
-		if err != nil {
-			return isFirstRecord, completedPair, err
-		}
-
-		isFirstRecord = r.BuyOrderTimestamp == nil
-		if r.SellClientOrderId != nil && r.SellOrderTimestamp != nil {
-			completedPair = r
-			r.BuyBaseAmount = &buyOrder.FilledBaseAmount
-			r.BuyQuoteAmount = &buyOrder.FilledQuoteAmount
-			r.BuyOrderTimestamp = &buyOrder.Timestamp
-		}
-
-		return isFirstRecord, completedPair, nil
-	}
-
-	isFirstRecord = true
-	args := ent.MatchedTrade{
-		StrategyId:        s.GUID,
-		Account:           s.Account,
-		Symbol:            buyOrder.Symbol,
-		BuyClientOrderId:  &buyOrder.ClientOrderId,
-		BuyBaseAmount:     &buyOrder.FilledBaseAmount,
-		BuyQuoteAmount:    &buyOrder.FilledQuoteAmount,
-		BuyOrderTimestamp: &buyOrder.Timestamp,
-	}
-	if err = m.Create(ctx, args); err != nil {
-		return isFirstRecord, completedPair, err
-	}
-
-	return isFirstRecord, completedPair, nil
+// FindByBuyClientOrderId 根据策略ID和买入订单ID查询匹配交易记录
+func (m *MatchedTradeModel) FindByBuyClientOrderId(ctx context.Context, strategyId, buyClientOrderId string) (*ent.MatchedTrade, error) {
+	return m.client.Query().
+		Where(
+			matchedtrade.StrategyIdEQ(strategyId),
+			matchedtrade.BuyClientOrderIdEQ(buyClientOrderId),
+		).
+		First(ctx)
 }
 
-func (m *MatchedTradeModel) RecordAndMatchSellOrder(
-	ctx context.Context, s *ent.Strategy, sellOrder *ent.Order) (isFirstRecord bool, completedPair *ent.MatchedTrade, err error) {
+// FindBySellClientOrderId 根据策略ID和卖出订单ID查询匹配交易记录
+func (m *MatchedTradeModel) FindBySellClientOrderId(ctx context.Context, strategyId, sellClientOrderId string) (*ent.MatchedTrade, error) {
+	return m.client.Query().
+		Where(
+			matchedtrade.StrategyIdEQ(strategyId),
+			matchedtrade.SellClientOrderIdEQ(sellClientOrderId),
+		).
+		First(ctx)
+}
 
-	ps := []predicate.MatchedTrade{
-		matchedtrade.StrategyIdEQ(s.GUID),
-		matchedtrade.SellClientOrderIdEQ(sellOrder.ClientOrderId),
-	}
-	r, err := m.client.Query().Where(ps...).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return isFirstRecord, completedPair, err
-	}
+// UpdateBuyOrderInfo 更新买入订单信息
+func (m *MatchedTradeModel) UpdateBuyOrderInfo(
+	ctx context.Context,
+	strategyId string,
+	buyClientOrderId string,
+	buyBaseAmount, buyQuoteAmount decimal.Decimal,
+	buyOrderTimestamp int64,
+) error {
+	return m.client.Update().
+		Where(
+			matchedtrade.StrategyIdEQ(strategyId),
+			matchedtrade.BuyClientOrderIdEQ(buyClientOrderId),
+		).
+		SetBuyBaseAmount(buyBaseAmount).
+		SetBuyQuoteAmount(buyQuoteAmount).
+		SetBuyOrderTimestamp(buyOrderTimestamp).
+		Exec(ctx)
+}
 
-	if err == nil {
-		err = m.client.Update().
-			Where(ps...).
-			SetSellBaseAmount(sellOrder.FilledBaseAmount).
-			SetSellQuoteAmount(sellOrder.FilledQuoteAmount).
-			SetSellOrderTimestamp(sellOrder.Timestamp).
-			Exec(ctx)
-
-		if err != nil {
-			return isFirstRecord, completedPair, err
-		}
-
-		isFirstRecord = r.SellOrderTimestamp == nil
-		if r.BuyClientOrderId != nil && r.BuyOrderTimestamp != nil {
-			completedPair = r
-			r.SellBaseAmount = &sellOrder.FilledBaseAmount
-			r.SellQuoteAmount = &sellOrder.FilledQuoteAmount
-			r.SellOrderTimestamp = &sellOrder.Timestamp
-		}
-
-		return isFirstRecord, completedPair, nil
-	}
-
-	isFirstRecord = true
-	args := ent.MatchedTrade{
-		StrategyId:         s.GUID,
-		Account:            s.Account,
-		Symbol:             sellOrder.Symbol,
-		SellClientOrderId:  &sellOrder.ClientOrderId,
-		SellBaseAmount:     &sellOrder.FilledBaseAmount,
-		SellQuoteAmount:    &sellOrder.FilledQuoteAmount,
-		SellOrderTimestamp: &sellOrder.Timestamp,
-	}
-	if err = m.Create(ctx, args); err != nil {
-		return isFirstRecord, completedPair, err
-	}
-
-	return isFirstRecord, completedPair, nil
+// UpdateSellOrderInfo 更新卖出订单信息
+func (m *MatchedTradeModel) UpdateSellOrderInfo(
+	ctx context.Context,
+	strategyId string,
+	sellClientOrderId string,
+	sellBaseAmount, sellQuoteAmount decimal.Decimal,
+	sellOrderTimestamp int64,
+) error {
+	return m.client.Update().
+		Where(
+			matchedtrade.StrategyIdEQ(strategyId),
+			matchedtrade.SellClientOrderIdEQ(sellClientOrderId),
+		).
+		SetSellBaseAmount(sellBaseAmount).
+		SetSellQuoteAmount(sellQuoteAmount).
+		SetSellOrderTimestamp(sellOrderTimestamp).
+		Exec(ctx)
 }
 
 func (m *MatchedTradeModel) UpdateProfit(ctx context.Context, id int, value float64) error {
