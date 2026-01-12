@@ -202,10 +202,10 @@ func InitGridPosition(ctx context.Context, svcCtx *svc.ServiceContext, adapter *
 		switch record.Mode {
 		case strategy.ModeLong:
 			gridLevels[marketOrderIndexMap[idx]].BuyClientOrderId = &marketOrderIds[idx]
-			gridLevels[limitOrderIndexMap[idx]].BuyClientOrderTime = &ts
+			gridLevels[marketOrderIndexMap[idx]].BuyClientOrderTime = &ts
 		case strategy.ModeShort:
 			gridLevels[marketOrderIndexMap[idx]].SellClientOrderId = &marketOrderIds[idx]
-			gridLevels[limitOrderIndexMap[idx]].SellClientOrderTime = &ts
+			gridLevels[marketOrderIndexMap[idx]].SellClientOrderTime = &ts
 		}
 	}
 
