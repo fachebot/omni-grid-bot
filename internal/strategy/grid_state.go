@@ -21,7 +21,7 @@ type GridStrategyState struct {
 	ctx         context.Context
 	svcCtx      *svc.ServiceContext
 	strategy    *ent.Strategy
-	account     helper.AmbiguousAccount
+	adapter     *helper.ExchangeAdapter
 	sortedGrids []*ent.Grid
 	orders      map[string]*ent.Order
 }
@@ -92,7 +92,7 @@ func LoadGridStrategyState(ctx context.Context, svcCtx *svc.ServiceContext, s *e
 		ctx:         ctx,
 		svcCtx:      svcCtx,
 		strategy:    s,
-		account:     adapter.Account,
+		adapter:     adapter,
 		sortedGrids: sortedGrids,
 		orders:      make(map[string]*ent.Order),
 	}
@@ -273,8 +273,7 @@ func (state *GridStrategyState) handleBuyOrder(level *ent.Grid, buyOrder *ent.Or
 				quantity = upperLevel.Quantity
 			}
 
-			adapter := helper.NewExchangeAdapter(state.svcCtx, state.account)
-			sellOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, true, false, upperLevel.Price, quantity)
+			sellOrderId, err := state.adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, true, false, upperLevel.Price, quantity)
 			if err != nil {
 				logger.Errorf("[%s %s] #%d 下单卖单错误, 价格: %s, 数量: %s, %v",
 					state.strategy.Symbol, state.strategy.Mode, upperLevel.Level, upperLevel.Price, quantity, err)
@@ -344,8 +343,7 @@ func (state *GridStrategyState) handleSellOrder(level *ent.Grid, sellOrder *ent.
 				quantity = lowerLevel.Quantity
 			}
 
-			adapter := helper.NewExchangeAdapter(state.svcCtx, state.account)
-			buyOrderId, err := adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, false, false, lowerLevel.Price, quantity)
+			buyOrderId, err := state.adapter.CreateLimitOrder(state.ctx, state.strategy.Symbol, false, false, lowerLevel.Price, quantity)
 			if err != nil {
 				logger.Errorf("[%s %s] #%d 下单买单错误, 价格: %s, 数量: %s, %v",
 					state.strategy.Symbol, state.strategy.Mode, lowerLevel.Level, lowerLevel.Price, quantity, err)

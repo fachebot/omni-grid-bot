@@ -17,21 +17,29 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// ParadexOrderHelper Paradex交易所订单操作帮助类
+// 实现 OrderHelperInterface 接口，提供Paradex交易所的订单操作功能
 type ParadexOrderHelper struct {
-	svcCtx     *svc.ServiceContext
-	userClient *paradex.UserClient
+	svcCtx     *svc.ServiceContext // 服务上下文
+	userClient *paradex.UserClient // Paradex用户客户端
 }
 
+// GetParadexClient 获取Paradex交易所客户端
+// 根据策略记录中的API Key信息创建用户客户端
+// svcCtx 服务上下文，record 策略记录
+// 返回值: Paradex用户客户端，错误信息
 func GetParadexClient(svcCtx *svc.ServiceContext, record *ent.Strategy) (*paradex.UserClient, error) {
 	dexAccount := record.ExchangeApiKey
 	dexPrivateKey := record.ExchangeSecretKey
 	return paradex.NewUserClient(svcCtx.ParadexClient, dexAccount, dexPrivateKey), nil
 }
 
+// NewParadexOrderHelper 创建Paradex订单操作帮助类实例
 func NewParadexOrderHelper(svcCtx *svc.ServiceContext, userClient *paradex.UserClient) *ParadexOrderHelper {
 	return &ParadexOrderHelper{svcCtx: svcCtx, userClient: userClient}
 }
 
+// UpdateLeverage 更新指定交易对的杠杆倍数和保证金模式
 func (h *ParadexOrderHelper) UpdateLeverage(ctx context.Context, symbol string, leverage uint, marginMode exchange.MarginMode) error {
 	market := paradex.FormatUsdPerpMarket(symbol)
 	marginType := lo.If(marginMode == exchange.MarginModeCross, paradex.MarginTypeCross).Else(paradex.MarginTypeIsolated)
@@ -39,15 +47,19 @@ func (h *ParadexOrderHelper) UpdateLeverage(ctx context.Context, symbol string, 
 	return err
 }
 
+// CancalAllOrders 取消指定交易对的所有活跃订单
 func (h *ParadexOrderHelper) CancalAllOrders(ctx context.Context, symbol string) error {
 	return h.userClient.CancelAllOpenOrders(ctx, paradex.FormatUsdPerpMarket(symbol))
 }
 
+// CreateOrderBatch 批量创建订单
+// 支持同时创建限价单和市价单
 func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	nextClientId := time.Now().UnixNano()
 	limitOrderClientIds := make([]string, 0)
 	batchOrders := make([]*paradex.CreateOrderReq, 0)
 
+	// 构建限价单列表
 	for _, item := range limitOrders {
 		clientId := strconv.FormatInt(nextClientId, 10)
 		limitOrderClientIds = append(limitOrderClientIds, clientId)
@@ -70,6 +82,7 @@ func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 		batchOrders = append(batchOrders, ord)
 	}
 
+	// 构建市价单列表
 	marketOrderClientIds := make([]string, 0)
 	for _, item := range marketOrders {
 		clientId := strconv.FormatInt(nextClientId, 10)
@@ -92,11 +105,13 @@ func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 		batchOrders = append(batchOrders, ord)
 	}
 
+	// 批量提交订单
 	res, err := h.userClient.CreateBatchOrders(ctx, batchOrders)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// 检查批量提交结果中的错误
 	for _, item := range res.Errors {
 		if item != nil {
 			return nil, nil, item
@@ -106,6 +121,7 @@ func (h *ParadexOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 	return limitOrderClientIds, marketOrderClientIds, err
 }
 
+// CreateLimitOrder 创建限价单
 func (h *ParadexOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	p := CreateLimitOrderParams{
 		Symbol:     symbol,
@@ -122,6 +138,7 @@ func (h *ParadexOrderHelper) CreateLimitOrder(ctx context.Context, symbol string
 	return clientIds[0], nil
 }
 
+// CreateMarketOrder 创建市价单
 func (h *ParadexOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
 	p := CreateMarketOrderParams{
 		Symbol:                   symbol,
@@ -138,10 +155,13 @@ func (h *ParadexOrderHelper) CreateMarketOrder(ctx context.Context, symbol strin
 	return clientIds[0], nil
 }
 
+// SyncUserOrders 同步用户订单数据到本地数据库
+// 从Paradex交易所查询历史订单并存储到本地数据库
 func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 	account := h.userClient.DexAccount()
 	logger.Debugf("[ParadexOrderHelper] 同步用户订单开始, account: %s", account)
 
+	// 获取同步进度
 	syncProgress, err := h.svcCtx.SyncProgressModel.Ensure(ctx, exchange.Paradex, account)
 	if err != nil {
 		return err
@@ -188,7 +208,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 		}
 	}
 
-	// 本地排序订单
+	// 本地排序订单(按更新时间倒序)
 	slices.SortFunc(userOrders, func(a, b *paradex.Order) int {
 		if a.LastUpdatedAt > b.LastUpdatedAt {
 			return -1
@@ -197,6 +217,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 		}
 		return 1
 	})
+	// 过滤掉已同步的订单
 	for idx, item := range userOrders {
 		if item.LastUpdatedAt <= syncProgress.Timestamp {
 			userOrders = userOrders[:idx]
@@ -214,6 +235,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 				continue
 			}
 
+			// 计算成交金额
 			filledQuoteAmount := decimal.Zero
 			if item.AvgFillPrice != "" {
 				avgFillPrice, err := decimal.NewFromString(item.AvgFillPrice)
@@ -242,6 +264,7 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 			}
 		}
 
+		// 更新同步进度
 		if len(userOrders) > 0 {
 			ts := userOrders[0].LastUpdatedAt
 			err = h.svcCtx.SyncProgressModel.UpdateTimestampByAccount(ctx, exchange.Paradex, account, ts)
@@ -254,6 +277,8 @@ func (h *ParadexOrderHelper) SyncUserOrders(ctx context.Context) error {
 	})
 }
 
+// ClosePosition 平仓操作
+// 根据指定的持仓方向，平掉全部仓位
 func (h *ParadexOrderHelper) ClosePosition(ctx context.Context, symbol string, side Side, slippageBps int) error {
 	// 更新最大滑点
 	market := paradex.FormatUsdPerpMarket(symbol)
@@ -282,6 +307,7 @@ func (h *ParadexOrderHelper) ClosePosition(ctx context.Context, symbol string, s
 		return err
 	}
 
+	// 根据持仓方向执行平仓
 	switch position.Side {
 	case paradex.PositionSideLong:
 		acceptableExecutionPrice := price.Sub(price.Mul(decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000))))
@@ -296,4 +322,81 @@ func (h *ParadexOrderHelper) ClosePosition(ctx context.Context, symbol string, s
 	}
 
 	return err
+}
+
+// GetParadexAccountInfo 获取Paradex账户信息
+func GetParadexAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
+	client, err := GetParadexClient(svcCtx, record)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取持仓信息
+	positions, err := client.GetPositions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取保证金配置
+	marginConfigs, err := client.GetMarginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取账户摘要
+	accountSummaries, err := client.GetAccountSummaries(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建保证金模式映射
+	marginModeMap := make(map[string]paradex.MarginType)
+	for _, item := range marginConfigs.Configs {
+		marginModeMap[item.Market] = item.MarginType
+	}
+
+	account := exchange.Account{
+		AvailableBalance: accountSummaries[0].FreeCollateral,
+		Positions:        make([]*exchange.Position, 0, len(positions.Results)),
+	}
+	// 计算总资产价值
+	for _, item := range accountSummaries {
+		account.TotalAssetValue = account.TotalAssetValue.Add(item.AccountValue)
+	}
+
+	// 转换持仓信息
+	for _, item := range positions.Results {
+		if item.Size.IsZero() {
+			continue
+		}
+
+		symbol, err := paradex.ParseUsdPerpMarket(item.Market)
+		if err != nil {
+			continue
+		}
+
+		liquidationPrice := decimal.Zero
+		if item.LiquidationPrice != "" {
+			liquidationPrice, _ = decimal.NewFromString(item.LiquidationPrice)
+		}
+
+		marginMode := exchange.MarginModeCross
+		if v, ok := marginModeMap[item.Market]; ok {
+			marginMode = lo.If(v == paradex.MarginTypeCross, exchange.MarginModeCross).Else(exchange.MarginModeIsolated)
+		}
+
+		account.Positions = append(account.Positions, &exchange.Position{
+			Symbol:              symbol,
+			Side:                lo.If(item.Side == paradex.PositionSideLong, exchange.PositionSideLong).Else(exchange.PositionSideShort),
+			Position:            item.Size.Abs(),
+			AvgEntryPrice:       item.AverageEntryPrice,
+			UnrealizedPnl:       item.UnrealizedFundingPnl,
+			RealizedPnl:         item.RealizedPositionalPnl,
+			LiquidationPrice:    liquidationPrice,
+			TotalFundingPaidOut: item.RealizedPositionalFundingPnl.Add(item.UnrealizedFundingPnl),
+			MarginMode:          marginMode,
+		})
+	}
+
+	return &account, nil
 }

@@ -3,13 +3,11 @@ package helper
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	entstrategy "github.com/fachebot/omni-grid-bot/internal/ent/strategy"
 	"github.com/fachebot/omni-grid-bot/internal/exchange"
-	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/model"
 	"github.com/fachebot/omni-grid-bot/internal/svc"
@@ -18,10 +16,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// DefaultSlippageBps 默认滑点容忍度(基点)
 const (
 	DefaultSlippageBps = 50
 )
 
+// MarketMetadata 市场元数据
+// 包含交易所支持的最小区块数量、价格精度等信息
 type MarketMetadata struct {
 	MinBaseAmount          decimal.Decimal // 最小基础货币数量
 	MinQuoteAmount         decimal.Decimal // 最小计价货币数量
@@ -30,10 +31,15 @@ type MarketMetadata struct {
 	SupportedQuoteDecimals uint8           // 支持的计价小数位数
 }
 
+// StrategyEngine 策略引擎接口
 type StrategyEngine interface {
 	StopStrategy(id string)
 }
 
+// GetAccountInfo 获取账户信息
+// 根据策略记录中的交易所类型，返回对应的账户信息
+// ctx 上下文，svcCtx 服务上下文，record 策略记录
+// 返回值: 账户信息，错误信息
 func GetAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
 	switch record.Exchange {
 	case exchange.Lighter:
@@ -47,162 +53,8 @@ func GetAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent
 	}
 }
 
-func GetLighterAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, account string) (*exchange.Account, error) {
-	accountIndex, err := strconv.ParseInt(account, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	accounts, err := svcCtx.LighterClient.GetAccountByIndex(ctx, accountIndex)
-	if err != nil {
-		return nil, err
-	}
-
-	accountInfo, ok := lo.Find(accounts.Accounts, func(item *lighter.Account) bool {
-		return item.Index == accountIndex
-	})
-	if !ok {
-		return nil, errors.New("account not found")
-	}
-
-	ret := exchange.Account{
-		AvailableBalance: accountInfo.AvailableBalance,
-		Positions:        make([]*exchange.Position, 0),
-		TotalAssetValue:  accountInfo.TotalAssetValue,
-	}
-	for _, item := range accountInfo.Positions {
-		if item.Position.LessThanOrEqual(decimal.Zero) {
-			continue
-		}
-
-		ret.Positions = append(ret.Positions, &exchange.Position{
-			Symbol:              item.Symbol,
-			Side:                exchange.PositionSide(item.Sign),
-			Position:            item.Position,
-			AvgEntryPrice:       item.AvgEntryPrice,
-			UnrealizedPnl:       item.UnrealizedPnl,
-			RealizedPnl:         item.RealizedPnl,
-			LiquidationPrice:    item.LiquidationPrice,
-			TotalFundingPaidOut: item.TotalFundingPaidOut,
-			MarginMode:          exchange.MarginMode(item.MarginMode),
-		})
-	}
-	return &ret, nil
-}
-
-func GetParadexAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
-	client, err := GetParadexClient(svcCtx, record)
-	if err != nil {
-		return nil, err
-	}
-
-	positions, err := client.GetPositions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	marginConfigs, err := client.GetMarginConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	accountSummaries, err := client.GetAccountSummaries(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	marginModeMap := make(map[string]paradex.MarginType)
-	for _, item := range marginConfigs.Configs {
-		marginModeMap[item.Market] = item.MarginType
-	}
-
-	account := exchange.Account{
-		AvailableBalance: accountSummaries[0].FreeCollateral,
-		Positions:        make([]*exchange.Position, 0, len(positions.Results)),
-	}
-	for _, item := range accountSummaries {
-		account.TotalAssetValue = account.TotalAssetValue.Add(item.AccountValue)
-	}
-
-	for _, item := range positions.Results {
-		if item.Size.IsZero() {
-			continue
-		}
-
-		symbol, err := paradex.ParseUsdPerpMarket(item.Market)
-		if err != nil {
-			continue
-		}
-
-		liquidationPrice := decimal.Zero
-		if item.LiquidationPrice != "" {
-			liquidationPrice, _ = decimal.NewFromString(item.LiquidationPrice)
-		}
-
-		marginMode := exchange.MarginModeCross
-		if v, ok := marginModeMap[item.Market]; ok {
-			marginMode = lo.If(v == paradex.MarginTypeCross, exchange.MarginModeCross).Else(exchange.MarginModeIsolated)
-		}
-
-		account.Positions = append(account.Positions, &exchange.Position{
-			Symbol:              symbol,
-			Side:                lo.If(item.Side == paradex.PositionSideLong, exchange.PositionSideLong).Else(exchange.PositionSideShort),
-			Position:            item.Size.Abs(),
-			AvgEntryPrice:       item.AverageEntryPrice,
-			UnrealizedPnl:       item.UnrealizedFundingPnl,
-			RealizedPnl:         item.RealizedPositionalPnl,
-			LiquidationPrice:    liquidationPrice,
-			TotalFundingPaidOut: item.RealizedPositionalFundingPnl.Add(item.UnrealizedFundingPnl),
-			MarginMode:          marginMode,
-		})
-	}
-
-	return &account, nil
-}
-
-func GetVariationalAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
-	client, err := GetVariationalClient(svcCtx, record)
-	if err != nil {
-		return nil, err
-	}
-
-	positions, err := client.GetPositions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	portfolio, err := client.GetPortfolio(ctx, true)
-	if err != nil {
-		return nil, err
-	}
-
-	account := exchange.Account{
-		TotalAssetValue:  portfolio.Balance,
-		AvailableBalance: portfolio.Balance.Sub(portfolio.MarginUsage.MaintenanceMargin),
-		Positions:        make([]*exchange.Position, 0, len(positions)),
-	}
-
-	for _, item := range positions {
-		if item.PositionInfo.Qty.IsZero() {
-			continue
-		}
-
-		account.Positions = append(account.Positions, &exchange.Position{
-			Symbol:              item.PositionInfo.Instrument.Underlying,
-			Side:                lo.If(item.PositionInfo.Qty.GreaterThan(decimal.Zero), exchange.PositionSideLong).Else(exchange.PositionSideShort),
-			Position:            item.PositionInfo.Qty.Abs(),
-			AvgEntryPrice:       item.PositionInfo.AvgEntryPrice,
-			UnrealizedPnl:       item.Upnl,
-			RealizedPnl:         item.Rpnl,
-			LiquidationPrice:    item.EstimatedLiquidationPrice,
-			TotalFundingPaidOut: item.CumFunding,
-			MarginMode:          exchange.MarginModeCross,
-		})
-	}
-
-	return &account, nil
-}
-
+// GetMarketMetadata 获取市场元数据
+// 返回指定交易所和交易对的市场配置信息(最小订单数量、价格精度等)
 func GetMarketMetadata(ctx context.Context, svcCtx *svc.ServiceContext, exchangeType, symbol string) (MarketMetadata, error) {
 	switch exchangeType {
 	case exchange.Lighter:
@@ -261,6 +113,7 @@ func GetMarketMetadata(ctx context.Context, svcCtx *svc.ServiceContext, exchange
 	}
 }
 
+// GetLastTradePrice 获取最新成交价格
 func GetLastTradePrice(ctx context.Context, svcCtx *svc.ServiceContext, exchangeType, symbol string) (decimal.Decimal, error) {
 	switch exchangeType {
 	case exchange.Lighter:
@@ -292,6 +145,11 @@ func GetLastTradePrice(ctx context.Context, svcCtx *svc.ServiceContext, exchange
 	}
 }
 
+// StopStrategyAndCancelOrders 停止策略并取消所有订单
+// 1. 停止网格策略运行
+// 2. 取消所有挂出的订单
+// 3. 删除网格和成交记录
+// 4. 更新策略状态为inactive
 func StopStrategyAndCancelOrders(ctx context.Context, svcCtx *svc.ServiceContext, strategyEngine StrategyEngine, record *ent.Strategy) error {
 	// 停止网格策略
 	strategyEngine.StopStrategy(record.GUID)
@@ -322,6 +180,8 @@ func StopStrategyAndCancelOrders(ctx context.Context, svcCtx *svc.ServiceContext
 	})
 }
 
+// StopStrategyAndClosePosition 停止策略并平仓
+// 在停止策略的基础上 additionally 执行平仓操作
 func StopStrategyAndClosePosition(ctx context.Context, svcCtx *svc.ServiceContext, strategyEngine StrategyEngine, record *ent.Strategy) error {
 	err := StopStrategyAndCancelOrders(ctx, svcCtx, strategyEngine, record)
 	if err != nil {
@@ -333,11 +193,13 @@ func StopStrategyAndClosePosition(ctx context.Context, svcCtx *svc.ServiceContex
 		return err
 	}
 
+	// 获取滑点容忍度
 	slippageBps := DefaultSlippageBps
 	if record.SlippageBps != nil {
 		slippageBps = *record.SlippageBps
 	}
 
+	// 根据策略模式确定平仓方向
 	side := lo.If(record.Mode == strategy.ModeLong, LONG).Else(SHORT)
 	return adapter.ClosePosition(ctx, record.Symbol, side, slippageBps)
 }

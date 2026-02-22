@@ -18,15 +18,23 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// ClientOrderIndexBegin 客户端订单索引起始值
+// 用于生成唯一的客户端订单ID，避免与历史订单冲突
 const (
 	ClientOrderIndexBegin = 77766600000000
 )
 
+// LighterOrderHelper Lighter交易所订单操作帮助类
+// 实现 OrderHelperInterface 接口，提供Lighter交易所的订单操作功能
 type LighterOrderHelper struct {
-	signer *lighter.Signer
-	svcCtx *svc.ServiceContext
+	signer *lighter.Signer     // Lighter签名器，用于交易签名
+	svcCtx *svc.ServiceContext // 服务上下文
 }
 
+// GetLighterClient 获取Lighter交易所客户端
+// 根据策略记录中的API Key信息创建签名器
+// svcCtx 服务上下文，record 策略记录
+// 返回值: Lighter签名器，错误信息
 func GetLighterClient(svcCtx *svc.ServiceContext, record *ent.Strategy) (*lighter.Signer, error) {
 	accountIndex, err := strconv.Atoi(record.ExchangeApiKey)
 	if err != nil {
@@ -45,10 +53,12 @@ func GetLighterClient(svcCtx *svc.ServiceContext, record *ent.Strategy) (*lighte
 	return lighter.NewSigner(svcCtx.LighterClient, int64(accountIndex), record.ExchangePassphrase, uint8(apiKeyIndex))
 }
 
+// NewLighterOrderHelper 创建Lighter订单操作帮助类实例
 func NewLighterOrderHelper(svcCtx *svc.ServiceContext, signer *lighter.Signer) *LighterOrderHelper {
 	return &LighterOrderHelper{svcCtx: svcCtx, signer: signer}
 }
 
+// UpdateLeverage 更新指定交易对的杠杆倍数和保证金模式
 func (h *LighterOrderHelper) UpdateLeverage(ctx context.Context, symbol string, leverage uint, marginMode exchange.MarginMode) error {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -74,6 +84,7 @@ func (h *LighterOrderHelper) UpdateLeverage(ctx context.Context, symbol string, 
 	return err
 }
 
+// CancelOrderBatch 批量取消订单
 func (h *LighterOrderHelper) CancelOrderBatch(ctx context.Context, orders []CancelOrderParams) error {
 	if len(orders) == 0 {
 		return nil
@@ -101,6 +112,7 @@ func (h *LighterOrderHelper) CancelOrderBatch(ctx context.Context, orders []Canc
 	return err
 }
 
+// CancalAllOrders 取消指定交易对的所有活跃订单
 func (h *LighterOrderHelper) CancalAllOrders(ctx context.Context, symbol string) error {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -127,10 +139,13 @@ func (h *LighterOrderHelper) CancalAllOrders(ctx context.Context, symbol string)
 	return h.CancelOrderBatch(ctx, cancelOrders)
 }
 
+// CancelOrder 取消单个订单
 func (h *LighterOrderHelper) CancelOrder(ctx context.Context, symbol string, orderIndex int64) error {
 	return h.CancelOrderBatch(ctx, []CancelOrderParams{{Symbol: symbol, OrderID: orderIndex}})
 }
 
+// CreateOrderBatch 批量创建订单
+// 支持同时创建限价单和市价单
 func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	nonce, err := h.signer.Client().GetNextNonce(ctx, h.signer.GetAccountIndex(), h.signer.GetApiKeyIndex())
 	if err != nil {
@@ -177,6 +192,7 @@ func (h *LighterOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders [
 	return limitClientOrderIds, marketClientOrderIds, nil
 }
 
+// CreateLimitOrder 创建限价单
 func (h *LighterOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	clientOrderIds, _, err := h.CreateOrderBatch(ctx, []CreateLimitOrderParams{{
 		Symbol:     symbol,
@@ -192,6 +208,7 @@ func (h *LighterOrderHelper) CreateLimitOrder(ctx context.Context, symbol string
 	return clientOrderIds[0], nil
 }
 
+// CreateMarketOrder 创建市价单
 func (h *LighterOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal) (string, error) {
 	_, clientOrderIds, err := h.CreateOrderBatch(ctx, nil, []CreateMarketOrderParams{{
 		Symbol:                   symbol,
@@ -207,6 +224,7 @@ func (h *LighterOrderHelper) CreateMarketOrder(ctx context.Context, symbol strin
 	return clientOrderIds[0], nil
 }
 
+// signCancelOrder 签名取消订单请求
 func (h *LighterOrderHelper) signCancelOrder(ctx context.Context, symbol string, orderIndex int64, nonce int64) (string, error) {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -216,6 +234,7 @@ func (h *LighterOrderHelper) signCancelOrder(ctx context.Context, symbol string,
 	return h.signer.SignCancelOrder(ctx, metadata.MarketID, orderIndex, nonce)
 }
 
+// signCreateLimitOrder 签名限价单创建请求
 func (h *LighterOrderHelper) signCreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal, clientOrderIndex int64, nonce int64) (string, error) {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -251,6 +270,7 @@ func (h *LighterOrderHelper) signCreateLimitOrder(ctx context.Context, symbol st
 	return h.signer.SignCreateOrder(ctx, req, nonce)
 }
 
+// signCreateMarketOrder 签名市价单创建请求
 func (h *LighterOrderHelper) signCreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, acceptableExecutionPrice, size decimal.Decimal, clientOrderIndex int64, nonce int64) (string, error) {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -286,6 +306,14 @@ func (h *LighterOrderHelper) signCreateMarketOrder(ctx context.Context, symbol s
 	return h.signer.SignCreateOrder(ctx, req, nonce)
 }
 
+// SyncUserOrders 同步用户订单数据到本地数据库
+// 实现 OrderHelperInterface 接口
+func (h *LighterOrderHelper) SyncUserOrders(ctx context.Context) error {
+	return h.SyncInactiveOrders(ctx)
+}
+
+// SyncInactiveOrders 同步用户非活跃订单(已成交/已取消/已过期)
+// 从Lighter交易所查询历史订单并存储到本地数据库
 func (h *LighterOrderHelper) SyncInactiveOrders(ctx context.Context) error {
 	logger.Debugf("[LighterOrderHelper] 同步用户非活跃订单开始, account: %d", h.signer.GetAccountIndex())
 
@@ -352,7 +380,7 @@ exit:
 				FilledBaseAmount:  item.FilledBaseAmount,
 				FilledQuoteAmount: item.FilledQuoteAmount,
 				Status:            lighter.ConvertOrderStatus(item.Status),
-				Timestamp:         item.Timestamp * 1000, // 转化为毫秒数
+				Timestamp:         item.Timestamp * 1000,
 			}
 			err = h.svcCtx.OrderModel.Upsert(ctx, args)
 			if err != nil {
@@ -372,6 +400,8 @@ exit:
 	})
 }
 
+// ClosePosition 平仓操作
+// 根据指定的持仓方向，平掉全部仓位
 func (h *LighterOrderHelper) ClosePosition(ctx context.Context, symbol string, side Side, slippageBps int) error {
 	metadata, err := h.svcCtx.LighterCache.GetOrderBookMetadata(ctx, symbol)
 	if err != nil {
@@ -429,4 +459,49 @@ func (h *LighterOrderHelper) ClosePosition(ctx context.Context, symbol string, s
 	}
 
 	return err
+}
+
+// GetLighterAccountInfo 获取Lighter账户信息
+func GetLighterAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, account string) (*exchange.Account, error) {
+	accountIndex, err := strconv.ParseInt(account, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts, err := svcCtx.LighterClient.GetAccountByIndex(ctx, accountIndex)
+	if err != nil {
+		return nil, err
+	}
+
+	accountInfo, ok := lo.Find(accounts.Accounts, func(item *lighter.Account) bool {
+		return item.Index == accountIndex
+	})
+	if !ok {
+		return nil, errors.New("account not found")
+	}
+
+	ret := exchange.Account{
+		AvailableBalance: accountInfo.AvailableBalance,
+		Positions:        make([]*exchange.Position, 0),
+		TotalAssetValue:  accountInfo.TotalAssetValue,
+	}
+
+	for _, item := range accountInfo.Positions {
+		if item.Position.LessThanOrEqual(decimal.Zero) {
+			continue
+		}
+
+		ret.Positions = append(ret.Positions, &exchange.Position{
+			Symbol:              item.Symbol,
+			Side:                exchange.PositionSide(item.Sign),
+			Position:            item.Position,
+			AvgEntryPrice:       item.AvgEntryPrice,
+			UnrealizedPnl:       item.UnrealizedPnl,
+			RealizedPnl:         item.RealizedPnl,
+			LiquidationPrice:    item.LiquidationPrice,
+			TotalFundingPaidOut: item.TotalFundingPaidOut,
+			MarginMode:          exchange.MarginMode(item.MarginMode),
+		})
+	}
+	return &ret, nil
 }

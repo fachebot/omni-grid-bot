@@ -16,26 +16,37 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// VariationalOrderHelper Variational交易所订单操作帮助类
+// 实现 OrderHelperInterface 接口，提供Variational交易所的订单操作功能
 type VariationalOrderHelper struct {
-	svcCtx     *svc.ServiceContext
-	userClient *variational.UserClient
+	svcCtx     *svc.ServiceContext     // 服务上下文
+	userClient *variational.UserClient // Variational用户客户端
 }
 
+// GetVariationalClient 获取Variational交易所客户端
+// 根据策略记录中的API Key信息创建用户客户端
+// svcCtx 服务上下文，record 策略记录
+// 返回值: Variational用户客户端，错误信息
 func GetVariationalClient(svcCtx *svc.ServiceContext, record *ent.Strategy) (*variational.UserClient, error) {
 	dexAccount := record.ExchangeApiKey
 	dexPrivateKey := record.ExchangeSecretKey
 	return variational.NewUserClient(svcCtx.VariationalClient, dexAccount, dexPrivateKey), nil
 }
 
+// NewVariationalOrderHelper 创建Variational订单操作帮助类实例
 func NewVariationalOrderHelper(svcCtx *svc.ServiceContext, userClient *variational.UserClient) *VariationalOrderHelper {
 	return &VariationalOrderHelper{svcCtx: svcCtx, userClient: userClient}
 }
 
+// UpdateLeverage 更新指定交易对的杠杆倍数
+// 注意: Variational暂不支持逐仓保证金模式
 func (h *VariationalOrderHelper) UpdateLeverage(ctx context.Context, symbol string, leverage uint, marginMode exchange.MarginMode) error {
 	// variational 暂不支持逐仓保证金
 	return h.userClient.SetLeverage(ctx, symbol, int(leverage))
 }
 
+// CancalAllOrders 取消所有活跃订单
+// Variational需要逐个查询并取消订单
 func (h *VariationalOrderHelper) CancalAllOrders(ctx context.Context, symbol string) error {
 	const limit = 100
 
@@ -62,7 +73,7 @@ func (h *VariationalOrderHelper) CancalAllOrders(ctx context.Context, symbol str
 		offset = int(n)
 	}
 
-	// 关闭所有订单
+	// 逐个取消订单(Variational接口限制)
 	errorList := make([]error, 0)
 	for _, rfqId := range pendingOrders {
 		err := h.userClient.CancelOrder(ctx, rfqId)
@@ -79,8 +90,11 @@ func (h *VariationalOrderHelper) CancalAllOrders(ctx context.Context, symbol str
 	return nil
 }
 
+// CreateOrderBatch 批量创建订单
+// 注意: Variational不支持批量创建订单接口，这里通过逐个创建实现
 func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrders []CreateLimitOrderParams, marketOrders []CreateMarketOrderParams) ([]string, []string, error) {
 	limitOrderClientIds := make([]string, 0)
+	// 逐个创建限价单
 	for _, ord := range limitOrders {
 		rfqId, err := h.CreateLimitOrder(ctx, ord.Symbol, ord.IsAsk, ord.ReduceOnly, ord.Price, ord.Size)
 		if err != nil {
@@ -91,6 +105,7 @@ func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrde
 		time.Sleep(1 * time.Second)
 	}
 
+	// 逐个创建市价单
 	marketOrderClientIds := make([]string, 0)
 	for _, ord := range marketOrders {
 		rfqId, err := h.CreateMarketOrder(ctx, ord.Symbol, ord.IsAsk, ord.ReduceOnly, ord.SlippageBps, ord.Size)
@@ -105,6 +120,7 @@ func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrde
 	return limitOrderClientIds, marketOrderClientIds, nil
 }
 
+// CreateLimitOrder 创建限价单
 func (h *VariationalOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
 	side := lo.If(isAsk, variational.OrderSideSell).Else(variational.OrderSideBuy)
 	res, err := h.userClient.CreateLimitOrder(ctx, symbol, side, price, size, reduceOnly)
@@ -117,6 +133,7 @@ func (h *VariationalOrderHelper) CreateLimitOrder(ctx context.Context, symbol st
 	return res.RfqId, nil
 }
 
+// CreateMarketOrder 创建市价单
 func (h *VariationalOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, slippageBps int, size decimal.Decimal) (string, error) {
 	side := lo.If(isAsk, variational.OrderSideSell).Else(variational.OrderSideBuy)
 	maxSlippage := decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000)).Truncate(4)
@@ -130,6 +147,8 @@ func (h *VariationalOrderHelper) CreateMarketOrder(ctx context.Context, symbol s
 	return res.RfqId, nil
 }
 
+// SyncUserOrders 同步用户订单数据到本地数据库
+// 从Variational交易所查询历史订单并存储到本地数据库
 func (h *VariationalOrderHelper) SyncUserOrders(ctx context.Context) error {
 	account := h.userClient.EthAccount()
 	logger.Debugf("[VariationalOrderHelper] 同步用户订单开始, account: %s", account)
@@ -234,12 +253,15 @@ exit:
 	})
 }
 
+// ClosePosition 平仓操作
+// 根据指定的持仓方向，平掉全部仓位
 func (h *VariationalOrderHelper) ClosePosition(ctx context.Context, symbol string, side Side, slippageBps int) error {
 	positions, err := h.userClient.GetPositions(ctx)
 	if err != nil {
 		return err
 	}
 
+	// 查找指定仓位的持仓
 	position, ok := lo.Find(positions, func(item *variational.Position) bool {
 		if item.PositionInfo.Instrument.Underlying != symbol {
 			return false
@@ -256,6 +278,7 @@ func (h *VariationalOrderHelper) ClosePosition(ctx context.Context, symbol strin
 		return nil
 	}
 
+	// 根据持仓方向执行平仓
 	if position.PositionInfo.Qty.GreaterThan(decimal.Zero) {
 		_, err = h.CreateMarketOrder(ctx, symbol, true, true, slippageBps, position.PositionInfo.Qty.Abs())
 	} else if position.PositionInfo.Qty.LessThan(decimal.Zero) {
@@ -267,4 +290,51 @@ func (h *VariationalOrderHelper) ClosePosition(ctx context.Context, symbol strin
 	}
 
 	return err
+}
+
+// GetVariationalAccountInfo 获取Variational账户信息
+func GetVariationalAccountInfo(ctx context.Context, svcCtx *svc.ServiceContext, record *ent.Strategy) (*exchange.Account, error) {
+	client, err := GetVariationalClient(svcCtx, record)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取持仓信息
+	positions, err := client.GetPositions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取投资组合信息
+	portfolio, err := client.GetPortfolio(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+
+	account := exchange.Account{
+		TotalAssetValue:  portfolio.Balance,
+		AvailableBalance: portfolio.Balance.Sub(portfolio.MarginUsage.MaintenanceMargin),
+		Positions:        make([]*exchange.Position, 0, len(positions)),
+	}
+
+	// 转换持仓信息
+	for _, item := range positions {
+		if item.PositionInfo.Qty.IsZero() {
+			continue
+		}
+
+		account.Positions = append(account.Positions, &exchange.Position{
+			Symbol:              item.PositionInfo.Instrument.Underlying,
+			Side:                lo.If(item.PositionInfo.Qty.GreaterThan(decimal.Zero), exchange.PositionSideLong).Else(exchange.PositionSideShort),
+			Position:            item.PositionInfo.Qty.Abs(),
+			AvgEntryPrice:       item.PositionInfo.AvgEntryPrice,
+			UnrealizedPnl:       item.Upnl,
+			RealizedPnl:         item.Rpnl,
+			LiquidationPrice:    item.EstimatedLiquidationPrice,
+			TotalFundingPaidOut: item.CumFunding,
+			MarginMode:          exchange.MarginModeCross,
+		})
+	}
+
+	return &account, nil
 }
