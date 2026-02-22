@@ -14,6 +14,8 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
 
+// ConvertOrderStatus 转换订单状态
+// 将Lighter订单状态转换为内部订单状态
 func ConvertOrderStatus(status OrderStatus) order.Status {
 	switch status {
 	case OrderStatusInProgress:
@@ -32,6 +34,7 @@ func ConvertOrderStatus(status OrderStatus) order.Status {
 	}
 }
 
+// parseResultStatus 解析响应状态
 func parseResultStatus(respBody []byte) error {
 	resultStatus := &lighterhttp.ResultCode{}
 	if err := json.Unmarshal(respBody, resultStatus); err != nil {
@@ -43,6 +46,7 @@ func parseResultStatus(respBody []byte) error {
 	return nil
 }
 
+// getAndParseL2HTTPResponse 发送GET请求并解析响应
 func getAndParseL2HTTPResponse(ctx context.Context, httpClient *http.Client, endpoint, path string, params map[string]any, result interface{}) error {
 	u, err := url.Parse(endpoint)
 	if err != nil {

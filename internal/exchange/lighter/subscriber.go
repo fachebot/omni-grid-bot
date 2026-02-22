@@ -22,33 +22,40 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+// 重连时间配置
 const (
-	reconnectInitial = 1 * time.Second
-	reconnectMax     = 30 * time.Second
+	reconnectInitial = 1 * time.Second  // 初始重连间隔
+	reconnectMax     = 30 * time.Second // 最大重连间隔
 )
 
+// MarketResolver 市场解析器接口
+// 用于在市场ID和交易对符号之间进行转换
 type MarketResolver interface {
 	GetMarketIdBySymbol(ctx context.Context, symbol string) (int16, error)
 	GetSymbolByMarketId(ctx context.Context, marketIndex int16) (string, error)
 }
 
+// LighterSubscriber Lighter交易所WebSocket订阅器
+// 负责与Lighter交易所建立WebSocket连接，订阅订单和市场数据推送
 type LighterSubscriber struct {
-	ctx      context.Context
-	cancel   context.CancelFunc
-	stopChan chan struct{}
+	ctx      context.Context    // 上下文
+	cancel   context.CancelFunc // 取消函数
+	stopChan chan struct{}      // 停止信号通道
 
-	url       string
-	conn      *websocket.Conn
-	proxy     config.Sock5Proxy
-	reconnect chan struct{}
+	url       string            // WebSocket连接地址
+	conn      *websocket.Conn   // WebSocket连接
+	proxy     config.Sock5Proxy // SOCK5代理配置
+	reconnect chan struct{}     // 重连信号通道
 
-	mutex          sync.Mutex
-	accounts       map[int64]*Signer
-	marketResolver MarketResolver
+	mutex          sync.Mutex        // 互斥锁
+	accounts       map[int64]*Signer // 已订阅的账户签名器
+	marketResolver MarketResolver    // 市场解析器
 
-	subMsgChan chan exchange.SubMessage
+	subMsgChan chan exchange.SubMessage // 订阅消息通道
 }
 
+// NewLighterSubscriber 创建Lighter WebSocket订阅器实例
+// marketResolver 市场解析器，proxy SOCK5代理配置
 func NewLighterSubscriber(marketResolver MarketResolver, proxy config.Sock5Proxy) *LighterSubscriber {
 	ctx, cancel := context.WithCancel(context.Background())
 	subscriber := &LighterSubscriber{
@@ -63,6 +70,7 @@ func NewLighterSubscriber(marketResolver MarketResolver, proxy config.Sock5Proxy
 	return subscriber
 }
 
+// Stop 停止WebSocket订阅服务
 func (subscriber *LighterSubscriber) Stop() {
 	logger.Infof("[LighterSubscriber] 准备停止服务")
 
@@ -85,6 +93,7 @@ func (subscriber *LighterSubscriber) Stop() {
 	logger.Infof("[LighterSubscriber] 服务已经停止")
 }
 
+// Start 启动WebSocket订阅服务
 func (subscriber *LighterSubscriber) Start() {
 	if subscriber.stopChan != nil {
 		return
@@ -98,12 +107,14 @@ func (subscriber *LighterSubscriber) Start() {
 	}
 }
 
+// WaitUntilConnected 等待连接建立
 func (subscriber *LighterSubscriber) WaitUntilConnected() {
 	for subscriber.conn == nil {
 		time.Sleep(time.Second * 1)
 	}
 }
 
+// SubscriptionChan 获取订阅消息通道
 func (subscriber *LighterSubscriber) SubscriptionChan() <-chan exchange.SubMessage {
 	if subscriber.subMsgChan == nil {
 		subscriber.subMsgChan = make(chan exchange.SubMessage, 1024)
@@ -111,6 +122,7 @@ func (subscriber *LighterSubscriber) SubscriptionChan() <-chan exchange.SubMessa
 	return subscriber.subMsgChan
 }
 
+// SubscribeMarketStats 订阅市场统计数据
 func (subscriber *LighterSubscriber) SubscribeMarketStats(symbol string) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
@@ -125,6 +137,7 @@ func (subscriber *LighterSubscriber) SubscribeMarketStats(symbol string) error {
 	return subscriber.conn.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
+// UnsubscribeMarketStats 取消订阅市场统计数据
 func (subscriber *LighterSubscriber) UnsubscribeMarketStats(symbol string) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
@@ -139,6 +152,7 @@ func (subscriber *LighterSubscriber) UnsubscribeMarketStats(symbol string) error
 	return subscriber.conn.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
+// SubscribeAccountOrders 订阅账户订单活动
 func (subscriber *LighterSubscriber) SubscribeAccountOrders(signer *Signer) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
@@ -159,6 +173,7 @@ func (subscriber *LighterSubscriber) SubscribeAccountOrders(signer *Signer) erro
 	return subscriber.conn.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
+// UnsubscribeAccountOrders 取消订阅账户订单活动
 func (subscriber *LighterSubscriber) UnsubscribeAccountOrders(signer *Signer) error {
 	if subscriber.conn == nil {
 		return errors.New("connection is not established")
@@ -174,6 +189,7 @@ func (subscriber *LighterSubscriber) UnsubscribeAccountOrders(signer *Signer) er
 	return subscriber.conn.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
+// run 运行WebSocket连接和重连逻辑
 func (subscriber *LighterSubscriber) run() {
 	subscriber.connect()
 
@@ -202,6 +218,7 @@ loop:
 	subscriber.stopChan <- struct{}{}
 }
 
+// connect 建立WebSocket连接
 func (subscriber *LighterSubscriber) connect() {
 	sock5Proxy := ""
 	if subscriber.proxy.Enable {
@@ -240,6 +257,7 @@ func (subscriber *LighterSubscriber) connect() {
 	go subscriber.readMessages()
 }
 
+// readMessages 读取WebSocket消息
 func (subscriber *LighterSubscriber) readMessages() {
 	defer subscriber.conn.Close()
 
@@ -299,6 +317,7 @@ func (subscriber *LighterSubscriber) readMessages() {
 	}
 }
 
+// scheduleReconnect 计划重连
 func (subscriber *LighterSubscriber) scheduleReconnect() {
 	if subscriber.ctx.Err() == nil {
 		select {
@@ -308,6 +327,7 @@ func (subscriber *LighterSubscriber) scheduleReconnect() {
 	}
 }
 
+// handleMarketStatsMessage 处理市场统计数据消息
 func (subscriber *LighterSubscriber) handleMarketStatsMessage(message WebSocketMessage) {
 	const prefix = "market_stats:"
 	if !strings.HasPrefix(message.Channel, prefix) {
@@ -339,6 +359,7 @@ func (subscriber *LighterSubscriber) handleMarketStatsMessage(message WebSocketM
 	}
 }
 
+// handleOrdersMessage 处理订单消息
 func (subscriber *LighterSubscriber) handleOrdersMessage(processedAccounts map[int64]struct{}, message WebSocketMessage) {
 	const prefix = "account_all_orders:"
 	if !strings.HasPrefix(message.Channel, prefix) {
