@@ -15,17 +15,21 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// MainnetBaseURL Lighter主网API地址
 const (
 	MainnetBaseURL = "https://mainnet.zklighter.elliot.ai"
 	MainnetChainId = uint32(304)
 )
 
+// Client Lighter交易所HTTP客户端
+// 用于与Lighter交易所API进行交互
 type Client struct {
-	chainId    uint32
-	endpoint   string
-	httpClient *http.Client
+	chainId    uint32       // 链ID
+	endpoint   string       // API端点地址
+	httpClient *http.Client // HTTP客户端
 }
 
+// NewClient 创建Lighter交易所客户端
 func NewClient(httpClient *http.Client) *Client {
 	c := Client{
 		chainId:    MainnetChainId,
@@ -35,6 +39,8 @@ func NewClient(httpClient *http.Client) *Client {
 	return &c
 }
 
+// GetNextNonce 获取下一个nonce值
+// 用于生成交易签名时需要的递增nonce
 func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (int64, error) {
 	result := &lighterhttp.NextNonce{}
 	err := getAndParseL2HTTPResponse(
@@ -54,6 +60,7 @@ func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyInd
 	return result.Nonce, nil
 }
 
+// GetApiKey 获取API密钥信息
 func (c *Client) GetApiKey(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (*lighterhttp.AccountApiKeys, error) {
 	result := &lighterhttp.AccountApiKeys{}
 	err := getAndParseL2HTTPResponse(
@@ -73,6 +80,7 @@ func (c *Client) GetApiKey(ctx context.Context, accountIndex int64, apiKeyIndex 
 	return result, nil
 }
 
+// GetTxByHash 根据交易哈希查询交易详情
 func (c *Client) GetTxByHash(ctx context.Context, hash string) (*Transaction, error) {
 	var result Transaction
 	err := getAndParseL2HTTPResponse(
@@ -89,6 +97,7 @@ func (c *Client) GetTxByHash(ctx context.Context, hash string) (*Transaction, er
 	return &result, nil
 }
 
+// GetAccountByIndex 根据账户索引获取账户信息
 func (c *Client) GetAccountByIndex(ctx context.Context, accountIndex int64) (Accounts, error) {
 	var result Accounts
 	err := getAndParseL2HTTPResponse(
@@ -108,6 +117,7 @@ func (c *Client) GetAccountByIndex(ctx context.Context, accountIndex int64) (Acc
 	return result, nil
 }
 
+// GetLastTradePrice 获取市场最新成交价格
 func (c *Client) GetLastTradePrice(ctx context.Context, marketId uint) (decimal.Decimal, error) {
 	var result OrderBookDetails
 	err := getAndParseL2HTTPResponse(
@@ -131,6 +141,8 @@ func (c *Client) GetLastTradePrice(ctx context.Context, marketId uint) (decimal.
 	return result.OrderBookDetails[0].LastTradePrice, nil
 }
 
+// GetOrderBooksMetadata 获取订单簿元数据
+// 可选参数marketId用于指定特定市场
 func (c *Client) GetOrderBooksMetadata(ctx context.Context, marketId ...uint) (OrderBooksMetadata, error) {
 	params := map[string]any{}
 	if len(marketId) > 0 {
@@ -156,6 +168,8 @@ func (c *Client) GetOrderBooksMetadata(ctx context.Context, marketId ...uint) (O
 	return result, nil
 }
 
+// SendRawTx 发送原始交易(单笔)
+// 将签名的交易发送到Lighter链上执行
 func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (string, error) {
 	data := url.Values{"tx_type": {strconv.Itoa(int(txType))}, "tx_info": {txInfo}}
 	req, err := http.NewRequestWithContext(ctx, "POST", c.endpoint+"/api/v1/sendTx", strings.NewReader(data.Encode()))
@@ -190,6 +204,8 @@ func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (
 	return res.TxHash, nil
 }
 
+// SendRawTxBatch 批量发送原始交易
+// 一次性发送多笔签名交易，提高效率
 func (c *Client) SendRawTxBatch(ctx context.Context, txTypes []TX_TYPE, txInfos []string) ([]string, error) {
 	if len(txTypes) != len(txInfos) {
 		return nil, errors.New("transaction types and info count mismatch")

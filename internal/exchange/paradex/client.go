@@ -16,19 +16,23 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+// PARADEX_HTTP_URL Paradex主网API地址
 const (
 	PARADEX_HTTP_URL = "https://api.prod.paradex.trade/v1"
 )
 
+// Client Paradex交易所HTTP客户端
+// 用于与Paradex交易所API进行交互，支持StarkNet签名认证
 type Client struct {
-	endpoint     string
-	httpClient   *http.Client
-	systemConfig *SystemConfigRes
+	endpoint     string           // API端点地址
+	httpClient   *http.Client     // HTTP客户端
+	systemConfig *SystemConfigRes // 系统配置(缓存)
 
-	jwtTokenCache *gocache.Cache
-	sfGroup       singleflight.Group
+	jwtTokenCache *gocache.Cache     // JWT令牌缓存
+	sfGroup       singleflight.Group // 单飞组(防止并发刷新token)
 }
 
+// NewClient 创建Paradex交易所客户端
 func NewClient(httpClient *http.Client) *Client {
 	c := Client{
 		endpoint:      PARADEX_HTTP_URL,
@@ -38,6 +42,7 @@ func NewClient(httpClient *http.Client) *Client {
 	return &c
 }
 
+// parseExpirationTime 解析JWT令牌过期时间
 func parseExpirationTime(jwtToken string) (time.Time, error) {
 	token, _, err := jwt.NewParser().ParseUnverified(jwtToken, jwt.MapClaims{})
 	if err != nil {
@@ -52,6 +57,7 @@ func parseExpirationTime(jwtToken string) (time.Time, error) {
 	return v.Time, nil
 }
 
+// GetMarkets 获取市场列表
 func (c *Client) GetMarkets(ctx context.Context) (*MarketRes, error) {
 	var res MarketRes
 	var errRes *ErrorRes
@@ -70,6 +76,7 @@ func (c *Client) GetMarkets(ctx context.Context) (*MarketRes, error) {
 	return &res, nil
 }
 
+// GetMarketSummary 获取市场摘要信息
 func (c *Client) GetMarketSummary(ctx context.Context, market string) (*MarketSummaryRes, error) {
 	var errRes *ErrorRes
 	var res MarketSummaryRes
@@ -88,6 +95,7 @@ func (c *Client) GetMarketSummary(ctx context.Context, market string) (*MarketSu
 	return &res, nil
 }
 
+// GetSymtemConfig 获取系统配置
 func (c *Client) GetSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
 	var errRes *ErrorRes
 	var res SystemConfigRes
@@ -105,6 +113,7 @@ func (c *Client) GetSymtemConfig(ctx context.Context) (*SystemConfigRes, error) 
 	return &res, nil
 }
 
+// LoadSymtemConfig 加载系统配置(带缓存)
 func (c *Client) LoadSymtemConfig(ctx context.Context) (*SystemConfigRes, error) {
 	if c.systemConfig != nil {
 		return c.systemConfig, nil
@@ -119,6 +128,8 @@ func (c *Client) LoadSymtemConfig(ctx context.Context) (*SystemConfigRes, error)
 	return systemConfig, nil
 }
 
+// GetJwtToken 获取JWT认证令牌
+// 使用StarkNet签名进行身份验证
 func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey string) (string, error) {
 	systemConfig, err := c.LoadSymtemConfig(ctx)
 	if err != nil {
@@ -200,6 +211,8 @@ func (c *Client) GetJwtToken(ctx context.Context, dexAccount, dexPrivateKey stri
 	return res.JwtToken, nil
 }
 
+// EnsureJwtToken 确保JWT令牌有效
+// 如果缓存中有有效令牌则直接返回，否则重新获取
 func (c *Client) EnsureJwtToken(ctx context.Context, dexAccount, dexPrivateKey string) (string, error) {
 	if v, ok := c.jwtTokenCache.Get(dexAccount); ok {
 		if token, isString := v.(string); isString && token != "" {

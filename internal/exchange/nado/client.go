@@ -14,22 +14,26 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Nado交易所API端点地址
 const (
-	GATEWAY_ENDPOINT = "https://gateway.prod.nado.xyz/v1"
-	ARCHIVE_ENDPOINT = "https://archive.prod.nado.xyz/v1"
-	TRIGGER_ENDPOINT = "https://trigger.prod.nado.xyz/v1"
+	GATEWAY_ENDPOINT = "https://gateway.prod.nado.xyz/v1" // 网关端点
+	ARCHIVE_ENDPOINT = "https://archive.prod.nado.xyz/v1" // 归档端点
+	TRIGGER_ENDPOINT = "https://trigger.prod.nado.xyz/v1" // 触发端点
 )
 
+// Client Nado交易所HTTP客户端
+// 用于与Nado交易所API进行交互
 type Client struct {
-	httpClient      *http.Client
-	gatewayEndpoint string
-	archiveEndpoint string
-	triggerEndpoint string
+	httpClient      *http.Client // HTTP客户端
+	gatewayEndpoint string       // 网关端点地址
+	archiveEndpoint string       // 归档端点地址
+	triggerEndpoint string       // 触发端点地址
 
-	mutex     sync.Mutex
-	contracts *ContractsRes
+	mutex     sync.Mutex    // 互斥锁(用于缓存保护)
+	contracts *ContractsRes // 合约信息缓存
 }
 
+// NewClient 创建Nado交易所客户端
 func NewClient(httpClient *http.Client) *Client {
 	c := Client{
 		httpClient:      httpClient,
@@ -40,6 +44,7 @@ func NewClient(httpClient *http.Client) *Client {
 	return &c
 }
 
+// getContracts 获取合约信息(内部方法)
 func (c *Client) getContracts(ctx context.Context) (*ContractsRes, error) {
 	var v ContractsRes
 
@@ -51,6 +56,7 @@ func (c *Client) getContracts(ctx context.Context) (*ContractsRes, error) {
 	return &v, nil
 }
 
+// GetContracts 获取合约信息(带缓存)
 func (c *Client) GetContracts(ctx context.Context) (*ContractsRes, error) {
 	c.mutex.Lock()
 	if c.contracts != nil {
@@ -72,6 +78,7 @@ func (c *Client) GetContracts(ctx context.Context) (*ContractsRes, error) {
 	return &v, nil
 }
 
+// GetNonces 获取账户nonce值
 func (c *Client) GetNonces(ctx context.Context, address common.Address) (*NoncesRes, error) {
 	var v NoncesRes
 
@@ -84,6 +91,7 @@ func (c *Client) GetNonces(ctx context.Context, address common.Address) (*Nonces
 	return &v, nil
 }
 
+// GetSubaccountInfo 获取子账户信息
 func (c *Client) GetSubaccountInfo(ctx context.Context, sender Sender) (*SubaccountData, error) {
 	var v SubaccountData
 
@@ -96,6 +104,7 @@ func (c *Client) GetSubaccountInfo(ctx context.Context, sender Sender) (*Subacco
 	return &v, nil
 }
 
+// FindSubaccountsByAddress 根据地址查找子账户
 func (c *Client) FindSubaccountsByAddress(ctx context.Context, address common.Address) (*SubaccountsRes, error) {
 	var v SubaccountsRes
 
@@ -110,6 +119,7 @@ func (c *Client) FindSubaccountsByAddress(ctx context.Context, address common.Ad
 	return &v, nil
 }
 
+// GetOpenOrders 获取活跃订单
 func (c *Client) GetOpenOrders(ctx context.Context, sender Sender, productId int) (*OpenOrdersRes, error) {
 	var v OpenOrdersRes
 
@@ -123,6 +133,7 @@ func (c *Client) GetOpenOrders(ctx context.Context, sender Sender, productId int
 	return &v, nil
 }
 
+// GetArchiveOrders 获取历史订单
 func (c *Client) GetArchiveOrders(ctx context.Context, sender Sender, submissionIdx *big.Int, limit int) (*ArchiveOrdersRes, error) {
 	var v ArchiveOrdersRes
 
@@ -148,6 +159,7 @@ func (c *Client) GetArchiveOrders(ctx context.Context, sender Sender, submission
 	return &v, nil
 }
 
+// doArchiveQuery 执行归档端点查询
 func (c *Client) doArchiveQuery(ctx context.Context, payload any, res any) error {
 	var errorMessage string
 	errorString := requests.ValidatorHandler(
@@ -171,6 +183,7 @@ func (c *Client) doArchiveQuery(ctx context.Context, payload any, res any) error
 	return nil
 }
 
+// doTriggerQuery 执行触发端点查询
 func (c *Client) doTriggerQuery(ctx context.Context, payload any, res any) error {
 	var errorMessage string
 	errorString := requests.ValidatorHandler(
@@ -194,6 +207,7 @@ func (c *Client) doTriggerQuery(ctx context.Context, payload any, res any) error
 	return nil
 }
 
+// doGatewayQuery 执行网关端点查询
 func (c *Client) doGatewayQuery(ctx context.Context, params url.Values, res any) error {
 	var result Result
 
@@ -218,6 +232,7 @@ func (c *Client) doGatewayQuery(ctx context.Context, params url.Values, res any)
 	return json.Unmarshal(result.Data, &res)
 }
 
+// doGatewayExecute 执行网关端点请求
 func (c *Client) doGatewayExecute(ctx context.Context, payload any, res any) error {
 	var result Result
 
