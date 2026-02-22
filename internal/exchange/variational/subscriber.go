@@ -1,3 +1,5 @@
+// Package variational 提供Variational交易所的订阅管理实现
+// 管理公共市场数据连接和用户持仓WebSocket连接的生命周期
 package variational
 
 import (

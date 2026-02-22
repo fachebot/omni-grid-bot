@@ -1,3 +1,5 @@
+// Package nado 提供Nado交易所的客户端实现
+// 支持子账户订单管理、EIP-712签名认证等功能
 package nado
 
 import (
@@ -12,20 +14,24 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// UserClient Nado用户客户端
+// 封装用户相关的API调用，包括下单、取消订单等
 type UserClient struct {
-	client       *Client
-	privateKey   *ecdsa.PrivateKey
-	subaccountID *big.Int
-	sender       Sender
+	client       *Client           // Nado HTTP客户端
+	privateKey   *ecdsa.PrivateKey // 账户私钥
+	subaccountID *big.Int          // 子账户ID
+	sender       Sender            // 发送者地址
 }
 
+// PlaceOrderParams 下单参数
 type PlaceOrderParams struct {
-	ProductId int
-	Price     decimal.Decimal
-	Amount    decimal.Decimal
-	Appendix  *Appendix
+	ProductId int             // 产品ID
+	Price     decimal.Decimal // 价格
+	Amount    decimal.Decimal // 数量
+	Appendix  *Appendix       // 订单附录
 }
 
+// NewUserClient 创建用户客户端实例
 func NewUserClient(client *Client, hexKey string, subaccountID *big.Int) (*UserClient, error) {
 	if len(hexKey) >= 2 &&
 		(hexKey[:2] == "0x" || hexKey[:2] == "0X") {
@@ -50,10 +56,12 @@ func NewUserClient(client *Client, hexKey string, subaccountID *big.Int) (*UserC
 	return c, nil
 }
 
+// Sender 获取发送者地址
 func (c *UserClient) Sender() Sender {
 	return c.sender
 }
 
+// PlaceOrders 批量下单
 func (c *UserClient) PlaceOrders(ctx context.Context, orders []PlaceOrderParams) (PlaceOrdersRes, error) {
 	if len(orders) == 0 {
 		return nil, nil
@@ -82,6 +90,7 @@ func (c *UserClient) PlaceOrders(ctx context.Context, orders []PlaceOrderParams)
 	return res, nil
 }
 
+// CancelProductOrders 取消指定产品的所有订单
 func (c *UserClient) CancelProductOrders(ctx context.Context, productIds []int) (*CancelProductOrdersRes, error) {
 	if len(productIds) == 0 {
 		return nil, nil
@@ -125,6 +134,7 @@ func (c *UserClient) CancelProductOrders(ctx context.Context, productIds []int) 
 	return &res, nil
 }
 
+// signPlaceOrder 对订单进行签名
 func (c *UserClient) signPlaceOrder(chainId int64, params PlaceOrderParams, nonce uint64) (*PlaceOrderInfo, error) {
 	priceX18 := ethutil.FormatUnits(params.Price, 18)
 	amountX18 := ethutil.FormatUnits(params.Amount, 18)

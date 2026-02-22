@@ -1,3 +1,5 @@
+// Package nado 提供Nado交易所的EIP-712签名功能
+// 支持订单签名、取消订单签名等功能
 package nado
 
 import (
@@ -12,21 +14,25 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
+// SignPlaceOrderParams 下单签名参数
 type SignPlaceOrderParams struct {
-	Sender     Sender
-	PriceX18   *big.Int
-	Amount     *big.Int
-	Expiration uint64
-	Nonce      uint64
-	Appendix   *big.Int
+	Sender     Sender   // 发送者地址
+	PriceX18   *big.Int // 价格 (18位精度)
+	Amount     *big.Int // 数量
+	Expiration uint64   // 过期时间
+	Nonce      uint64   // 随机数
+	Appendix   *big.Int // 订单附录
 }
 
+// SignCancellationProductsParams 取消产品订单签名参数
 type SignCancellationProductsParams struct {
-	Sender     Sender
-	ProductIds []*big.Int
-	Nonce      uint64
+	Sender     Sender     // 发送者地址
+	ProductIds []*big.Int // 产品ID列表
+	Nonce      uint64     // 随机数
 }
 
+// GenOrderVerifyingContract 生成订单验证合约地址
+// 根据产品ID生成对应的验证合约地址
 func GenOrderVerifyingContract(productID uint64) common.Address {
 	var beBytes [20]byte
 
@@ -38,6 +44,7 @@ func GenOrderVerifyingContract(productID uint64) common.Address {
 	return common.BytesToAddress(beBytes[:])
 }
 
+// SignTypedData 对TypedData进行EIP-712签名
 func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
 	if err != nil {
@@ -62,6 +69,7 @@ func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) (
 	return signature, nil
 }
 
+// SignPlaceOrder 对下单参数进行签名
 func SignPlaceOrder(signer *ecdsa.PrivateKey, chainId int64, verifyingContract common.Address, params SignPlaceOrderParams) (string, error) {
 	typedData := apitypes.TypedData{
 		Types: apitypes.Types{
@@ -104,6 +112,7 @@ func SignPlaceOrder(signer *ecdsa.PrivateKey, chainId int64, verifyingContract c
 	return "0x" + hex.EncodeToString(signature), nil
 }
 
+// SignListTriggerOrders 对触发订单列表进行签名
 func SignListTriggerOrders(signer *ecdsa.PrivateKey, chainId int64, verifyingContract common.Address, sender Sender, recvTime uint64) (string, error) {
 	typedData := apitypes.TypedData{
 		Types: apitypes.Types{
@@ -138,6 +147,7 @@ func SignListTriggerOrders(signer *ecdsa.PrivateKey, chainId int64, verifyingCon
 	return "0x" + hex.EncodeToString(signature), nil
 }
 
+// SignCancellationProducts 对取消产品订单进行签名
 func SignCancellationProducts(signer *ecdsa.PrivateKey, chainId int64, verifyingContract common.Address, params SignCancellationProductsParams) (string, error) {
 	typedData := apitypes.TypedData{
 		Types: apitypes.Types{

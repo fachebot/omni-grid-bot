@@ -1,3 +1,4 @@
+// Package variational 提供Variational交易所的数据类型定义
 package variational
 
 import (
@@ -24,12 +25,12 @@ func (err *ErrorRes) Error() string {
 
 // LoginRes 登录响应
 type LoginRes struct {
-	Token string `json:"token"`
+	Token string `json:"token"` // JWT令牌
 }
 
-// 生成签名数据响应
+// GenerateSigningDataRes 生成签名数据响应
 type GenerateSigningDataRes struct {
-	Message string `json:"message"`
+	Message string `json:"message"` // 签名消息
 }
 
 // Instrument 交易品种信息
@@ -111,9 +112,9 @@ type PortfolioRes struct {
 
 // CreateOrderRes 创建订单响应
 type CreateOrderRes struct {
-	RfqId           string  `json:"rfq_id"`
-	TakeProfitRfqId *string `json:"take_profit_rfq_id"`
-	StopLossRfqId   *string `json:"stop_loss_rfq_id"`
+	RfqId           string  `json:"rfq_id"`             // 报价ID
+	TakeProfitRfqId *string `json:"take_profit_rfq_id"` // 止盈报价ID
+	StopLossRfqId   *string `json:"stop_loss_rfq_id"`   // 止损报价ID
 }
 
 // OrderStatus 订单状态枚举
@@ -285,8 +286,8 @@ type IndicativeQuoteRes struct {
 
 // SetLeverageRes 设置杠杆响应
 type SetLeverageRes struct {
-	Current string `json:"current"`
-	Max     string `json:"max"`
+	Current string `json:"current"` // 当前杠杆
+	Max     string `json:"max"`     // 最大杠杆
 }
 
 // PoolPortfolioResult 资金池组合查询结果
@@ -298,7 +299,7 @@ type PoolPortfolioResult struct {
 	PublishedAt string          `json:"published_at"` // 数据发布时间
 }
 
-// 标的价格数据
+// UnderlyingPricing 标的价格数据
 type UnderlyingPricing struct {
 	Price           decimal.Decimal `json:"price"`            // 价格
 	NativePrice     decimal.Decimal `json:"native_price"`     // 本地计价价格
@@ -313,7 +314,7 @@ type UnderlyingPricing struct {
 	Timestamp       time.Time       `json:"timestamp"`        // 时间戳
 }
 
-// 订阅消息
+// SubscriptionPayload 订阅消息
 type SubscriptionPayload struct {
 	Channel string             `json:"channel"`           // 频道标识
 	Pricing *UnderlyingPricing `json:"pricing,omitempty"` // 价格数据

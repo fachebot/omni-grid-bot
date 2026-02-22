@@ -11,24 +11,30 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// UserClient Paradex用户客户端
+// 封装用户相关的API调用，包括账户信息、订单操作等
 type UserClient struct {
-	client        *Client
-	dexAccount    string
-	dexPrivateKey string
+	client        *Client // Paradex HTTP客户端
+	dexAccount    string  // StarkNet账户地址
+	dexPrivateKey string  // 账户私钥
 }
 
+// NewUserClient 创建用户客户端实例
 func NewUserClient(client *Client, dexAccount, dexPrivateKey string) *UserClient {
 	return &UserClient{client: client, dexAccount: dexAccount, dexPrivateKey: dexPrivateKey}
 }
 
+// DexAccount 获取账户地址
 func (c *UserClient) DexAccount() string {
 	return c.dexAccount
 }
 
+// EnsureJwtToken 确保JWT令牌有效
 func (c *UserClient) EnsureJwtToken(ctx context.Context) (string, error) {
 	return c.client.EnsureJwtToken(ctx, c.dexAccount, c.dexPrivateKey)
 }
 
+// GetAccount 获取账户信息
 func (c *UserClient) GetAccount(ctx context.Context) (*AccountInfoRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -53,6 +59,7 @@ func (c *UserClient) GetAccount(ctx context.Context) (*AccountInfoRes, error) {
 	return &res, nil
 }
 
+// GetAccountSummaries 获取账户摘要信息
 func (c *UserClient) GetAccountSummaries(ctx context.Context) (AccountSummaries, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -77,6 +84,7 @@ func (c *UserClient) GetAccountSummaries(ctx context.Context) (AccountSummaries,
 	return res, nil
 }
 
+// GetPositions 获取当前持仓
 func (c *UserClient) GetPositions(ctx context.Context) (*PositionRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -101,6 +109,7 @@ func (c *UserClient) GetPositions(ctx context.Context) (*PositionRes, error) {
 	return &res, nil
 }
 
+// GetOpenOrders 获取活跃订单
 func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -136,6 +145,7 @@ func (c *UserClient) GetOpenOrders(ctx context.Context) (*OpenOrdersRes, error) 
 	return &res, nil
 }
 
+// GetUserOrders 获取用户订单历史
 func (c *UserClient) GetUserOrders(ctx context.Context, startAt *time.Time, cursor string, size int) (*OrdersRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -172,6 +182,7 @@ func (c *UserClient) GetUserOrders(ctx context.Context, startAt *time.Time, curs
 	return &res, nil
 }
 
+// GetMarginConfig 获取保证金配置
 func (c *UserClient) GetMarginConfig(ctx context.Context) (*AccounttMarginConfig, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -196,6 +207,7 @@ func (c *UserClient) GetMarginConfig(ctx context.Context) (*AccounttMarginConfig
 	return &res, nil
 }
 
+// ListFills 获取成交记录
 func (c *UserClient) ListFills(ctx context.Context, startAt *time.Time, cursor string, size int) (*FillRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -230,6 +242,7 @@ func (c *UserClient) ListFills(ctx context.Context, startAt *time.Time, cursor s
 	return &res, nil
 }
 
+// UpsertAccountMargin 更新保证金设置
 func (c *UserClient) UpsertAccountMargin(ctx context.Context, market string, leverage uint, marginType MarginType) (*MarginConfig, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -260,6 +273,7 @@ func (c *UserClient) UpsertAccountMargin(ctx context.Context, market string, lev
 	return &res, nil
 }
 
+// UpdateAccountMarketMaxSlippage 更新市场最大滑点
 func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, market string, maxSlippageBps int) (*UserProfile, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -289,6 +303,7 @@ func (c *UserClient) UpdateAccountMarketMaxSlippage(ctx context.Context, market 
 	return &res, nil
 }
 
+// processOrderPrices 处理订单价格
 func (c *UserClient) processOrderPrices(orders []*Order) {
 	for _, order := range orders {
 		if order == nil {
@@ -306,6 +321,7 @@ func (c *UserClient) processOrderPrices(orders []*Order) {
 	}
 }
 
+// sendSingleBatch 发送单批订单
 func (c *UserClient) sendSingleBatch(ctx context.Context, batch []*CreateOrderReq, jwtToken string) (*CreateBatchOrdersRes, error) {
 	var errRes *ErrorRes
 	var res CreateBatchOrdersRes
@@ -331,6 +347,7 @@ func (c *UserClient) sendSingleBatch(ctx context.Context, batch []*CreateOrderRe
 	return &res, nil
 }
 
+// sendBatchOrdersInChunks 分批发送订单(每批最多10个)
 func (c *UserClient) sendBatchOrdersInChunks(ctx context.Context, orders []*CreateOrderReq, jwtToken string) ([]*Order, []*CreateOrderError, error) {
 	const maxBatchSize = 10
 
@@ -361,6 +378,7 @@ func (c *UserClient) sendBatchOrdersInChunks(ctx context.Context, orders []*Crea
 	return allOrders, allErrors, nil
 }
 
+// CreateBatchOrders 批量创建订单
 func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*CreateOrderReq) (*CreateBatchOrdersRes, error) {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -387,6 +405,7 @@ func (c *UserClient) CreateBatchOrders(ctx context.Context, batchOrders []*Creat
 	return &CreateBatchOrdersRes{Orders: allOrders, Errors: allErrors}, nil
 }
 
+// CancelAllOpenOrders 取消所有活跃订单
 func (c *UserClient) CancelAllOpenOrders(ctx context.Context, market string) error {
 	jwtToken, err := c.EnsureJwtToken(ctx)
 	if err != nil {

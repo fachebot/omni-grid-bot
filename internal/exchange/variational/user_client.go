@@ -1,3 +1,5 @@
+// Package variational 提供Variational交易所的客户端实现
+// 支持Ethereum签名认证、订单管理、持仓查询等功能
 package variational
 
 import (
@@ -9,24 +11,30 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// UserClient Variational用户客户端
+// 封装用户相关的API调用，包括账户信息、订单操作等
 type UserClient struct {
-	client        *Client
-	ethAccount    string
-	ethPrivateKey string
+	client        *Client // Variational HTTP客户端
+	ethAccount    string  // Ethereum账户地址
+	ethPrivateKey string  // 账户私钥
 }
 
+// NewUserClient 创建用户客户端实例
 func NewUserClient(client *Client, ethAccount, ethPrivateKey string) *UserClient {
 	return &UserClient{client: client, ethAccount: ethAccount, ethPrivateKey: ethPrivateKey}
 }
 
+// EthAccount 获取账户地址
 func (c *UserClient) EthAccount() string {
 	return c.ethAccount
 }
 
+// EnsureJwtToken 确保JWT令牌有效
 func (c *UserClient) EnsureJwtToken(ctx context.Context) (string, error) {
 	return c.client.EnsureJwtToken(ctx, c.ethAccount, c.ethPrivateKey)
 }
 
+// GetPositions 获取当前持仓
 func (c *UserClient) GetPositions(ctx context.Context) ([]*Position, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -46,6 +54,7 @@ func (c *UserClient) GetPositions(ctx context.Context) ([]*Position, error) {
 	return positions, nil
 }
 
+// GetPortfolio 获取投资组合信息
 func (c *UserClient) GetPortfolio(ctx context.Context, computeMargin bool) (*PortfolioRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -65,6 +74,7 @@ func (c *UserClient) GetPortfolio(ctx context.Context, computeMargin bool) (*Por
 	return &portfolio, nil
 }
 
+// GetUserOrders 获取用户订单历史
 func (c *UserClient) GetUserOrders(ctx context.Context, offset, limit int) (*OrdersRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -84,6 +94,7 @@ func (c *UserClient) GetUserOrders(ctx context.Context, offset, limit int) (*Ord
 	return &orders, nil
 }
 
+// GetUserPendingOrders 获取待处理订单
 func (c *UserClient) GetUserPendingOrders(ctx context.Context, offset, limit int) (*OrdersRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -103,6 +114,7 @@ func (c *UserClient) GetUserPendingOrders(ctx context.Context, offset, limit int
 	return &orders, nil
 }
 
+// SetLeverage 设置杠杆倍数
 func (c *UserClient) SetLeverage(ctx context.Context, asset string, leverage int) error {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -123,6 +135,7 @@ func (c *UserClient) SetLeverage(ctx context.Context, asset string, leverage int
 	return nil
 }
 
+// IndicativeQuote 获取指示性报价
 func (c *UserClient) IndicativeQuote(ctx context.Context, symbol string, qty decimal.Decimal) (*IndicativeQuoteRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -144,6 +157,7 @@ func (c *UserClient) IndicativeQuote(ctx context.Context, symbol string, qty dec
 	return &r, nil
 }
 
+// CreateLimitOrder 创建限价订单
 func (c *UserClient) CreateLimitOrder(ctx context.Context, symbol string, side OrderSide, limitPrice, qty decimal.Decimal, isReduceOnly bool) (*CreateOrderRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -182,6 +196,7 @@ func (c *UserClient) CreateLimitOrder(ctx context.Context, symbol string, side O
 	return &r, nil
 }
 
+// CreateMarketOrder 创建市价订单
 func (c *UserClient) CreateMarketOrder(ctx context.Context, symbol string, side OrderSide, qty, maxSlippage decimal.Decimal, isReduceOnly bool) (*CreateOrderRes, error) {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
@@ -209,6 +224,7 @@ func (c *UserClient) CreateMarketOrder(ctx context.Context, symbol string, side 
 	return &r, nil
 }
 
+// CancelOrder 取消订单
 func (c *UserClient) CancelOrder(ctx context.Context, rfqId string) error {
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {

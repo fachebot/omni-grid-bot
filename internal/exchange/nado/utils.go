@@ -1,3 +1,5 @@
+// Package nado 提供Nado交易所的工具函数和类型定义
+// 包括Sender地址处理、订单附录编码、nonce生成等功能
 package nado
 
 import (
@@ -14,9 +16,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Sender 发送者地址结构
+// 包含以太坊地址和子账户ID
 type Sender struct {
-	Address      common.Address
-	SubaccountID *big.Int
+	Address      common.Address // 以太坊地址
+	SubaccountID *big.Int       // 子账户ID
 }
 
 // String 方法用于将 Sender 转换为字符串

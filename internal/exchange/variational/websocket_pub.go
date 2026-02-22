@@ -1,3 +1,5 @@
+// Package variational 提供Variational交易所的WebSocket公共数据连接实现
+// 支持实时市场数据订阅、重连机制和心跳检测
 package variational
 
 import (

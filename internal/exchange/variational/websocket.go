@@ -1,3 +1,5 @@
+// Package variational 提供Variational交易所的WebSocket用户连接实现
+// 支持实时持仓推送、重连机制和心跳检测
 package variational
 
 import (
@@ -21,8 +23,10 @@ const (
 	reconnectMax     = 30 * time.Second
 )
 
-type StoppedCallback func(dexAccount string)
+type StoppedCallback func(ethAccount string)
 
+// VariationalWS Variational WebSocket用户端
+// 管理与Variational交易所的用户数据WebSocket连接
 type VariationalWS struct {
 	ctx      context.Context
 	cancel   context.CancelFunc

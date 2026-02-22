@@ -1,3 +1,5 @@
+// Package paradex 提供Paradex交易所的StarkNet签名相关功能
+// 支持StarkNet ECDSA签名、TypedData构造和消息哈希计算
 package paradex
 
 import (
@@ -16,8 +18,10 @@ import (
 var scaleX8Decimal = decimal.RequireFromString("100000000")
 var snMessageBigInt = types.UTF8StrToBig("StarkNet Message")
 
+// OnboardingPayload 入驻请求数据
+// 用于用户首次入驻时的StarkNet身份验证
 type OnboardingPayload struct {
-	Action string
+	Action string // 操作类型
 }
 
 func (o *OnboardingPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
@@ -28,12 +32,14 @@ func (o *OnboardingPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.I
 	return
 }
 
+// AuthPayload 身份验证请求数据
+// 用于JWT令牌的StarkNet签名认证
 type AuthPayload struct {
-	Method     string
-	Path       string
-	Body       string
-	Timestamp  string
-	Expiration string
+	Method     string // HTTP方法
+	Path       string // 请求路径
+	Body       string // 请求体
+	Timestamp  string // 时间戳
+	Expiration string // 过期时间
 }
 
 func (o *AuthPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
@@ -55,23 +61,25 @@ func (o *AuthPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	return fmtEnc
 }
 
+// OrderPayload 订单签名数据
+// 用于订单提交的StarkNet签名，包含时间戳、市场、方向、类型、数量和价格
 type OrderPayload struct {
-	Timestamp int64  // Unix timestamp in milliseconds when signature was created
-	Market    string // Market name - ETH-USD-PERP
-	Side      string // 1 for buy, 2 for sell
-	OrderType string // MARKET or LIMIT
-	Size      string // Size scaled by 1e8
-	Price     string // Price scaled by 1e8 (Price is 0 for MARKET orders)
+	Timestamp int64  // 签名创建时的Unix时间戳(毫秒)
+	Market    string // 市场名称，如 ETH-USD-PERP
+	Side      string // 方向：1=买入，2=卖出
+	OrderType string // 订单类型：MARKET 或 LIMIT
+	Size      string // 数量，乘以1e8精度
+	Price     string // 价格，乘以1e8精度（市价单为0）
 }
 
-// Multiplies size by decimal precision of 8
-// e.g. 0.2 is converted to 20_000_000 (0.2 * 10^8)
+// GetScaledSize 获取缩放后的数量
+// 将数量乘以1e8精度，如0.2转换为20_000_000 (0.2 * 10^8)
 func (o *OrderPayload) GetScaledSize() string {
 	return decimal.RequireFromString(o.Size).Mul(scaleX8Decimal).String()
 }
 
-// Multiplies price by decimal precision of 8
-// e.g. 3_309.33 is converted to 330_933_000_000 (3_309.33 * 10^8)
+// GetScaledPrice 获取缩放后的价格
+// 将价格乘以1e8精度，如3_309.33转换为330_933_000_000 (3_309.33 * 10^8)
 func (o *OrderPayload) GetScaledPrice() string {
 	price := o.Price
 	if OrderType(o.OrderType) == OrderTypeMarket {
@@ -103,6 +111,7 @@ func (o *OrderPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	return fmtEnc
 }
 
+// domainDefinition 定义StarkNet域验证类型
 func domainDefinition() *caigo.TypeDef {
 	return &caigo.TypeDef{Definitions: []caigo.Definition{
 		{Name: "name", Type: "felt"},
@@ -110,6 +119,8 @@ func domainDefinition() *caigo.TypeDef {
 		{Name: "version", Type: "felt"}}}
 }
 
+// domain 创建StarkNet域对象
+// 包含Paradex名称、版本和链ID
 func domain(chainId string) *caigo.Domain {
 	return &caigo.Domain{
 		Name:    "Paradex",
@@ -118,11 +129,13 @@ func domain(chainId string) *caigo.Domain {
 	}
 }
 
+// onboardingPayloadDefinition 定义入驻请求的TypedData结构
 func onboardingPayloadDefinition() *caigo.TypeDef {
 	return &caigo.TypeDef{Definitions: []caigo.Definition{
 		{Name: "action", Type: "felt"}}}
 }
 
+// authPayloadDefinition 定义身份验证请求的TypedData结构
 func authPayloadDefinition() *caigo.TypeDef {
 	return &caigo.TypeDef{Definitions: []caigo.Definition{
 		{Name: "method", Type: "felt"},
@@ -132,6 +145,7 @@ func authPayloadDefinition() *caigo.TypeDef {
 		{Name: "expiration", Type: "felt"}}}
 }
 
+// orderPayloadDefinition 定义订单请求的TypedData结构
 func orderPayloadDefinition() *caigo.TypeDef {
 	return &caigo.TypeDef{Definitions: []caigo.Definition{
 		{Name: "timestamp", Type: "felt"},
@@ -142,6 +156,7 @@ func orderPayloadDefinition() *caigo.TypeDef {
 		{Name: "price", Type: "felt"}}}
 }
 
+// onboardingTypes 返回入驻验证的TypedData类型映射
 func onboardingTypes() map[string]caigo.TypeDef {
 	return map[string]caigo.TypeDef{
 		"StarkNetDomain": *domainDefinition(),
@@ -149,6 +164,7 @@ func onboardingTypes() map[string]caigo.TypeDef {
 	}
 }
 
+// authTypes 返回身份验证的TypedData类型映射
 func authTypes() map[string]caigo.TypeDef {
 	return map[string]caigo.TypeDef{
 		"StarkNetDomain": *domainDefinition(),
@@ -156,6 +172,7 @@ func authTypes() map[string]caigo.TypeDef {
 	}
 }
 
+// orderTypes 返回订单验证的TypedData类型映射
 func orderTypes() map[string]caigo.TypeDef {
 	return map[string]caigo.TypeDef{
 		"StarkNetDomain": *domainDefinition(),
@@ -163,6 +180,8 @@ func orderTypes() map[string]caigo.TypeDef {
 	}
 }
 
+// NewVerificationTypedData 创建验证类型的TypedData
+// 根据验证类型(Onboarding/Auth/Order)创建对应的TypedData结构
 func NewVerificationTypedData(vType VerificationType, chainId string) (*caigo.TypedData, error) {
 	if vType == VerificationTypeOnboarding {
 		return NewTypedData(onboardingTypes(), domain(chainId), "Constant")
@@ -176,9 +195,8 @@ func NewVerificationTypedData(vType VerificationType, chainId string) (*caigo.Ty
 	return nil, errors.New("invalid validation type")
 }
 
-// NewTypedData returns a caigo typed data that
-// will be used to hash the message. It needs to be the same
-// structure the FE sends to metamask snap when signing
+// NewTypedData 创建TypedData结构
+// 用于构造StarkNet签名消息，与前端MetaMask签名保持一致
 func NewTypedData(types map[string]caigo.TypeDef, domain *caigo.Domain, pType string) (*caigo.TypedData, error) {
 	typedData, err := caigo.NewTypedData(
 		types,
@@ -193,6 +211,8 @@ func NewTypedData(types map[string]caigo.TypeDef, domain *caigo.Domain, pType st
 	return &typedData, nil
 }
 
+// PedersenArray 使用Pedersen哈希算法计算数组哈希
+// 将多个大整数转换为Field元素并进行Pedersen哈希
 func PedersenArray(elems []*big.Int) *big.Int {
 	fpElements := make([]*fp.Element, len(elems))
 	for i, elem := range elems {
@@ -202,6 +222,8 @@ func PedersenArray(elems []*big.Int) *big.Int {
 	return hash.BigInt(new(big.Int))
 }
 
+// GetMessageHash 计算StarkNet消息哈希
+// 构造包含StarkNet消息前缀、域编码、账户地址和消息编码的完整哈希
 func GetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg caigo.TypedMessage, sc caigo.StarkCurve) (hash *big.Int, err error) {
 	elements := []*big.Int{snMessageBigInt, domEnc, account, nil}
 
@@ -214,6 +236,8 @@ func GetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg 
 	return hash, err
 }
 
+// GnarkGetMessageHash 使用Gnark库计算StarkNet消息哈希
+// 使用Pedersen哈希算法替代caigo的默认实现
 func GnarkGetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg caigo.TypedMessage, sc caigo.StarkCurve) (hash *big.Int, err error) {
 	msgEnc, err := GnarkGetTypedMessageHash(td, td.PrimaryType, msg)
 	if err != nil {
@@ -224,6 +248,8 @@ func GnarkGetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int,
 	return hash, err
 }
 
+// GnarkGetTypedMessageHash 使用Gnark计算TypedData消息哈希
+// 将类型定义和消息编码后使用Pedersen数组哈希
 func GnarkGetTypedMessageHash(td *caigo.TypedData, inType string, msg caigo.TypedMessage) (hash *big.Int, err error) {
 	prim := td.Types[inType]
 	elements := make([]*big.Int, 0, len(prim.Definitions)+1)

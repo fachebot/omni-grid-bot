@@ -15,6 +15,8 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/ent/order"
 )
 
+// ConvertOrderStatus 转换订单状态
+// 将Paradex订单状态转换为内部订单状态
 func ConvertOrderStatus(ord *Order) order.Status {
 	if ord.CancelReason != "" {
 		return order.StatusCanceled
@@ -32,12 +34,14 @@ func ConvertOrderStatus(ord *Order) order.Status {
 	}
 }
 
+// GetSignatureStr 生成签名字符串
 func GetSignatureStr(r, s *big.Int) (string, error) {
 	signature := []string{r.String(), s.String()}
 	signatureByte, err := json.Marshal(signature)
 	return string(signatureByte), err
 }
 
+// GetEcdsaPrivateKey 获取ECDSA私钥
 func GetEcdsaPrivateKey(pk string) *ecdsa.PrivateKey {
 	privateKey := types.StrToFelt(pk).Big()
 
@@ -54,6 +58,7 @@ func GetEcdsaPrivateKey(pk string) *ecdsa.PrivateKey {
 	return ecdsaPrivateKey
 }
 
+// GnarkSign 使用Gnark进行StarkNet签名
 func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err error) {
 	ecdsaPrivateKey := GetEcdsaPrivateKey(privateKey)
 	sigBin, err := ecdsaPrivateKey.Sign(messageHash.Bytes(), nil)
@@ -65,6 +70,8 @@ func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err erro
 	return r, s, nil
 }
 
+// ComputeAddress 计算账户地址
+// 根据公钥和系统配置计算Paraclear合约地址
 func ComputeAddress(config SystemConfigRes, publicKey string) (string, error) {
 	publicKeyBN := types.HexToBN(publicKey)
 	if publicKeyBN == nil {
@@ -110,6 +117,8 @@ func ComputeAddress(config SystemConfigRes, publicKey string) (string, error) {
 	return types.BigToHex(addressHash), nil
 }
 
+// ParseUsdPerpMarket 解析USD永续合约市场名称
+// 将 BTC-USD-PERP 转换为 BTC
 func ParseUsdPerpMarket(market string) (string, error) {
 	parts := strings.Split(market, "-")
 	if len(parts) < 3 {
@@ -131,10 +140,14 @@ func ParseUsdPerpMarket(market string) (string, error) {
 	return baseCurrency, nil
 }
 
+// FormatUsdPerpMarket 格式化USD永续合约市场名称
+// 将 BTC 转换为 BTC-USD-PERP
 func FormatUsdPerpMarket(baseCurrency string) string {
 	return fmt.Sprintf("%s-USD-PERP", strings.ToUpper(baseCurrency))
 }
 
+// PopulateOrderSignature 为订单填充签名
+// 使用StarkNet ECDSA签名订单信息
 func PopulateOrderSignature(req *CreateOrderReq, config SystemConfigRes, dexAccount string, dexPrivateKey string) error {
 	sc := caigo.StarkCurve{}
 	typedData, err := NewVerificationTypedData("Order", config.ChainId)

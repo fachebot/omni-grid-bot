@@ -1,3 +1,5 @@
+// Package paradex 提供Paradex交易所的订阅管理实现
+// 管理公共市场数据连接和用户订单WebSocket连接的生命周期
 package paradex
 
 import (

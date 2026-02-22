@@ -1,3 +1,5 @@
+// Package paradex 提供Paradex交易所的WebSocket用户连接实现
+// 支持实时订单推送、重连机制和心跳检测
 package paradex
 
 import (
