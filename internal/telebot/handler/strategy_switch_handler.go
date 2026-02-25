@@ -77,12 +77,12 @@ func (h *StrategySwitchHandler) handle(ctx context.Context, vars map[string]stri
 
 	// 用户全局锁
 	userLock := h.svcCtx.GetUserLock(userId)
-	defer userLock.Unlock()
 	if !userLock.TryLock() {
 		text := "❌ 您有其他操作正在处理中，请稍后再试"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		return nil
 	}
+	defer userLock.Unlock()
 
 	// 选择开关操作
 	stopType, ok := vars["stop"]

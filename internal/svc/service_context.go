@@ -89,7 +89,9 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 	lighterClient := lighter.NewClient(lighClient)
 
 	// 创建Telegram Bot
-	botHttpClient := new(http.Client)
+	botHttpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	if transportProxy != nil {
 		botHttpClient.Transport = transportProxy
 	}
