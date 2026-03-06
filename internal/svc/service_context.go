@@ -11,6 +11,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/cache"
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
+	"github.com/fachebot/omni-grid-bot/internal/exchange/hyperliquid"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
@@ -36,6 +37,7 @@ type ServiceContext struct {
 	ParadexClient     *paradex.Client
 	LighterClient     *lighter.Client
 	VariationalClient *variational.Client
+	HyperliquidClient *hyperliquid.Client
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
@@ -88,6 +90,22 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 	}
 	lighterClient := lighter.NewClient(lighClient)
 
+	// 创建HyperliquidClient
+	var hyperliquidClient *hyperliquid.Client
+	if c.Hyperliquid.PrivateKey != "" {
+		hyperliquidSigner, err := hyperliquid.NewSigner(c.Hyperliquid.PrivateKey, c.Hyperliquid.IsMainnet)
+		if err != nil {
+			logger.Warnf("[Hyperliquid] 创建签名器失败: %v", err)
+		} else {
+			httpClient := new(http.Client)
+			if transportProxy != nil {
+				httpClient.Transport = transportProxy
+			}
+			hyperliquidClient = hyperliquid.NewClient(httpClient, hyperliquidSigner, c.Hyperliquid.IsMainnet)
+			logger.Infof("[Hyperliquid] 客户端已创建, 地址: %s, 主网: %v", hyperliquidSigner.GetAddress(), c.Hyperliquid.IsMainnet)
+		}
+	}
+
 	// 创建Telegram Bot
 	botHttpClient := &http.Client{
 		Timeout: 30 * time.Second,
@@ -121,6 +139,7 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		ParadexClient:     paradexClient,
 		LighterClient:     lighterClient,
 		VariationalClient: variational.NewClient(c.Sock5Proxy),
+		HyperliquidClient: hyperliquidClient,
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),

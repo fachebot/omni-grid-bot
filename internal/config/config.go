@@ -31,11 +31,17 @@ func (c *TelegramBot) IsWhiteListUser(userId int64) bool {
 	return slices.Contains(c.WhiteList, userId)
 }
 
+type HyperliquidConfig struct {
+	PrivateKey string `yaml:"PrivateKey"`
+	IsMainnet  bool   `yaml:"IsMainnet"`
+}
+
 type Config struct {
-	Log         Log         `yaml:"Log"`
-	AppName     string      `yaml:"AppName"`
-	Sock5Proxy  Sock5Proxy  `yaml:"Sock5Proxy"`
-	TelegramBot TelegramBot `yaml:"TelegramBot"`
+	Log         Log               `yaml:"Log"`
+	AppName     string            `yaml:"AppName"`
+	Sock5Proxy  Sock5Proxy        `yaml:"Sock5Proxy"`
+	TelegramBot TelegramBot       `yaml:"TelegramBot"`
+	Hyperliquid HyperliquidConfig `yaml:"Hyperliquid"`
 }
 
 func LoadFromFile(filename string) (*Config, error) {
