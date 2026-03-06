@@ -72,6 +72,8 @@ type Strategy struct {
 	ExchangeSecretKey string `json:"exchangeSecretKey,omitempty"`
 	// ExchangePassphrase holds the value of the "exchangePassphrase" field.
 	ExchangePassphrase string `json:"exchangePassphrase,omitempty"`
+	// ExchangeTestnet holds the value of the "exchangeTestnet" field.
+	ExchangeTestnet bool `json:"exchangeTestnet,omitempty"`
 	// StartTime holds the value of the "startTime" field.
 	StartTime    *time.Time `json:"startTime,omitempty"`
 	selectValues sql.SelectValues
@@ -86,7 +88,7 @@ func (*Strategy) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
 		case strategy.FieldPriceUpper, strategy.FieldPriceLower, strategy.FieldInitialOrderSize:
 			values[i] = new(decimal.Decimal)
-		case strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification:
+		case strategy.FieldEnablePushNotification, strategy.FieldEnablePushMatchedNotification, strategy.FieldExchangeTestnet:
 			values[i] = new(sql.NullBool)
 		case strategy.FieldID, strategy.FieldOwner, strategy.FieldGridNum, strategy.FieldLeverage, strategy.FieldSlippageBps:
 			values[i] = new(sql.NullInt64)
@@ -284,6 +286,12 @@ func (_m *Strategy) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExchangePassphrase = value.String
 			}
+		case strategy.FieldExchangeTestnet:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field exchangeTestnet", values[i])
+			} else if value.Valid {
+				_m.ExchangeTestnet = value.Bool
+			}
 		case strategy.FieldStartTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field startTime", values[i])
@@ -421,6 +429,9 @@ func (_m *Strategy) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("exchangePassphrase=")
 	builder.WriteString(_m.ExchangePassphrase)
+	builder.WriteString(", ")
+	builder.WriteString("exchangeTestnet=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExchangeTestnet))
 	builder.WriteString(", ")
 	if v := _m.StartTime; v != nil {
 		builder.WriteString("startTime=")

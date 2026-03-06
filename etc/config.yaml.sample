@@ -14,8 +14,3 @@ TelegramBot:
   ApiToken: 7916072799:AAFb-C25RgEAxNClxqeRpTkmO6C8e7FhzLs
   WhiteList: # 白名单列表，填写Telegram UserId(非白名单用户不允许使用机器人，如果白名单为空则所有人都可以使用)
     - 993021715
-
-# Hyperliquid 交易所配置
-Hyperliquid:
-  PrivateKey: "" # Ethereum 私钥 (不带 0x 前缀)
-  IsMainnet: true # 是否使用主网 (false = 测试网)

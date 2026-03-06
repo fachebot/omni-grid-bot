@@ -455,6 +455,20 @@ func (_u *StrategyUpdate) SetNillableExchangePassphrase(v *string) *StrategyUpda
 	return _u
 }
 
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (_u *StrategyUpdate) SetExchangeTestnet(v bool) *StrategyUpdate {
+	_u.mutation.SetExchangeTestnet(v)
+	return _u
+}
+
+// SetNillableExchangeTestnet sets the "exchangeTestnet" field if the given value is not nil.
+func (_u *StrategyUpdate) SetNillableExchangeTestnet(v *bool) *StrategyUpdate {
+	if v != nil {
+		_u.SetExchangeTestnet(*v)
+	}
+	return _u
+}
+
 // SetStartTime sets the "startTime" field.
 func (_u *StrategyUpdate) SetStartTime(v time.Time) *StrategyUpdate {
 	_u.mutation.SetStartTime(v)
@@ -693,6 +707,9 @@ func (_u *StrategyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeTestnet(); ok {
+		_spec.SetField(strategy.FieldExchangeTestnet, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.StartTime(); ok {
 		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)
@@ -1146,6 +1163,20 @@ func (_u *StrategyUpdateOne) SetNillableExchangePassphrase(v *string) *StrategyU
 	return _u
 }
 
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (_u *StrategyUpdateOne) SetExchangeTestnet(v bool) *StrategyUpdateOne {
+	_u.mutation.SetExchangeTestnet(v)
+	return _u
+}
+
+// SetNillableExchangeTestnet sets the "exchangeTestnet" field if the given value is not nil.
+func (_u *StrategyUpdateOne) SetNillableExchangeTestnet(v *bool) *StrategyUpdateOne {
+	if v != nil {
+		_u.SetExchangeTestnet(*v)
+	}
+	return _u
+}
+
 // SetStartTime sets the "startTime" field.
 func (_u *StrategyUpdateOne) SetStartTime(v time.Time) *StrategyUpdateOne {
 	_u.mutation.SetStartTime(v)
@@ -1414,6 +1445,9 @@ func (_u *StrategyUpdateOne) sqlSave(ctx context.Context) (_node *Strategy, err 
 	}
 	if value, ok := _u.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeTestnet(); ok {
+		_spec.SetField(strategy.FieldExchangeTestnet, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.StartTime(); ok {
 		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)

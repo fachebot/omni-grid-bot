@@ -37,7 +37,6 @@ type ServiceContext struct {
 	ParadexClient     *paradex.Client
 	LighterClient     *lighter.Client
 	VariationalClient *variational.Client
-	HyperliquidClient *hyperliquid.Client
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
@@ -52,7 +51,6 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c *config.Config) *ServiceContext {
-	// 创建数据库连接
 	client, err := ent.Open("sqlite3", "file:data/sqlite.db?mode=rwc&_journal_mode=WAL&_fk=1")
 	if err != nil {
 		logger.Fatalf("打开数据库失败, %v", err)
@@ -61,7 +59,6 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		logger.Fatalf("创建数据库Schema失败, %v", err)
 	}
 
-	// 创建SOCKS5代理
 	var transportProxy *http.Transport
 	if c.Sock5Proxy.Enable {
 		socks5Proxy := fmt.Sprintf("%s:%d", c.Sock5Proxy.Host, c.Sock5Proxy.Port)
@@ -76,37 +73,18 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		}
 	}
 
-	// 创建ParadexClient
 	paraClient := new(http.Client)
 	if transportProxy != nil {
 		paraClient.Transport = transportProxy
 	}
 	paradexClient := paradex.NewClient(paraClient)
 
-	// 创建LighterClient
 	lighClient := new(http.Client)
 	if transportProxy != nil {
 		lighClient.Transport = transportProxy
 	}
 	lighterClient := lighter.NewClient(lighClient)
 
-	// 创建HyperliquidClient
-	var hyperliquidClient *hyperliquid.Client
-	if c.Hyperliquid.PrivateKey != "" {
-		hyperliquidSigner, err := hyperliquid.NewSigner(c.Hyperliquid.PrivateKey, c.Hyperliquid.IsMainnet)
-		if err != nil {
-			logger.Warnf("[Hyperliquid] 创建签名器失败: %v", err)
-		} else {
-			httpClient := new(http.Client)
-			if transportProxy != nil {
-				httpClient.Transport = transportProxy
-			}
-			hyperliquidClient = hyperliquid.NewClient(httpClient, hyperliquidSigner, c.Hyperliquid.IsMainnet)
-			logger.Infof("[Hyperliquid] 客户端已创建, 地址: %s, 主网: %v", hyperliquidSigner.GetAddress(), c.Hyperliquid.IsMainnet)
-		}
-	}
-
-	// 创建Telegram Bot
 	botHttpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -139,7 +117,6 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		ParadexClient:     paradexClient,
 		LighterClient:     lighterClient,
 		VariationalClient: variational.NewClient(c.Sock5Proxy),
-		HyperliquidClient: hyperliquidClient,
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),
@@ -172,6 +149,20 @@ func (svcCtx *ServiceContext) GetUserLock(userId int64) *sync.Mutex {
 	lock := &sync.Mutex{}
 	svcCtx.userLocks[userId] = lock
 	return lock
+}
+
+func (svcCtx *ServiceContext) NewHyperliquidClient(privateKey string, isMainnet bool) (*hyperliquid.Client, error) {
+	signer, err := hyperliquid.NewSigner(privateKey, isMainnet)
+	if err != nil {
+		return nil, fmt.Errorf("创建签名器失败: %w", err)
+	}
+
+	httpClient := new(http.Client)
+	if svcCtx.TransportProxy != nil {
+		httpClient.Transport = svcCtx.TransportProxy
+	}
+
+	return hyperliquid.NewClient(httpClient, signer, isMainnet), nil
 }
 
 func (svcCtx *ServiceContext) Close() {

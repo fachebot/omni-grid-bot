@@ -170,6 +170,11 @@ func ExchangePassphrase(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldExchangePassphrase, v))
 }
 
+// ExchangeTestnet applies equality check predicate on the "exchangeTestnet" field. It's identical to ExchangeTestnetEQ.
+func ExchangeTestnet(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldExchangeTestnet, v))
+}
+
 // StartTime applies equality check predicate on the "startTime" field. It's identical to StartTimeEQ.
 func StartTime(v time.Time) predicate.Strategy {
 	return predicate.Strategy(sql.FieldEQ(FieldStartTime, v))
@@ -1538,6 +1543,16 @@ func ExchangePassphraseEqualFold(v string) predicate.Strategy {
 // ExchangePassphraseContainsFold applies the ContainsFold predicate on the "exchangePassphrase" field.
 func ExchangePassphraseContainsFold(v string) predicate.Strategy {
 	return predicate.Strategy(sql.FieldContainsFold(FieldExchangePassphrase, v))
+}
+
+// ExchangeTestnetEQ applies the EQ predicate on the "exchangeTestnet" field.
+func ExchangeTestnetEQ(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldEQ(FieldExchangeTestnet, v))
+}
+
+// ExchangeTestnetNEQ applies the NEQ predicate on the "exchangeTestnet" field.
+func ExchangeTestnetNEQ(v bool) predicate.Strategy {
+	return predicate.Strategy(sql.FieldNEQ(FieldExchangeTestnet, v))
 }
 
 // StartTimeEQ applies the EQ predicate on the "startTime" field.

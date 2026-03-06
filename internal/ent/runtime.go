@@ -135,6 +135,10 @@ func init() {
 			return nil
 		}
 	}()
+	// strategyDescExchangeTestnet is the schema descriptor for exchangeTestnet field.
+	strategyDescExchangeTestnet := strategyFields[25].Descriptor()
+	// strategy.DefaultExchangeTestnet holds the default value on creation for the exchangeTestnet field.
+	strategy.DefaultExchangeTestnet = strategyDescExchangeTestnet.Default.(bool)
 	syncprogressMixin := schema.SyncProgress{}.Mixin()
 	syncprogressMixinFields0 := syncprogressMixin[0].Fields()
 	_ = syncprogressMixinFields0

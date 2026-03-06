@@ -68,6 +68,8 @@ const (
 	FieldExchangeSecretKey = "exchange_secret_key"
 	// FieldExchangePassphrase holds the string denoting the exchangepassphrase field in the database.
 	FieldExchangePassphrase = "exchange_passphrase"
+	// FieldExchangeTestnet holds the string denoting the exchangetestnet field in the database.
+	FieldExchangeTestnet = "exchange_testnet"
 	// FieldStartTime holds the string denoting the starttime field in the database.
 	FieldStartTime = "start_time"
 	// Table holds the table name of the strategy in the database.
@@ -104,6 +106,7 @@ var Columns = []string{
 	FieldExchangeApiKey,
 	FieldExchangeSecretKey,
 	FieldExchangePassphrase,
+	FieldExchangeTestnet,
 	FieldStartTime,
 }
 
@@ -140,6 +143,8 @@ var (
 	LeverageValidator func(int) error
 	// SlippageBpsValidator is a validator for the "slippageBps" field. It is called by the builders before save.
 	SlippageBpsValidator func(int) error
+	// DefaultExchangeTestnet holds the default value on creation for the "exchangeTestnet" field.
+	DefaultExchangeTestnet bool
 )
 
 // Mode defines the type for the "mode" enum field.
@@ -375,6 +380,11 @@ func ByExchangeSecretKey(opts ...sql.OrderTermOption) OrderOption {
 // ByExchangePassphrase orders the results by the exchangePassphrase field.
 func ByExchangePassphrase(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExchangePassphrase, opts...).ToFunc()
+}
+
+// ByExchangeTestnet orders the results by the exchangeTestnet field.
+func ByExchangeTestnet(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeTestnet, opts...).ToFunc()
 }
 
 // ByStartTime orders the results by the startTime field.

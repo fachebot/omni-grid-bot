@@ -3601,6 +3601,7 @@ type StrategyMutation struct {
 	exchangeApiKey                *string
 	exchangeSecretKey             *string
 	exchangePassphrase            *string
+	exchangeTestnet               *bool
 	startTime                     *time.Time
 	clearedFields                 map[string]struct{}
 	done                          bool
@@ -4850,6 +4851,42 @@ func (m *StrategyMutation) ResetExchangePassphrase() {
 	m.exchangePassphrase = nil
 }
 
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (m *StrategyMutation) SetExchangeTestnet(b bool) {
+	m.exchangeTestnet = &b
+}
+
+// ExchangeTestnet returns the value of the "exchangeTestnet" field in the mutation.
+func (m *StrategyMutation) ExchangeTestnet() (r bool, exists bool) {
+	v := m.exchangeTestnet
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeTestnet returns the old "exchangeTestnet" field's value of the Strategy entity.
+// If the Strategy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StrategyMutation) OldExchangeTestnet(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeTestnet is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeTestnet requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeTestnet: %w", err)
+	}
+	return oldValue.ExchangeTestnet, nil
+}
+
+// ResetExchangeTestnet resets all changes to the "exchangeTestnet" field.
+func (m *StrategyMutation) ResetExchangeTestnet() {
+	m.exchangeTestnet = nil
+}
+
 // SetStartTime sets the "startTime" field.
 func (m *StrategyMutation) SetStartTime(t time.Time) {
 	m.startTime = &t
@@ -4933,7 +4970,7 @@ func (m *StrategyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StrategyMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 29)
 	if m.create_time != nil {
 		fields = append(fields, strategy.FieldCreateTime)
 	}
@@ -5015,6 +5052,9 @@ func (m *StrategyMutation) Fields() []string {
 	if m.exchangePassphrase != nil {
 		fields = append(fields, strategy.FieldExchangePassphrase)
 	}
+	if m.exchangeTestnet != nil {
+		fields = append(fields, strategy.FieldExchangeTestnet)
+	}
 	if m.startTime != nil {
 		fields = append(fields, strategy.FieldStartTime)
 	}
@@ -5080,6 +5120,8 @@ func (m *StrategyMutation) Field(name string) (ent.Value, bool) {
 		return m.ExchangeSecretKey()
 	case strategy.FieldExchangePassphrase:
 		return m.ExchangePassphrase()
+	case strategy.FieldExchangeTestnet:
+		return m.ExchangeTestnet()
 	case strategy.FieldStartTime:
 		return m.StartTime()
 	}
@@ -5145,6 +5187,8 @@ func (m *StrategyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldExchangeSecretKey(ctx)
 	case strategy.FieldExchangePassphrase:
 		return m.OldExchangePassphrase(ctx)
+	case strategy.FieldExchangeTestnet:
+		return m.OldExchangeTestnet(ctx)
 	case strategy.FieldStartTime:
 		return m.OldStartTime(ctx)
 	}
@@ -5344,6 +5388,13 @@ func (m *StrategyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExchangePassphrase(v)
+		return nil
+	case strategy.FieldExchangeTestnet:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeTestnet(v)
 		return nil
 	case strategy.FieldStartTime:
 		v, ok := value.(time.Time)
@@ -5583,6 +5634,9 @@ func (m *StrategyMutation) ResetField(name string) error {
 		return nil
 	case strategy.FieldExchangePassphrase:
 		m.ResetExchangePassphrase()
+		return nil
+	case strategy.FieldExchangeTestnet:
+		m.ResetExchangeTestnet()
 		return nil
 	case strategy.FieldStartTime:
 		m.ResetStartTime()

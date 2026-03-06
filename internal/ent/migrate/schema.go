@@ -165,6 +165,7 @@ var (
 		{Name: "exchange_api_key", Type: field.TypeString},
 		{Name: "exchange_secret_key", Type: field.TypeString},
 		{Name: "exchange_passphrase", Type: field.TypeString},
+		{Name: "exchange_testnet", Type: field.TypeBool, Default: false},
 		{Name: "start_time", Type: field.TypeTime, Nullable: true},
 	}
 	// StrategiesTable holds the schema information for the "strategies" table.

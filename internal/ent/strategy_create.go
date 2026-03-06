@@ -273,6 +273,20 @@ func (_c *StrategyCreate) SetExchangePassphrase(v string) *StrategyCreate {
 	return _c
 }
 
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (_c *StrategyCreate) SetExchangeTestnet(v bool) *StrategyCreate {
+	_c.mutation.SetExchangeTestnet(v)
+	return _c
+}
+
+// SetNillableExchangeTestnet sets the "exchangeTestnet" field if the given value is not nil.
+func (_c *StrategyCreate) SetNillableExchangeTestnet(v *bool) *StrategyCreate {
+	if v != nil {
+		_c.SetExchangeTestnet(*v)
+	}
+	return _c
+}
+
 // SetStartTime sets the "startTime" field.
 func (_c *StrategyCreate) SetStartTime(v time.Time) *StrategyCreate {
 	_c.mutation.SetStartTime(v)
@@ -337,6 +351,10 @@ func (_c *StrategyCreate) defaults() {
 	if _, ok := _c.mutation.Leverage(); !ok {
 		v := strategy.DefaultLeverage
 		_c.mutation.SetLeverage(v)
+	}
+	if _, ok := _c.mutation.ExchangeTestnet(); !ok {
+		v := strategy.DefaultExchangeTestnet
+		_c.mutation.SetExchangeTestnet(v)
 	}
 }
 
@@ -451,6 +469,9 @@ func (_c *StrategyCreate) check() error {
 	}
 	if _, ok := _c.mutation.ExchangePassphrase(); !ok {
 		return &ValidationError{Name: "exchangePassphrase", err: errors.New(`ent: missing required field "Strategy.exchangePassphrase"`)}
+	}
+	if _, ok := _c.mutation.ExchangeTestnet(); !ok {
+		return &ValidationError{Name: "exchangeTestnet", err: errors.New(`ent: missing required field "Strategy.exchangeTestnet"`)}
 	}
 	return nil
 }
@@ -586,6 +607,10 @@ func (_c *StrategyCreate) createSpec() (*Strategy, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExchangePassphrase(); ok {
 		_spec.SetField(strategy.FieldExchangePassphrase, field.TypeString, value)
 		_node.ExchangePassphrase = value
+	}
+	if value, ok := _c.mutation.ExchangeTestnet(); ok {
+		_spec.SetField(strategy.FieldExchangeTestnet, field.TypeBool, value)
+		_node.ExchangeTestnet = value
 	}
 	if value, ok := _c.mutation.StartTime(); ok {
 		_spec.SetField(strategy.FieldStartTime, field.TypeTime, value)
@@ -1018,6 +1043,18 @@ func (u *StrategyUpsert) SetExchangePassphrase(v string) *StrategyUpsert {
 // UpdateExchangePassphrase sets the "exchangePassphrase" field to the value that was provided on create.
 func (u *StrategyUpsert) UpdateExchangePassphrase() *StrategyUpsert {
 	u.SetExcluded(strategy.FieldExchangePassphrase)
+	return u
+}
+
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (u *StrategyUpsert) SetExchangeTestnet(v bool) *StrategyUpsert {
+	u.Set(strategy.FieldExchangeTestnet, v)
+	return u
+}
+
+// UpdateExchangeTestnet sets the "exchangeTestnet" field to the value that was provided on create.
+func (u *StrategyUpsert) UpdateExchangeTestnet() *StrategyUpsert {
+	u.SetExcluded(strategy.FieldExchangeTestnet)
 	return u
 }
 
@@ -1522,6 +1559,20 @@ func (u *StrategyUpsertOne) SetExchangePassphrase(v string) *StrategyUpsertOne {
 func (u *StrategyUpsertOne) UpdateExchangePassphrase() *StrategyUpsertOne {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateExchangePassphrase()
+	})
+}
+
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (u *StrategyUpsertOne) SetExchangeTestnet(v bool) *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetExchangeTestnet(v)
+	})
+}
+
+// UpdateExchangeTestnet sets the "exchangeTestnet" field to the value that was provided on create.
+func (u *StrategyUpsertOne) UpdateExchangeTestnet() *StrategyUpsertOne {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateExchangeTestnet()
 	})
 }
 
@@ -2195,6 +2246,20 @@ func (u *StrategyUpsertBulk) SetExchangePassphrase(v string) *StrategyUpsertBulk
 func (u *StrategyUpsertBulk) UpdateExchangePassphrase() *StrategyUpsertBulk {
 	return u.Update(func(s *StrategyUpsert) {
 		s.UpdateExchangePassphrase()
+	})
+}
+
+// SetExchangeTestnet sets the "exchangeTestnet" field.
+func (u *StrategyUpsertBulk) SetExchangeTestnet(v bool) *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.SetExchangeTestnet(v)
+	})
+}
+
+// UpdateExchangeTestnet sets the "exchangeTestnet" field to the value that was provided on create.
+func (u *StrategyUpsertBulk) UpdateExchangeTestnet() *StrategyUpsertBulk {
+	return u.Update(func(s *StrategyUpsert) {
+		s.UpdateExchangeTestnet()
 	})
 }
 
