@@ -224,6 +224,10 @@ func GenerateGridPrices(record *ent.Strategy, supportedPriceDecimals uint8) (pri
 }
 
 func calculateGeometricRatio(lower, upper decimal.Decimal, gridNum int) decimal.Decimal {
+	if lower.IsZero() || gridNum == 0 {
+		return decimal.Zero
+	}
+
 	ratio := upper.Div(lower)
 	ratioFloat, _ := ratio.Float64()
 
