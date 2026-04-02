@@ -34,9 +34,10 @@ type ServiceContext struct {
 	ParadexCache       *cache.ParadexCache
 	PendingOrdersCache *cache.PendingOrdersCache
 
-	ParadexClient     *paradex.Client
-	LighterClient     *lighter.Client
-	VariationalClient *variational.Client
+	ParadexClient          *paradex.Client
+	LighterClient          *lighter.Client
+	VariationalClient      *variational.Client
+	VariationalRateLimiter *variational.RateLimiter
 
 	GridModel         *model.GridModel
 	OrderModel        *model.OrderModel
@@ -83,7 +84,8 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 	if transportProxy != nil {
 		lighClient.Transport = transportProxy
 	}
-	lighterClient := lighter.NewClient(lighClient)
+	lighterRateLimiter := lighter.NewRateLimiter(c.LighterRateLimit.RequestsPerMinute)
+	lighterClient := lighter.NewClient(lighClient, lighterRateLimiter)
 
 	botHttpClient := &http.Client{
 		Timeout: 30 * time.Second,
@@ -114,9 +116,10 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 		ParadexCache:       cache.NewParadexCache(paradexClient),
 		PendingOrdersCache: cache.NewPendingOrdersCache(),
 
-		ParadexClient:     paradexClient,
-		LighterClient:     lighterClient,
-		VariationalClient: variational.NewClient(c.Sock5Proxy),
+		ParadexClient:          paradexClient,
+		LighterClient:          lighterClient,
+		VariationalClient:      variational.NewClient(c.Sock5Proxy),
+		VariationalRateLimiter: variational.NewRateLimiter(c.VariationalRateLimit.RequestsPerSecond, c.VariationalRateLimit.Burst),
 
 		GridModel:         model.NewGridModel(client.Grid),
 		OrderModel:        model.NewOrderModel(client.Order),

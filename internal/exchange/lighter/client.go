@@ -24,19 +24,20 @@ const (
 // Client Lighter交易所HTTP客户端
 // 用于与Lighter交易所API进行交互
 type Client struct {
-	chainId    uint32       // 链ID
-	endpoint   string       // API端点地址
-	httpClient *http.Client // HTTP客户端
+	chainId     uint32       // 链ID
+	endpoint    string       // API端点地址
+	httpClient  *http.Client // HTTP客户端
+	rateLimiter *RateLimiter // 速率限制器
 }
 
 // NewClient 创建Lighter交易所客户端
-func NewClient(httpClient *http.Client) *Client {
-	c := Client{
-		chainId:    MainnetChainId,
-		endpoint:   MainnetBaseURL,
-		httpClient: httpClient,
+func NewClient(httpClient *http.Client, rateLimiter *RateLimiter) *Client {
+	return &Client{
+		chainId:     MainnetChainId,
+		endpoint:    MainnetBaseURL,
+		httpClient:  httpClient,
+		rateLimiter: rateLimiter,
 	}
-	return &c
 }
 
 // GetNextNonce 获取下一个nonce值
@@ -171,6 +172,10 @@ func (c *Client) GetOrderBooksMetadata(ctx context.Context, marketId ...uint) (O
 // SendRawTx 发送原始交易(单笔)
 // 将签名的交易发送到Lighter链上执行
 func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (string, error) {
+	if c.rateLimiter != nil {
+		c.rateLimiter.Wait(ctx, "sendTx")
+	}
+
 	data := url.Values{"tx_type": {strconv.Itoa(int(txType))}, "tx_info": {txInfo}}
 	req, err := http.NewRequestWithContext(ctx, "POST", c.endpoint+"/api/v1/sendTx", strings.NewReader(data.Encode()))
 	if err != nil {
@@ -207,6 +212,10 @@ func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (
 // SendRawTxBatch 批量发送原始交易
 // 一次性发送多笔签名交易，提高效率
 func (c *Client) SendRawTxBatch(ctx context.Context, txTypes []TX_TYPE, txInfos []string) ([]string, error) {
+	if c.rateLimiter != nil {
+		c.rateLimiter.WaitN(ctx, "sendTx", len(txTypes))
+	}
+
 	if len(txTypes) != len(txInfos) {
 		return nil, errors.New("transaction types and info count mismatch")
 	}

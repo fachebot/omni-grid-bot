@@ -14,3 +14,12 @@ TelegramBot:
   ApiToken: 7916072799:AAFb-C25RgEAxNClxqeRpTkmO6C8e7FhzLs
   WhiteList: # 白名单列表，填写Telegram UserId(非白名单用户不允许使用机器人，如果白名单为空则所有人都可以使用)
     - 993021715
+
+# Lighter交易所配置
+LighterRateLimit:
+  RequestsPerMinute: 60  # Standard账户限制
+
+# Variational交易所配置
+VariationalRateLimit:
+  RequestsPerSecond: 1.0  # 每秒请求数限制
+  Burst: 1              # 突发请求数
