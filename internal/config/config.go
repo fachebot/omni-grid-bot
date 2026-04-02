@@ -19,6 +19,7 @@ type Sock5Proxy struct {
 
 type LighterRateLimit struct {
 	RequestsPerMinute int `yaml:"RequestsPerMinute"` // 默认60
+	BatchSize         int `yaml:"BatchSize"`         // 默认10
 }
 
 type VariationalRateLimit struct {
@@ -71,6 +72,10 @@ func LoadFromFile(filename string) (*Config, error) {
 
 	if c.LighterRateLimit.RequestsPerMinute == 0 {
 		c.LighterRateLimit.RequestsPerMinute = 60
+	}
+
+	if c.LighterRateLimit.BatchSize == 0 {
+		c.LighterRateLimit.BatchSize = 10
 	}
 
 	if c.VariationalRateLimit.RequestsPerSecond == 0 {

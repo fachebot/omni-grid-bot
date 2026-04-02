@@ -18,6 +18,7 @@ TelegramBot:
 # Lighter交易所配置
 LighterRateLimit:
   RequestsPerMinute: 60  # Standard账户限制
+  BatchSize: 10         # 每批最大交易数量
 
 # Variational交易所配置
 VariationalRateLimit:

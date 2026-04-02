@@ -213,7 +213,8 @@ func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (
 // 一次性发送多笔签名交易，提高效率
 func (c *Client) SendRawTxBatch(ctx context.Context, txTypes []TX_TYPE, txInfos []string) ([]string, error) {
 	if c.rateLimiter != nil {
-		c.rateLimiter.WaitN(ctx, "sendTx", len(txTypes))
+		batchSize := c.rateLimiter.BatchSize()
+		c.rateLimiter.WaitBatch(ctx, "sendTx", len(txTypes), batchSize)
 	}
 
 	if len(txTypes) != len(txInfos) {
