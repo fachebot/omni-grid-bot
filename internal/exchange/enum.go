@@ -5,5 +5,4 @@ const (
 	Lighter     string = "lighter"     // Lighter交易所
 	Paradex     string = "paradex"     // Paradex交易所
 	Variational string = "variational" // Variational交易所
-	Hyperliquid string = "hyperliquid" // Hyperliquid交易所
 )

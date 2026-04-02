@@ -11,7 +11,6 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/cache"
 	"github.com/fachebot/omni-grid-bot/internal/config"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
-	"github.com/fachebot/omni-grid-bot/internal/exchange/hyperliquid"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/lighter"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/paradex"
 	"github.com/fachebot/omni-grid-bot/internal/exchange/variational"
@@ -152,20 +151,6 @@ func (svcCtx *ServiceContext) GetUserLock(userId int64) *sync.Mutex {
 	lock := &sync.Mutex{}
 	svcCtx.userLocks[userId] = lock
 	return lock
-}
-
-func (svcCtx *ServiceContext) NewHyperliquidClient(privateKey string, isMainnet bool) (*hyperliquid.Client, error) {
-	signer, err := hyperliquid.NewSigner(privateKey, isMainnet)
-	if err != nil {
-		return nil, fmt.Errorf("创建签名器失败: %w", err)
-	}
-
-	httpClient := new(http.Client)
-	if svcCtx.TransportProxy != nil {
-		httpClient.Transport = svcCtx.TransportProxy
-	}
-
-	return hyperliquid.NewClient(httpClient, signer, isMainnet), nil
 }
 
 func (svcCtx *ServiceContext) Close() {
