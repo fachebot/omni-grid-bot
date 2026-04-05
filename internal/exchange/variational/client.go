@@ -35,6 +35,7 @@ type Client struct {
 
 	jwtTokenCache *gocache.Cache     // JWT令牌缓存
 	sfGroup       singleflight.Group // 单飞组(防止并发刷新token)
+	rateLimiter   *RateLimiter       // 速率限制器
 }
 
 // NewClient 创建Variational交易所客户端
@@ -51,6 +52,7 @@ func NewClient(proxy config.Sock5Proxy) *Client {
 		client:        builder.Build(),
 		endpoint:      VARIATIONAL_HTTP_URL,
 		jwtTokenCache: gocache.New(24*time.Hour, 24*time.Hour*2),
+		rateLimiter:   NewRateLimiter(1.0, 1),
 	}
 	return &c
 }

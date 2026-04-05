@@ -19,9 +19,8 @@ import (
 // VariationalOrderHelper Variational交易所订单操作帮助类
 // 实现 OrderHelperInterface 接口，提供Variational交易所的订单操作功能
 type VariationalOrderHelper struct {
-	svcCtx      *svc.ServiceContext      // 服务上下文
-	userClient  *variational.UserClient  // Variational用户客户端
-	rateLimiter *variational.RateLimiter // 速率限制器
+	svcCtx     *svc.ServiceContext     // 服务上下文
+	userClient *variational.UserClient // Variational用户客户端
 }
 
 // GetVariationalClient 获取Variational交易所客户端
@@ -37,9 +36,8 @@ func GetVariationalClient(svcCtx *svc.ServiceContext, record *ent.Strategy) (*va
 // NewVariationalOrderHelper 创建Variational订单操作帮助类实例
 func NewVariationalOrderHelper(svcCtx *svc.ServiceContext, userClient *variational.UserClient) *VariationalOrderHelper {
 	return &VariationalOrderHelper{
-		svcCtx:      svcCtx,
-		userClient:  userClient,
-		rateLimiter: svcCtx.VariationalRateLimiter,
+		svcCtx:     svcCtx,
+		userClient: userClient,
 	}
 }
 
@@ -81,9 +79,6 @@ func (h *VariationalOrderHelper) CancalAllOrders(ctx context.Context, symbol str
 	// 逐个取消订单(Variational接口限制)
 	errorList := make([]error, 0)
 	for _, rfqId := range pendingOrders {
-		if h.rateLimiter != nil {
-			h.rateLimiter.Wait(ctx)
-		}
 		err := h.userClient.CancelOrder(ctx, rfqId)
 		if err != nil {
 			errorList = append(errorList, err)
@@ -125,10 +120,6 @@ func (h *VariationalOrderHelper) CreateOrderBatch(ctx context.Context, limitOrde
 
 // CreateLimitOrder 创建限价单
 func (h *VariationalOrderHelper) CreateLimitOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, price, size decimal.Decimal) (string, error) {
-	if h.rateLimiter != nil {
-		h.rateLimiter.Wait(ctx)
-	}
-
 	side := lo.If(isAsk, variational.OrderSideSell).Else(variational.OrderSideBuy)
 	res, err := h.userClient.CreateLimitOrder(ctx, symbol, side, price, size, reduceOnly)
 	if err != nil {
@@ -140,10 +131,6 @@ func (h *VariationalOrderHelper) CreateLimitOrder(ctx context.Context, symbol st
 
 // CreateMarketOrder 创建市价单
 func (h *VariationalOrderHelper) CreateMarketOrder(ctx context.Context, symbol string, isAsk, reduceOnly bool, slippageBps int, size decimal.Decimal) (string, error) {
-	if h.rateLimiter != nil {
-		h.rateLimiter.Wait(ctx)
-	}
-
 	side := lo.If(isAsk, variational.OrderSideSell).Else(variational.OrderSideBuy)
 	maxSlippage := decimal.NewFromInt(int64(slippageBps)).Div(decimal.NewFromInt(10000)).Truncate(4)
 	res, err := h.userClient.CreateMarketOrder(ctx, symbol, side, size, maxSlippage, reduceOnly)

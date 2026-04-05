@@ -83,7 +83,7 @@ func NewServiceContext(c *config.Config) *ServiceContext {
 	if transportProxy != nil {
 		lighClient.Transport = transportProxy
 	}
-	lighterRateLimiter := lighter.NewRateLimiter(c.LighterRateLimit.RequestsPerMinute, c.LighterRateLimit.BatchSize)
+	lighterRateLimiter := lighter.NewRateLimiter(c.LighterRateLimit.RequestsPerMinute)
 	lighterClient := lighter.NewClient(lighClient, lighterRateLimiter)
 
 	botHttpClient := &http.Client{

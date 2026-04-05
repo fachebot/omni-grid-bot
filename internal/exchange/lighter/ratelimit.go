@@ -10,102 +10,53 @@ import (
 )
 
 const (
-	WeightSendTx         = 6
-	WeightApikeys        = 150
-	WeightTx             = 300
-	WeightAccount        = 300
-	WeightOrderBook      = 300
-	WeightAccountTxs     = 300
-	WeightAccountOrders  = 300
-	WeightInactiveOrders = 100
+	MaxTxPerBatch = 40
 )
 
-var endpointWeights = map[string]int{
-	"nextNonce":             WeightSendTx,
-	"sendTx":                WeightSendTx,
-	"sendTxBatch":           WeightSendTx,
-	"apikeys":               WeightApikeys,
-	"tx":                    WeightTx,
-	"account":               WeightAccount,
-	"accountTxs":            WeightAccountTxs,
-	"accountActiveOrders":   WeightAccountOrders,
-	"accountInactiveOrders": WeightInactiveOrders,
-	"orderBookDetails":      WeightOrderBook,
-	"orderBooks":            WeightOrderBook,
-}
-
 type RateLimiter struct {
-	limiter           *rate.Limiter
-	requestsPerMinute int
-	batchSize         int
+	limiter *rate.Limiter
 }
 
-func NewRateLimiter(requestsPerMinute, batchSize int) *RateLimiter {
-	if batchSize <= 0 {
-		batchSize = 10
-	}
+func NewRateLimiter(requestsPer60Seconds int) *RateLimiter {
+	requestsPerSecond := float64(requestsPer60Seconds) / 60.0
+
+	logger.Infof("[LighterRateLimiter] Created with %d requests per 60s (limit=%.3f req/s, burst=%d)",
+		requestsPer60Seconds, requestsPerSecond, requestsPer60Seconds)
+
 	return &RateLimiter{
-		limiter:           rate.NewLimiter(rate.Limit(float64(requestsPerMinute)/60.0), requestsPerMinute),
-		requestsPerMinute: requestsPerMinute,
-		batchSize:         batchSize,
+		limiter: rate.NewLimiter(rate.Limit(requestsPerSecond), requestsPer60Seconds),
 	}
-}
-
-func (rl *RateLimiter) BatchSize() int {
-	return rl.batchSize
 }
 
 func (rl *RateLimiter) Wait(ctx context.Context, endpoint string) error {
-	weight := endpointWeights[endpoint]
-	if weight == 0 {
-		weight = 300
-	}
-
-	start := time.Now()
-	err := rl.limiter.WaitN(ctx, weight)
-	elapsed := time.Since(start)
-	if elapsed > 0 {
-		logger.Infof("[LighterRateLimiter] waited %v for endpoint %s (weight: %d)", elapsed, endpoint, weight)
-	}
-	return err
+	logger.Infof("[LighterRateLimiter] Wait called for endpoint %s", endpoint)
+	return nil
 }
 
-func (rl *RateLimiter) WaitN(ctx context.Context, endpoint string, count int) error {
-	weight := endpointWeights[endpoint]
-	if weight == 0 {
-		weight = 300
-	}
+func (rl *RateLimiter) WaitBatch(ctx context.Context, endpoint string, count int) error {
+	logger.Infof("[LighterRateLimiter] WaitBatch called: endpoint=%s, count=%d", endpoint, count)
 
-	start := time.Now()
-	err := rl.limiter.WaitN(ctx, weight*count)
-	elapsed := time.Since(start)
-	if elapsed > 0 {
-		logger.Infof("[LighterRateLimiter] waited %v for endpoint %s (weight: %d x %d)", elapsed, endpoint, weight, count)
-	}
-	return err
-}
-
-func (rl *RateLimiter) WaitBatch(ctx context.Context, endpoint string, count, batchSize int) error {
-	weight := endpointWeights[endpoint]
-	if weight == 0 {
-		weight = 300
-	}
-
-	batches := (count + batchSize - 1) / batchSize
+	batches := (count + MaxTxPerBatch - 1) / MaxTxPerBatch
+	logger.Infof("[LighterRateLimiter] Will send %d batches (MaxTxPerBatch=%d)", batches, MaxTxPerBatch)
 
 	for i := 0; i < batches; i++ {
-		remaining := count - i*batchSize
-		currentBatchSize := int(math.Min(float64(batchSize), float64(remaining)))
+		remaining := count - i*MaxTxPerBatch
+		currentBatchSize := int(math.Min(float64(MaxTxPerBatch), float64(remaining)))
+
+		logger.Infof("[LighterRateLimiter] Batch %d/%d: requesting %d tokens", i+1, batches, currentBatchSize)
 
 		start := time.Now()
-		err := rl.limiter.WaitN(ctx, weight*currentBatchSize)
+		err := rl.limiter.WaitN(ctx, currentBatchSize)
 		elapsed := time.Since(start)
-		if elapsed > 0 {
-			logger.Infof("[LighterRateLimiter] waited %v for batch %d/%d, size %d", elapsed, i+1, batches, currentBatchSize)
-		}
+
+		logger.Infof("[LighterRateLimiter] Batch %d/%d: waited %v", i+1, batches, elapsed)
+
 		if err != nil {
+			logger.Errorf("[LighterRateLimiter] Batch %d/%d: error=%v", i+1, batches, err)
 			return err
 		}
 	}
+
+	logger.Infof("[LighterRateLimiter] WaitBatch completed successfully")
 	return nil
 }

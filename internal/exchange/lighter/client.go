@@ -40,6 +40,10 @@ func NewClient(httpClient *http.Client, rateLimiter *RateLimiter) *Client {
 	}
 }
 
+func (c *Client) RateLimiter() *RateLimiter {
+	return c.rateLimiter
+}
+
 // GetNextNonce 获取下一个nonce值
 // 用于生成交易签名时需要的递增nonce
 func (c *Client) GetNextNonce(ctx context.Context, accountIndex int64, apiKeyIndex uint8) (int64, error) {
@@ -210,17 +214,41 @@ func (c *Client) SendRawTx(ctx context.Context, txType TX_TYPE, txInfo string) (
 }
 
 // SendRawTxBatch 批量发送原始交易
-// 一次性发送多笔签名交易，提高效率
+// 自动拆分为多个批次发送，每个批次最大 40 个交易
 func (c *Client) SendRawTxBatch(ctx context.Context, txTypes []TX_TYPE, txInfos []string) ([]string, error) {
-	if c.rateLimiter != nil {
-		batchSize := c.rateLimiter.BatchSize()
-		c.rateLimiter.WaitBatch(ctx, "sendTx", len(txTypes), batchSize)
-	}
-
 	if len(txTypes) != len(txInfos) {
 		return nil, errors.New("transaction types and info count mismatch")
 	}
 
+	maxBatchSize := MaxTxPerBatch
+	totalTx := len(txTypes)
+	allTxHashes := make([]string, 0, totalTx)
+
+	for start := 0; start < totalTx; start += maxBatchSize {
+		end := min(start+maxBatchSize, totalTx)
+
+		batchTxTypes := txTypes[start:end]
+		batchTxInfos := txInfos[start:end]
+
+		if c.rateLimiter != nil {
+			if err := c.rateLimiter.WaitBatch(ctx, "sendTx", len(batchTxTypes)); err != nil {
+				return allTxHashes, err
+			}
+		}
+
+		txHashes, err := c.sendRawTxBatch(ctx, batchTxTypes, batchTxInfos)
+		if err != nil {
+			return allTxHashes, err
+		}
+
+		allTxHashes = append(allTxHashes, txHashes...)
+	}
+
+	return allTxHashes, nil
+}
+
+// sendRawTxBatch 发送单个批次的交易
+func (c *Client) sendRawTxBatch(ctx context.Context, txTypes []TX_TYPE, txInfos []string) ([]string, error) {
 	txTypesData, err := json.Marshal(txTypes)
 	if err != nil {
 		return nil, err

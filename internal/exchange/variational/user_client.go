@@ -159,6 +159,12 @@ func (c *UserClient) IndicativeQuote(ctx context.Context, symbol string, qty dec
 
 // CreateLimitOrder 创建限价订单
 func (c *UserClient) CreateLimitOrder(ctx context.Context, symbol string, side OrderSide, limitPrice, qty decimal.Decimal, isReduceOnly bool) (*CreateOrderRes, error) {
+	if c.client.rateLimiter != nil {
+		if err := c.client.rateLimiter.Wait(ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
@@ -198,6 +204,12 @@ func (c *UserClient) CreateLimitOrder(ctx context.Context, symbol string, side O
 
 // CreateMarketOrder 创建市价订单
 func (c *UserClient) CreateMarketOrder(ctx context.Context, symbol string, side OrderSide, qty, maxSlippage decimal.Decimal, isReduceOnly bool) (*CreateOrderRes, error) {
+	if c.client.rateLimiter != nil {
+		if err := c.client.rateLimiter.Wait(ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return nil, err
@@ -226,6 +238,12 @@ func (c *UserClient) CreateMarketOrder(ctx context.Context, symbol string, side 
 
 // CancelOrder 取消订单
 func (c *UserClient) CancelOrder(ctx context.Context, rfqId string) error {
+	if c.client.rateLimiter != nil {
+		if err := c.client.rateLimiter.Wait(ctx); err != nil {
+			return err
+		}
+	}
+
 	token, err := c.EnsureJwtToken(ctx)
 	if err != nil {
 		return err
