@@ -52,17 +52,19 @@ func (rl *RateLimiter) WaitBatch(ctx context.Context, endpoint string, count int
 	logger.Infof("[LighterRateLimiter] Window duration: %v, window started: %v",
 		windowDuration, rl.windowStartTime.Format("15:04:05.000"))
 
+	// 如果窗口已过期（超过60秒），重置窗口
 	if windowDuration >= 60*time.Second {
-		// 新的60秒窗口
 		rl.allowedRequests = rl.requestsPer60Seconds
 		rl.windowStartTime = now
+		windowDuration = 0
 
 		logger.Infof("[LighterRateLimiter] New 60s window started, %d requests available",
 			rl.allowedRequests)
 	}
 
+	// 检查是否有足够的请求配额
 	if rl.allowedRequests >= count {
-		// 当前窗口有足够的配额
+		// 当前窗口有足够的配额，直接使用
 		rl.allowedRequests -= count
 
 		logger.Infof("[LighterRateLimiter] Granted %d requests, %d remaining",
@@ -71,35 +73,22 @@ func (rl *RateLimiter) WaitBatch(ctx context.Context, endpoint string, count int
 		return nil
 	}
 
-	// 需要等待下一个窗口
-	neededRequests := count - rl.allowedRequests
-	waitTime := 60*time.Second - windowDuration
+	// 配额不足，必须等待完整的60秒
+	// 因为一旦当前窗口的配额用完，就必须等待下一个60秒窗口
+	logger.Infof("[LighterRateLimiter] Not enough requests. Window has %d available, need %d. Waiting full 60s for next window.",
+		rl.allowedRequests, count)
 
-	logger.Infof("[LighterRateLimiter] Not enough requests. Need %d more, window has %d available, waiting %v for next window",
-		neededRequests, rl.allowedRequests, waitTime)
+	select {
+	case <-time.After(60 * time.Second):
+		// 等待60秒后，进入新窗口
+		rl.windowStartTime = time.Now()
+		rl.allowedRequests = rl.requestsPer60Seconds - count
 
-	if waitTime > 0 {
-		select {
-		case <-time.After(waitTime):
-			// 等待完成，进入新窗口
-			rl.windowStartTime = time.Now()
-			rl.allowedRequests = rl.requestsPer60Seconds - neededRequests
+		logger.Infof("[LighterRateLimiter] New window started after 60s wait, granted %d requests, %d remaining",
+			count, rl.allowedRequests)
 
-			logger.Infof("[LighterRateLimiter] New window started, granted %d requests, %d remaining",
-				neededRequests, rl.allowedRequests)
-
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
-
-	// 等待时间为0，立即进入新窗口
-	rl.windowStartTime = now
-	rl.allowedRequests = rl.requestsPer60Seconds - neededRequests
-
-	logger.Infof("[LighterRateLimiter] New window started, granted %d requests, %d remaining",
-		neededRequests, rl.allowedRequests)
-
-	return nil
 }
