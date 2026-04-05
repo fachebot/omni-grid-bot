@@ -175,7 +175,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	}
 
 	if uint8(-record.InitialOrderSize.Exponent()) > mm.SupportedSizeDecimals {
-		text := fmt.Sprintf("❌ 代币数量小数位长度不能大于%d")
+		text := fmt.Sprintf("❌ 代币数量小数位长度不能大于%d", mm.SupportedSizeDecimals)
 		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 		return err
 	}
