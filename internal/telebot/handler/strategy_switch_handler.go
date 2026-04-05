@@ -338,12 +338,16 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 		return nil
 	}
 
-	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭并平仓...", nil)
+	msg, err := util.SendMarkdownMessage(h.svcCtx.Bot, chat, "🛑 正在关闭并平仓...", nil)
+	if err != nil {
+		return err
+	}
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		h.svcCtx.Bot.Edit(msg, "❌ 策略未运行", nil)
-		return nil
+		text := "❌ 策略未运行，停止关闭策略"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 检查 Rate Limit 配额
@@ -356,12 +360,13 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 
 	// 取消用户订单
 	name := util.StrategyName(record)
-	err := CancelAllOrders(ctx, h.svcCtx, record)
+	err = CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
-		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
-		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
 		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+
+		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
+		util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 	}
 
 	// 停止网格策略
@@ -370,10 +375,12 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	// 关闭用户仓位
 	err = ClosePosition(ctx, h.svcCtx, record)
 	if err != nil {
-		text := fmt.Sprintf("⚠️ [%s]关闭网格 *%s* %s 仓位失败", name, record.Symbol, record.Mode)
-		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
+
 		logger.Errorf("[StrategySwitchHandler] 关闭网格仓位失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+
+		text := fmt.Sprintf("⚠️ [%s]关闭网格 *%s* %s 仓位失败", name, record.Symbol, record.Mode)
+		util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 	}
 
 	// 更新策略状态
@@ -391,14 +398,15 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusInactive)
 	})
 	if err != nil {
-		text := "❌ 关闭策略失败，请稍后再试"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		logger.Errorf("[StrategySwitchHandler] 更新策略状态失败, guid: %s, %v", record.GUID, err)
-		return nil
+
+		text := "❌ 关闭策略失败，请稍后再试"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 	record.Status = strategy.StatusInactive
 
-	h.svcCtx.Bot.Edit(msg, "✅ 策略已停止", nil)
+	util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, "✅ 策略已停止", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
