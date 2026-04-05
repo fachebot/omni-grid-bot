@@ -32,6 +32,31 @@ func NewRateLimiter(requestsPer60Seconds int) *RateLimiter {
 	}
 }
 
+type RateLimiterStatus struct {
+	RemainingRequests int
+	NextWindowIn      time.Duration
+}
+
+func (rl *RateLimiter) Status() RateLimiterStatus {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	windowDuration := now.Sub(rl.windowStartTime)
+
+	var nextWindowIn time.Duration
+	if windowDuration >= 60*time.Second {
+		nextWindowIn = 0
+	} else {
+		nextWindowIn = 60*time.Second - windowDuration
+	}
+
+	return RateLimiterStatus{
+		RemainingRequests: rl.allowedRequests,
+		NextWindowIn:      nextWindowIn,
+	}
+}
+
 func (rl *RateLimiter) Wait(ctx context.Context, endpoint string) error {
 	return rl.WaitBatch(ctx, endpoint, 1)
 }

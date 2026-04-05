@@ -7,6 +7,7 @@ import (
 	"github.com/fachebot/omni-grid-bot/internal/engine"
 	"github.com/fachebot/omni-grid-bot/internal/ent"
 	"github.com/fachebot/omni-grid-bot/internal/ent/strategy"
+	"github.com/fachebot/omni-grid-bot/internal/exchange"
 	"github.com/fachebot/omni-grid-bot/internal/helper"
 	"github.com/fachebot/omni-grid-bot/internal/logger"
 	"github.com/fachebot/omni-grid-bot/internal/model"
@@ -133,7 +134,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在开启策略, 请稍后...", 1)
+	util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭并平仓...", nil)
 
 	// 检查策略状态
 	if record.Status != strategy.StatusInactive {
@@ -217,6 +218,14 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		}
 	}
 
+	// 检查 Rate Limit 配额
+	if record.Exchange == exchange.Lighter {
+		status := h.svcCtx.LighterClient.RateLimiter().Status()
+		if status.RemainingRequests < 10 {
+			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+		}
+	}
+
 	// 初始化网格策略
 	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record, prices)
 	if err != nil {
@@ -259,6 +268,14 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 
 	// 停止网格策略
 	strategyEngine.StopStrategy(record.GUID)
+
+	// 检查 Rate Limit 配额
+	if record.Exchange == exchange.Lighter {
+		status := h.svcCtx.LighterClient.RateLimiter().Status()
+		if status.RemainingRequests < 5 {
+			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+		}
+	}
 
 	// 取消用户订单
 	name := util.StrategyName(record)
@@ -312,6 +329,14 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 		text := "❌ 策略未运行"
 		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		return nil
+	}
+
+	// 检查 Rate Limit 配额
+	if record.Exchange == exchange.Lighter {
+		status := h.svcCtx.LighterClient.RateLimiter().Status()
+		if status.RemainingRequests < 5 {
+			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+		}
 	}
 
 	// 取消用户订单
