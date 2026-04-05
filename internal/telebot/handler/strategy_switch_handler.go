@@ -140,8 +140,8 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	}
 
 	// 检查策略状态
-	if record.Status != strategy.StatusActive {
-		text := "❌ 策略正在运行中"
+	if record.Status != strategy.StatusInactive {
+		text := "❌ 策略正在运行中，停止开启策略"
 		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 		return err
 	}
@@ -274,7 +274,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		text := "❌ 策略未运行"
+		text := "❌ 策略未运行，停止关闭策略"
 		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 		return err
 	}
