@@ -134,66 +134,73 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
-	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🚀 正在开启策略...", nil)
+	msg, err := util.SendMarkdownMessage(h.svcCtx.Bot, chat, "🚀 正在开启策略...", nil)
+	if err != nil {
+		return err
+	}
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		h.svcCtx.Bot.Edit(msg, "❌ 策略正在运行中", nil)
-		return nil
+		text := "❌ 策略正在运行中"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 测试交易所连接
 	account, err := helper.GetAccountInfo(ctx, h.svcCtx, record)
 	if err != nil {
 		text := "❌ 连接交易平台失败，请检查交易平台配置"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 查询币种信息
 	if record.Symbol == "" {
 		text := "❌ 此策略没有配置交易币种，请检查配置后重试"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 	mm, err := helper.GetMarketMetadata(ctx, h.svcCtx, record.Exchange, record.Symbol)
 	if err != nil {
 		text := "❌ 交易平台不支持此币种，请检查配置后重试"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 检查单笔数量
 	if record.InitialOrderSize.LessThan(mm.MinBaseAmount) {
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 代币数量不能小于%s", mm.MinBaseAmount), 3)
-		return nil
+		text := fmt.Sprintf("❌ 代币数量不能小于%s", mm.MinBaseAmount)
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	if uint8(-record.InitialOrderSize.Exponent()) > mm.SupportedSizeDecimals {
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 代币数量小数位长度不能大于%d", mm.SupportedSizeDecimals), 3)
-		return nil
+		text := fmt.Sprintf("❌ 代币数量小数位长度不能大于%d")
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 检查交易金额
 	if record.InitialOrderSize.Mul(record.PriceLower).LessThan(mm.MinQuoteAmount) {
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, fmt.Sprintf("❌ 单笔交易金额不能小于 %s USD，请调整单笔数量和价格下限", mm.MinQuoteAmount), 3)
-		return nil
+		text := fmt.Sprintf("❌ 单笔交易金额不能小于 %s USD，请调整单笔数量和价格下限", mm.MinQuoteAmount)
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 检查网格策略
 	result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndAccountAndSymbol(ctx, record.Exchange, record.Account, record.Symbol)
 	if err != nil || len(result) > 1 {
 		text := "❌ 同一交易账户不能创建多个相同币种的网格策略"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 生成网格价格
 	prices, err := gridstrategy.GenerateGridPrices(record, mm.SupportedPriceDecimals)
 	if err != nil || len(prices) == 0 {
 		text := "❌ 生成网格失败，请调整价格上下区间后重试"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 校验保证金数量
@@ -204,16 +211,16 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	}
 	if positionValue.GreaterThanOrEqual(maxPositionValue) {
 		text := fmt.Sprintf("❌ 账户保证金余额不足，必须大于 %s USD，请充值后重试", positionValue.Div(decimal.NewFromInt(int64(record.Leverage))).Truncate(2))
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-		return nil
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 检查入场价格
 	if record.EntryPrice != nil && record.EntryPrice.GreaterThan(decimal.Zero) {
 		if record.EntryPrice.LessThan(record.PriceLower) || record.EntryPrice.GreaterThan(record.PriceUpper) {
 			text := "❌ 策略入场价格必须在价格区间内，请检查配置后重试"
-			util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
-			return nil
+			_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+			return err
 		}
 	}
 
@@ -221,17 +228,19 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	if record.Exchange == exchange.Lighter {
 		status := h.svcCtx.LighterClient.RateLimiter().Status()
 		if status.RemainingRequests < 10 {
-			h.svcCtx.Bot.Edit(msg, "⏳ 等待 Rate Limit 配额...", nil)
+			text := "⏳ 等待 Rate Limit 配额..."
+			util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 		}
 	}
 
 	// 初始化网格策略
 	err = gridstrategy.InitGridStrategy(ctx, h.svcCtx, record, prices)
 	if err != nil {
-		text := fmt.Sprintf("❌ 初始化网格策略失败，请检查配置后重试\n\n`%s`", err.Error())
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		logger.Warnf("[StrategySwitchHandler] 初始化网格策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
-		return nil
+
+		text := fmt.Sprintf("❌ 初始化网格策略失败，请检查配置后重试\n\n`%s`", err.Error())
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 	record.Status = strategy.StatusActive
 
@@ -239,11 +248,13 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	err = strategyEngine.StartStrategy(gridstrategy.NewGridStrategy(h.svcCtx, strategyEngine, record))
 	if err != nil {
 		logger.Warnf("[StrategySwitchHandler] 运行策略失败, id: %s, symbol: %s, %v", record.GUID, record.Symbol, err)
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "❌ 运行策略失败，请联系管理员", 3)
-		return nil
+
+		text := "❌ 运行策略失败，请联系管理员"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
-	h.svcCtx.Bot.Edit(msg, "✅ 策略已开启", nil)
+	util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, "✅ 策略已开启", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
@@ -256,12 +267,16 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 		return nil
 	}
 
-	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭策略...", nil)
+	msg, err := util.SendMarkdownMessage(h.svcCtx.Bot, chat, "🛑 正在关闭策略...", nil)
+	if err != nil {
+		return err
+	}
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		h.svcCtx.Bot.Edit(msg, "❌ 策略未运行", nil)
-		return nil
+		text := "❌ 策略未运行"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 
 	// 停止网格策略
@@ -271,18 +286,20 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	if record.Exchange == exchange.Lighter {
 		status := h.svcCtx.LighterClient.RateLimiter().Status()
 		if status.RemainingRequests < 5 {
-			h.svcCtx.Bot.Edit(msg, "⏳ 等待 Rate Limit 配额...", nil)
+			text := "⏳ 等待 Rate Limit 配额..."
+			util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 		}
 	}
 
 	// 取消用户订单
 	name := util.StrategyName(record)
-	err := CancelAllOrders(ctx, h.svcCtx, record)
+	err = CancelAllOrders(ctx, h.svcCtx, record)
 	if err != nil {
-		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
-		util.SendMarkdownMessage(h.svcCtx.Bot, chat, text, nil)
 		logger.Errorf("[StrategySwitchHandler] 取消用户订单失败, id: %s, exchange: %s, account: %s, symbol: %s, %v",
 			record.GUID, record.Exchange, record.Account, record.Symbol, err)
+
+		text := fmt.Sprintf("⚠️ [%s]取消网格 *%s* %s 订单失败", name, record.Symbol, record.Mode)
+		util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
 	}
 
 	// 更新策略状态
@@ -300,14 +317,15 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 		return model.NewStrategyModel(tx.Strategy).UpdateStatus(ctx, record.ID, strategy.StatusInactive)
 	})
 	if err != nil {
-		text := "❌ 关闭策略失败，请稍后再试"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
 		logger.Errorf("[StrategySwitchHandler] 更新策略状态失败, guid: %s, %v", record.GUID, err)
-		return nil
+
+		text := "❌ 关闭策略失败，请稍后再试"
+		_, err = util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, text, nil)
+		return err
 	}
 	record.Status = strategy.StatusInactive
 
-	h.svcCtx.Bot.Edit(msg, "✅ 策略已停止", nil)
+	util.ReplyMessage(h.svcCtx.Bot, tele.Update{Message: msg}, "✅ 策略已停止", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
