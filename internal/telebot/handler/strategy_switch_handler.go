@@ -134,12 +134,11 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
-	util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭并平仓...", nil)
+	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🚀 正在开启策略...", nil)
 
 	// 检查策略状态
-	if record.Status != strategy.StatusInactive {
-		text := "❌ 策略正在运行中"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+	if record.Status != strategy.StatusActive {
+		h.svcCtx.Bot.Edit(msg, "❌ 策略正在运行中", nil)
 		return nil
 	}
 
@@ -222,7 +221,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 	if record.Exchange == exchange.Lighter {
 		status := h.svcCtx.LighterClient.RateLimiter().Status()
 		if status.RemainingRequests < 10 {
-			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+			h.svcCtx.Bot.Edit(msg, "⏳ 等待 Rate Limit 配额...", nil)
 		}
 	}
 
@@ -244,7 +243,7 @@ func (h *StrategySwitchHandler) handleStartStrategy(
 		return nil
 	}
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已开启", 1)
+	h.svcCtx.Bot.Edit(msg, "✅ 策略已开启", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
@@ -257,12 +256,11 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 		return nil
 	}
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在关闭策略, 请稍后...", 1)
+	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭策略...", nil)
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		text := "❌ 策略未运行"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		h.svcCtx.Bot.Edit(msg, "❌ 策略未运行", nil)
 		return nil
 	}
 
@@ -273,7 +271,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	if record.Exchange == exchange.Lighter {
 		status := h.svcCtx.LighterClient.RateLimiter().Status()
 		if status.RemainingRequests < 5 {
-			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+			h.svcCtx.Bot.Edit(msg, "⏳ 等待 Rate Limit 配额...", nil)
 		}
 	}
 
@@ -309,7 +307,7 @@ func (h *StrategySwitchHandler) handleStopStrategy(
 	}
 	record.Status = strategy.StatusInactive
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已停止", 1)
+	h.svcCtx.Bot.Edit(msg, "✅ 策略已停止", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
@@ -322,12 +320,11 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 		return nil
 	}
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 正在关闭策略, 请稍后...", 1)
+	msg, _ := util.ReplyMessage(h.svcCtx.Bot, update, "🛑 正在关闭并平仓...", nil)
 
 	// 检查策略状态
 	if record.Status != strategy.StatusActive {
-		text := "❌ 策略未运行"
-		util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, text, 3)
+		h.svcCtx.Bot.Edit(msg, "❌ 策略未运行", nil)
 		return nil
 	}
 
@@ -335,7 +332,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	if record.Exchange == exchange.Lighter {
 		status := h.svcCtx.LighterClient.RateLimiter().Status()
 		if status.RemainingRequests < 5 {
-			util.ReplyMessage(h.svcCtx.Bot, update, "⏳ 等待 Rate Limit 配额...", nil)
+			h.svcCtx.Bot.Edit(msg, "⏳ 等待 Rate Limit 配额...", nil)
 		}
 	}
 
@@ -383,7 +380,7 @@ func (h *StrategySwitchHandler) handleStopStrategyAndClose(
 	}
 	record.Status = strategy.StatusInactive
 
-	util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chat, "✅ 策略已停止", 1)
+	h.svcCtx.Bot.Edit(msg, "✅ 策略已停止", nil)
 
 	return DisplayStrategyDetails(ctx, h.svcCtx, userId, update, record)
 }
