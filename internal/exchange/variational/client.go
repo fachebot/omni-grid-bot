@@ -130,11 +130,11 @@ func (c *Client) GenerateSigningData(ctx context.Context, address string) (strin
 	payload := fmt.Sprintf(`{"address":"%s"}`, common.HexToAddress(address).Hex())
 	res := c.client.Post(g.String(url), payload).WithContext(ctx).Do()
 
-	var r GenerateSigningDataRes
-	if err := c.parseRespone(res, &r); err != nil {
+	if err := res.Err(); err != nil {
 		return "", err
 	}
-	return r.Message, nil
+
+	return res.Ok().Body.String().Std(), nil
 }
 
 // EnsureJwtToken 确保JWT令牌有效
