@@ -212,7 +212,7 @@ func (h *ExchangeSettingsLighterHandler) handleAccountIndex(ctx context.Context,
 			result, err := h.svcCtx.StrategyModel.FindAllByExchangeAndAccountAndSymbol(ctx, exchange.Lighter, apiKey, record.Symbol)
 			if err != nil || len(result) > 0 {
 				text := "❌ 此Lighter AccountIndex已被其他网格策略使用"
-				chatId := util.ChatId(update.Callback.Message.Chat.ID)
+				chatId := util.ChatId(update.Message.Chat.ID)
 				util.SendMarkdownMessageAndDelayDeletion(h.svcCtx.Bot, chatId, text, 1)
 				return nil
 			}
